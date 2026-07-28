@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScoreHub - Every Score. Every Moment.</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        
+        <!-- HEADER -->
+        <header class="main-header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="url(#logo-grad)" stroke-width="3" />
+                            <path d="M12 6V12L16 14" stroke="#00f2fe" stroke-width="2.5" stroke-linecap="round" />
+                            <defs>
+                                <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#00f2fe" />
+                                    <stop offset="1" stop-color="#4facfe" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>ScoreHub</h1>
+                        <span class="tagline">Every Score. Every Moment.</span>
+                    </div>
+                </div>
+                
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="#" class="nav-link active" id="nav-home">Home</a></li>
+                        <li><a href="#" class="nav-link" id="nav-live">Live Scores</a></li>
+                        <li><a href="#" class="nav-link" id="nav-fixtures">Fixtures</a></li>
+                        <li><a href="#" class="nav-link" id="nav-leagues">Leagues</a></li>
+                        <li><a href="#" class="nav-link" id="nav-news">News</a></li>
+                        <li><a href="#" class="nav-link" id="nav-teams">Teams</a></li>
+                        <li><a href="#" class="nav-link" id="nav-stats">Stats</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="nav-link dropdown-toggle">More <span class="arrow-down"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Transfers</a></li>
+                                <li><a href="#">Predictions</a></li>
+                                <li><a href="#">Shop</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="header-right">
+                <div class="search-container">
+                    <span class="search-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Search teams, matches, leagues...">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+                
+                <div class="api-toggle-container">
+                    <button class="api-mode-btn" id="api-mode-btn" title="Toggle Live API / Simulated Mode">
+                        <span class="api-indicator-dot pulsing-orange" id="api-mode-indicator"></span>
+                        <span id="api-mode-text">Simulation Mode</span>
+                    </button>
+                </div>
+
+                <button class="icon-btn theme-toggle" id="theme-toggle-btn" title="Toggle Theme">
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg class="sun-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+                
+                <button class="icon-btn notification-btn" id="notification-btn" title="Notifications">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span class="notification-badge"></span>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="dropdown-header">Notifications</div>
+                        <div class="dropdown-body" id="notification-list">
+                            <div class="notification-item unread">
+                                <div class="item-title">GOAL! Arsenal 2 - 1 Chelsea</div>
+                                <div class="item-time">Just Now</div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="item-title">Match Started: PSG vs Lille</div>
+                                <div class="item-time">12 mins ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+                
+                <button class="icon-btn favs-toggle-btn" id="favs-toggle-top-btn" title="View Favorites">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </button>
+                
+                <button class="btn btn-login" id="login-btn">Login</button>
+            </div>
+        </header>
+
+        <!-- API STATUS BAR (shown when Live API mode is active) -->
+        <div class="api-status-bar" id="api-status-bar">
+            <span class="api-sb-dot"></span>
+            <span class="api-sb-text">Live data from ESPN API</span>
+            <span class="api-sb-timestamp" id="api-last-updated">Fetching...</span>
+        </div>
+
+        <!-- SPORTS SELECTOR STRIP -->
+        <section class="sports-selector">
+            <div class="sports-track">
+                <button class="sport-tab active" data-sport="all">
+                    <span class="sport-icon">🌍</span>
+                    <span class="sport-name">All Sports</span>
+                </button>
+                <button class="sport-tab" data-sport="football">
+                    <span class="sport-icon">⚽</span>
+                    <span class="sport-name">Football</span>
+                </button>
+                <button class="sport-tab" data-sport="basketball">
+                    <span class="sport-icon">🏀</span>
+                    <span class="sport-name">Basketball</span>
+                </button>
+                <button class="sport-tab" data-sport="tennis">
+                    <span class="sport-icon">🎾</span>
+                    <span class="sport-name">Tennis</span>
+                </button>
+                <button class="sport-tab" data-sport="baseball">
+                    <span class="sport-icon">⚾</span>
+                    <span class="sport-name">Baseball</span>
+                </button>
+                <button class="sport-tab" data-sport="icehockey">
+                    <span class="sport-icon">🏒</span>
+                    <span class="sport-name">Ice Hockey</span>
+                </button>
+                <button class="sport-tab" data-sport="rugby">
+                    <span class="sport-icon">🏉</span>
+                    <span class="sport-name">Rugby</span>
+                </button>
+                <button class="sport-tab" data-sport="esports">
+                    <span class="sport-icon">🎮</span>
+                    <span class="sport-name">Esports</span>
+                </button>
+                <button class="sport-tab" data-sport="cricket">
+                    <span class="sport-icon">🏏</span>
+                    <span class="sport-name">Cricket</span>
+                </button>
+                <button class="sport-tab" data-sport="volleyball">
+                    <span class="sport-icon">🏐</span>
+                    <span class="sport-name">Volleyball</span>
+                </button>
+                <button class="sport-tab" data-sport="handball">
+                    <span class="sport-icon">🤾</span>
+                    <span class="sport-name">Handball</span>
+                </button>
+                <button class="sport-tab" data-sport="mma">
+                    <span class="sport-icon">🥊</span>
+                    <span class="sport-name">MMA</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- HERO SECTION (Hero Text, Match Spotlight, Top Scorers) -->
+        <section class="hero-grid">
+            
+            <!-- HERO LEFT: CTA & Stats -->
+            <div class="hero-card hero-cta-card">
+                <div class="badge-live-matches">
+                    <span class="live-dot-pulse"></span>
+                    <span id="live-match-count-badge">54 Matches Live Now</span>
+                </div>
+                <h2 class="hero-title">Every Score.<br><span class="highlight-text">Every Moment.</span></h2>
+                <p class="hero-description">Real-time live scores, stats, fixtures and results from your favorite leagues and teams.</p>
+                
+                <div class="hero-buttons">
+                    <button class="btn btn-primary btn-icon" id="hero-btn-live">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Live Scores
+                    </button>
+                    <button class="btn btn-secondary btn-icon" id="hero-btn-fixtures">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Upcoming Fixtures
+                    </button>
+                </div>
+                
+                <div class="hero-stats-row">
+                    <div class="stat-box">
+                        <span class="stat-num" id="stat-live-matches">54</span>
+                        <span class="stat-lbl">LIVE MATCHES</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">12</span>
+                        <span class="stat-lbl">SPORTS</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">98</span>
+                        <span class="stat-lbl">LEAGUES</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">2.5M+</span>
+                        <span class="stat-lbl">USERS</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- HERO CENTER: Match Spotlight -->
+            <div class="hero-card spotlight-card" id="match-spotlight">
+                <div class="spotlight-header">
+                    <span class="spotlight-league" id="spotlight-league">UEFA Champions League</span>
+                    <div class="live-status-pill">
+                        <span class="live-dot-pulse"></span>
+                        <span class="live-text">LIVE</span>
+                        <span class="live-time" id="spotlight-time">72'</span>
+                    </div>
+                </div>
+                
+                <div class="spotlight-scoreboard">
+                    <div class="team-block home-team">
+                        <div class="team-logo-shield" id="spotlight-home-logo-container">
+                            <!-- SVG Shield Logo -->
+                            <svg class="shield-logo" viewBox="0 0 50 50" width="50" height="50">
+                                <path d="M25 5 L40 10 L40 30 C40 40 25 45 25 45 C25 45 10 40 10 30 L10 10 Z" fill="#dd1d25" />
+                                <circle cx="25" cy="23" r="10" fill="#fff" />
+                                <text x="25" y="27" font-size="12" font-weight="bold" fill="#dd1d25" text-anchor="middle">ARS</text>
+                            </svg>
+                        </div>
+                        <span class="team-name" id="spotlight-home-name">Arsenal</span>
+                    </div>
+                    
+                    <div class="score-block">
+                        <div class="score-display">
+                            <span class="score-num" id="spotlight-home-score">2</span>
+                            <span class="score-divider">-</span>
+                            <span class="score-num" id="spotlight-away-score">1</span>
+                        </div>
+                        <span class="ht-score" id="spotlight-halftime-score">HT 1-0</span>
+                    </div>
+                    
+                    <div class="team-block away-team">
+                        <div class="team-logo-shield" id="spotlight-away-logo-container">
+                            <!-- SVG Shield Logo -->
+                            <svg class="shield-logo" viewBox="0 0 50 50" width="50" height="50">
+                                <path d="M25 5 L40 10 L40 30 C40 40 25 45 25 45 C25 45 10 40 10 30 L10 10 Z" fill="#034694" />
+                                <circle cx="25" cy="23" r="10" fill="#fff" />
+                                <text x="25" y="27" font-size="11" font-weight="bold" fill="#034694" text-anchor="middle">CHE</text>
+                            </svg>
+                        </div>
+                        <span class="team-name" id="spotlight-away-name">Chelsea</span>
+                    </div>
+                </div>
+                
+                <div class="spotlight-details">
+                    <div class="scorers home-scorers" id="spotlight-home-scorers">
+                        <div class="scorer-item">⚽ 12' Martin Ødegaard</div>
+                        <div class="scorer-item">⚽ 45'+2 Bukayo Saka</div>
+                    </div>
+                    <div class="scorers away-scorers" id="spotlight-away-scorers">
+                        <div class="scorer-item">⚽ 45' N. Jackson</div>
+                    </div>
+                </div>
+                
+                <div class="spotlight-actions">
+                    <button class="btn btn-watch-live btn-icon" id="watch-live-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Watch Live
+                    </button>
+                </div>
+            </div>
+            
+            <!-- HERO RIGHT: Top Scorers -->
+            <div class="hero-card scorers-card">
+                <div class="card-header-row">
+                    <h3>Top Scorers</h3>
+                    <a href="#" class="view-all-link">View All</a>
+                </div>
+                <div class="scorers-list">
+                    <div class="scorer-row">
+                        <div class="scorer-rank-info">
+                            <span class="rank-num">1</span>
+                            <div class="player-avatar-mini">EH</div>
+                            <div class="player-meta">
+                                <span class="player-name">Erling Haaland</span>
+                                <span class="player-club">Man City</span>
+                            </div>
+                        </div>
+                        <span class="goals-count">21</span>
+                    </div>
+                    <div class="scorer-row">
+                        <div class="scorer-rank-info">
+                            <span class="rank-num">2</span>
+                            <div class="player-avatar-mini">KM</div>
+                            <div class="player-meta">
+                                <span class="player-name">Kylian Mbappé</span>
+                                <span class="player-club">PSG</span>
+                            </div>
+                        </div>
+                        <span class="goals-count">18</span>
+                    </div>
+                    <div class="scorer-row">
+                        <div class="scorer-rank-info">
+                            <span class="rank-num">3</span>
+                            <div class="player-avatar-mini">HK</div>
+                            <div class="player-meta">
+                                <span class="player-name">Harry Kane</span>
+                                <span class="player-club">Bayern Munich</span>
+                            </div>
+                        </div>
+                        <span class="goals-count">17</span>
+                    </div>
+                    <div class="scorer-row">
+                        <div class="scorer-rank-info">
+                            <span class="rank-num">4</span>
+                            <div class="player-avatar-mini">LM</div>
+                            <div class="player-meta">
+                                <span class="player-name">Lautaro Martínez</span>
+                                <span class="player-club">Inter Milan</span>
+                            </div>
+                        </div>
+                        <span class="goals-count">16</span>
+                    </div>
+                    <div class="scorer-row">
+                        <div class="scorer-rank-info">
+                            <span class="rank-num">5</span>
+                            <div class="player-avatar-mini">MS</div>
+                            <div class="player-meta">
+                                <span class="player-name">Mohamed Salah</span>
+                                <span class="player-club">Liverpool</span>
+                            </div>
+                        </div>
+                        <span class="goals-count">15</span>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- LIVE TICKER STRIP -->
+        <section class="ticker-strip">
+            <div class="ticker-content" id="ticker-slider">
+                <!-- Ticker cards populated by JS -->
+            </div>
+        </section>
+
+        <!-- MAIN LAYOUT GRID -->
+        <main class="dashboard-grid">
+            
+            <!-- COLUMN 1: Popular Leagues -->
+            <aside class="sidebar-leagues">
+                <div class="card-box">
+                    <div class="card-header-row">
+                        <h3>Popular Leagues</h3>
+                        <a href="#" class="view-all-link">View All</a>
+                    </div>
+                    <div class="leagues-list">
+                        <div class="league-row active" data-league-id="EPL">
+                            <div class="league-info">
+                                <span class="league-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                                <span class="league-name">Premier League</span>
+                            </div>
+                            <span class="teams-count">20 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="UCL">
+                            <div class="league-info">
+                                <span class="league-flag">🇪🇺</span>
+                                <span class="league-name">UEFA Champions League</span>
+                            </div>
+                            <span class="teams-count">32 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="LaLiga">
+                            <div class="league-info">
+                                <span class="league-flag">🇪🇸</span>
+                                <span class="league-name">La Liga</span>
+                            </div>
+                            <span class="teams-count">20 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="SerieA">
+                            <div class="league-info">
+                                <span class="league-flag">🇮🇹</span>
+                                <span class="league-name">Serie A</span>
+                            </div>
+                            <span class="teams-count">20 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="Bundesliga">
+                            <div class="league-info">
+                                <span class="league-flag">🇩🇪</span>
+                                <span class="league-name">Bundesliga</span>
+                            </div>
+                            <span class="teams-count">18 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="Ligue1">
+                            <div class="league-info">
+                                <span class="league-flag">🇫🇷</span>
+                                <span class="league-name">Ligue 1</span>
+                            </div>
+                            <span class="teams-count">18 Teams</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- COLUMN 2: Live Scores -->
+            <section class="live-scores-section">
+                <div class="card-box">
+                    <div class="scores-header">
+                        <h3>Live Scores</h3>
+                        <div class="scores-filters">
+                            <button class="filter-tab active" data-filter="all">All</button>
+                            <button class="filter-tab" data-filter="live">
+                                <span class="live-indicator-dot"></span>Live
+                            </button>
+                            <button class="filter-tab" data-filter="ht">HT</button>
+                            <button class="filter-tab" data-filter="today">Today</button>
+                            <button class="filter-tab" data-filter="favorites">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                Favorites
+                            </button>
+                            <button class="filter-options-btn" id="filter-options-toggle">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="matches-list" id="matches-container">
+                        <!-- Matches injected here dynamically by JS -->
+                    </div>
+                    
+                    <div class="view-all-matches-footer">
+                        <button class="btn-text-link" id="view-all-matches-btn">View All Live Matches &rarr;</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- COLUMN 3: Standings & Stats -->
+            <section class="standings-stats-section">
+                <!-- Standings Card -->
+                <div class="card-box standings-card">
+                    <div class="standings-header">
+                        <h3>Standings</h3>
+                        <div class="standings-tabs">
+                            <button class="standings-tab active" data-standing-league="EPL">EPL</button>
+                            <button class="standings-tab" data-standing-league="LaLiga">La Liga</button>
+                            <button class="standings-tab" data-standing-league="SerieA">Serie A</button>
+                        </div>
+                    </div>
+                    
+                    <div class="standings-table-container">
+                        <table class="standings-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-rank">#</th>
+                                    <th class="col-team">Team</th>
+                                    <th class="col-stat">P</th>
+                                    <th class="col-stat">GD</th>
+                                    <th class="col-stat">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standings-table-body">
+                                <!-- Standings rows populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="view-full-table-row">
+                        <a href="#" class="view-all-link">View Full Table &rarr;</a>
+                    </div>
+                </div>
+                
+                <!-- Match Statistics Card (Linked to Spotlighted Match) -->
+                <div class="card-box stats-comparison-card">
+                    <div class="card-header-row">
+                        <h3>Match Statistics</h3>
+                    </div>
+                    <div class="stats-versus-header">
+                        <span class="stat-team-lbl home-lbl" id="stats-home-name">ARS</span>
+                        <div class="stats-score-badge">
+                            <span id="stats-home-score">2</span>
+                            <span>-</span>
+                            <span id="stats-away-score">1</span>
+                        </div>
+                        <span class="stat-team-lbl away-lbl" id="stats-away-name">CHE</span>
+                    </div>
+                    
+                    <div class="stats-bars-container" id="stats-bars-list">
+                        <!-- Stat rows populated by JS -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- COLUMN 4: Latest News -->
+            <aside class="sidebar-news">
+                <div class="card-box">
+                    <div class="card-header-row">
+                        <h3>Latest News</h3>
+                        <a href="#" class="view-all-link">View All</a>
+                    </div>
+                    <div class="news-list" id="news-container">
+                        <!-- News items dynamically generated by JS -->
+                    </div>
+                </div>
+            </aside>
+            
+        </main>
+
+        <!-- HIGHLIGHT FEATURES STRIP -->
+        <section class="features-strip">
+            <div class="feature-card">
+                <div class="feature-icon lightning-glow">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div class="feature-info">
+                    <h4>Real-time Updates</h4>
+                    <p>Get live scores and updates instantly as they happen.</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon chart-glow">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                </div>
+                <div class="feature-info">
+                    <h4>In-depth Statistics</h4>
+                    <p>Detailed stats, analytics and team performance data.</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon bell-glow">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                </div>
+                <div class="feature-info">
+                    <h4>Personalized Alerts</h4>
+                    <p>Follow your teams and get instant notifications.</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon star-glow">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </div>
+                <div class="feature-info">
+                    <h4>Favorites</h4>
+                    <p>Save matches, teams and leagues you care about.</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon globe-glow">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                </div>
+                <div class="feature-info">
+                    <h4>All Sports Covered</h4>
+                    <p>Football, Basketball, Tennis, Cricket and many more.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="main-footer">
+            <div class="footer-top-grid">
+                
+                <div class="footer-brand-col">
+                    <div class="logo-container">
+                        <div class="logo-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="url(#footer-logo-grad)" stroke-width="3" />
+                                <path d="M12 6V12L16 14" stroke="#00f2fe" stroke-width="2.5" stroke-linecap="round" />
+                                <defs>
+                                    <linearGradient id="footer-logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#00f2fe" />
+                                        <stop offset="1" stop-color="#4facfe" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <h3>ScoreHub</h3>
+                            <span class="tagline">Every Score. Every Moment.</span>
+                        </div>
+                    </div>
+                    <p class="brand-desc">Your ultimate destination for live scores, sports news, stats and much more. Follow your favorite clubs anywhere, anytime.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-icon">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8H7v3h2v9h4v-9h3.6l.4-3H13V6c0-.5.5-1 1-1h3V2h-4c-2.8 0-5 2.2-5 5v1z"/></svg>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 00-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.507a3.003 3.003 0 00-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 002.11 2.11c1.871.507 9.388.507 9.388.507s7.517 0 9.388-.507a3.003 3.003 0 002.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.527-4.477-10-10-10zm4.59 7.74l-1.57 7.42c-.12.53-.43.66-.88.41l-2.4-1.77-1.16 1.12c-.13.13-.24.24-.49.24l.17-2.44 4.44-4.01c.19-.17-.04-.26-.3-.09l-5.5 3.46-2.37-.74c-.51-.16-.52-.51.11-.76l9.26-3.57c.43-.16.8.09.63.76z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Live Scores</a></li>
+                        <li><a href="#">Fixtures</a></li>
+                        <li><a href="#">News</a></li>
+                        <li><a href="#">Teams</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Leagues</h4>
+                    <ul>
+                        <li><a href="#">Premier League</a></li>
+                        <li><a href="#">La Liga</a></li>
+                        <li><a href="#">Serie A</a></li>
+                        <li><a href="#">Champions League</a></li>
+                        <li><a href="#">Bundesliga</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-download-col">
+                    <h4>Download Our App</h4>
+                    <p>Get the latest scores and updates on your mobile device.</p>
+                    
+                    <div class="app-badges">
+                        <a href="#" class="download-badge badge-google-play">
+                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>GET IT ON</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>Google Play</text></svg>" alt="Google Play">
+                        </a>
+                        <a href="#" class="download-badge badge-app-store">
+                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>Download on the</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>App Store</text></svg>" alt="App Store">
+                        </a>
+                    </div>
+                    
+                    <!-- Phone Preview Container -->
+                    <div class="phone-mockup-wrapper">
+                        <div class="phone-frame">
+                            <div class="phone-screen">
+                                <div class="phone-header">ScoreHub</div>
+                                <div class="phone-match-card">
+                                    <div class="phone-league">Champions League</div>
+                                    <div class="phone-teams">
+                                        <span>ARS</span>
+                                        <span class="phone-score">2 - 1</span>
+                                        <span>CHE</span>
+                                    </div>
+                                    <div class="phone-time">72' Live</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 ScoreHub. All Rights Reserved.</p>
+                <p>Made with <span class="heart-icon">&hearts;</span> for sports fans</p>
+            </div>
+        </footer>
+
+        <!-- WATCH LIVE MODAL (INTERACTIVE VIDEO PLAYER SIMULATOR) -->
+        <div class="modal-overlay" id="watch-live-modal">
+            <div class="modal-card video-player-card">
+                <button class="close-modal-btn" id="close-watch-modal">&times;</button>
+                <div class="modal-body">
+                    <h3>Live Match Broadcast - Arsenal vs Chelsea</h3>
+                    <div class="video-container">
+                        <!-- Simulated Interactive Live Tracker / Stream -->
+                        <div class="video-player-placeholder">
+                            <div class="live-indicator-overlay">
+                                <span class="live-dot-pulse"></span>
+                                <span>LIVE BROADCAST FEED</span>
+                            </div>
+                            <div class="interactive-pitch" id="live-pitch-animation">
+                                <!-- Tactical Pitch View -->
+                                <div class="pitch-center-circle"></div>
+                                <div class="pitch-half-line"></div>
+                                <div class="pitch-penalty-box home-box"></div>
+                                <div class="pitch-penalty-box away-box"></div>
+                                <!-- Animated Ball and Players -->
+                                <div class="pitch-ball" id="pitch-ball"></div>
+                                <div class="pitch-player team-a p1" style="left:20%; top:50%;"></div>
+                                <div class="pitch-player team-a p2" style="left:35%; top:30%;"></div>
+                                <div class="pitch-player team-a p3" style="left:35%; top:70%;"></div>
+                                <div class="pitch-player team-b p4" style="left:80%; top:50%;"></div>
+                                <div class="pitch-player team-b p5" style="left:65%; top:35%;"></div>
+                                <div class="pitch-player team-b p6" style="left:65%; top:65%;"></div>
+                            </div>
+                            <div class="player-controls">
+                                <button class="btn btn-control" id="play-pause-btn">Pause Stream</button>
+                                <span class="stream-stat" id="stream-viewers-count">👁️ 84,392 Watching</span>
+                                <span class="stream-stat">🔊 HD Stereo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-ticker-container">
+                        <h4>Live Commentary</h4>
+                        <div class="commentary-list" id="commentary-list">
+                            <p><strong>[72']</strong> Arsenal keeps possession in the middle third.</p>
+                            <p><strong>[70']</strong> Substitution Chelsea: Mudryk replaces Sterling.</p>
+                            <p><strong>[68']</strong> Yellow Card: Cole Palmer (Chelsea) for a tactical foul.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIN MODAL -->
+        <div class="modal-overlay" id="login-modal">
+            <div class="modal-card auth-card">
+                <button class="close-modal-btn" id="close-login-modal">&times;</button>
+                <div class="modal-body">
+                    <h2>Login to ScoreHub</h2>
+                    <p>Follow your favorite teams, pin live matches, and receive instant score alerts!</p>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email Address</label>
+                            <input type="email" id="login-email" required placeholder="name@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-full">Sign In</button>
+                    </form>
+                    <div class="auth-footer">
+                        <span>Don't have an account? <a href="#" id="go-to-signup">Sign Up</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Entry -->
+    <script src="app.js"></script>
+</body>
+</html>
