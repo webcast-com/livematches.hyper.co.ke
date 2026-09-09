@@ -487,14 +487,105 @@ const TEAM_COLORS = {
     "Lille":                 "#e01e22"
 };
 
-// Fetch ESPN scoreboard for a specific endpoint slug
+// --- ESPN transport (multi-strategy with automatic fallback) ---
+// NOTE: ESPN's Akamai CDN blocks most public CORS proxies (allorigins, corsproxy.io,
+// codetabs…) with "Access Denied" 403 pages, so proxying every request breaks live
+// data. ESPN's own web app calls these API hosts directly from the browser, so we
+// try DIRECT requests first and only fall back to public proxies when a network
+// (e.g. a corporate firewall) blocks direct cross-origin calls.
+// The first strategy that returns valid ESPN JSON is remembered and reused.
+
+const ESPN_FETCH_TIMEOUT_MS = 10000;
+
+// Each strategy: build(path) → fetchable URL, parse(resp) → ESPN JSON
+const ESPN_STRATEGIES = [
+    {
+        name: "direct·web",
+        build: p => `https://site.web.api.espn.com${p}`,
+        parse: r => r.json()
+    },
+    {
+        name: "direct",
+        build: p => `https://site.api.espn.com${p}`,
+        parse: r => r.json()
+    },
+    {
+        name: "proxy·allorigins",
+        build: p => `https://api.allorigins.win/raw?url=${encodeURIComponent("https://site.api.espn.com" + p)}`,
+        parse: r => r.json()
+    },
+    {
+        name: "proxy·codetabs",
+        build: p => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent("https://site.api.espn.com" + p)}`,
+        parse: r => r.json()
+    },
+    {
+        name: "proxy·allorigins·wrapped",
+        build: p => `https://api.allorigins.win/get?url=${encodeURIComponent("https://site.api.espn.com" + p)}`,
+        parse: async r => {
+            const wrapper = await r.json();
+            if (wrapper && wrapper.status && wrapper.status.http_code && wrapper.status.http_code !== 200) {
+                throw new Error(`upstream HTTP ${wrapper.status.http_code}`);
+            }
+            return typeof wrapper.contents === "string" ? JSON.parse(wrapper.contents) : wrapper;
+        }
+    }
+];
+
+let espnWorkingStrategy = null; // memoized index of the strategy that last worked
+
+// Guard against CDN "Access Denied" HTML pages masquerading as successful responses
+function isValidESPNData(data) {
+    return !!(data && typeof data === "object" &&
+        (Array.isArray(data.leagues) || Array.isArray(data.events) || data.season || data.day));
+}
+
+async function fetchWithTimeout(url, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { cache: "no-cache", signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+function espnTransportName() {
+    return espnWorkingStrategy !== null ? ESPN_STRATEGIES[espnWorkingStrategy].name : "auto";
+}
+
+// Fetch ESPN scoreboard for a specific endpoint slug, trying each transport
+// strategy in order until one returns valid ESPN JSON.
 async function fetchESPNLeague(slug) {
-    const CORS_PROXY = "https://api.allorigins.win/raw?url=";
-    const BASE = "https://site.api.espn.com/apis/site/v2/sports/";
-    const url = `${CORS_PROXY}${encodeURIComponent(BASE + slug + "/scoreboard")}`;
-    const resp = await fetch(url, { cache: "no-cache" });
-    if (!resp.ok) throw new Error(`ESPN fetch failed for ${slug}: ${resp.status}`);
-    return resp.json();
+    const path = `/apis/site/v2/sports/${slug}/scoreboard`;
+
+    // Try the memoized strategy first, then the rest in order
+    const order = [];
+    if (espnWorkingStrategy !== null) order.push(espnWorkingStrategy);
+    for (let i = 0; i < ESPN_STRATEGIES.length; i++) {
+        if (i !== espnWorkingStrategy) order.push(i);
+    }
+
+    let lastError = null;
+    for (const idx of order) {
+        const strategy = ESPN_STRATEGIES[idx];
+        try {
+            const resp = await fetchWithTimeout(strategy.build(path), ESPN_FETCH_TIMEOUT_MS);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await strategy.parse(resp);
+            if (!isValidESPNData(data)) throw new Error("response is not ESPN JSON (likely a CDN block page)");
+            espnWorkingStrategy = idx; // remember what works
+            return data;
+        } catch (err) {
+            if (err && err.name === "AbortError") {
+                lastError = new Error("timeout");
+            } else {
+                lastError = err;
+            }
+            console.warn(`ESPN fetch via ${strategy.name} failed for ${slug}:`, lastError.message);
+        }
+    }
+    throw new Error(`All transports failed for ${slug} (${lastError ? lastError.message : "unknown error"})`);
 }
 
 // Convert ESPN event JSON → internal match object
@@ -650,16 +741,26 @@ async function loadAPIMatches() {
         })
     );
 
-    apiMatches = fetched;
-    apiLoading = false;
-
-    if (apiMatches.length === 0) {
-        // API returned no events — fall back gracefully
-        console.info("No ESPN events found. Falling back to simulation.");
+    if (apiMatches.length === 0 && fetched.length === 0) {
+        // No data at all — API unreachable or blocked. Fall back gracefully.
+        apiLoading = false;
+        console.info("ESPN fetch failed on all transports. Falling back to simulation.");
         setApiMode(false);
-        showNotification("No live matches found in API. Switched to Simulation Mode.");
+        showNotification("Live data unreachable (network/CDN block). Switched to Simulation Mode.");
         return;
     }
+
+    if (fetched.length === 0) {
+        // Refresh failed but we still have the previous data — keep showing it
+        apiLoading = false;
+        const keepUpdatedEl = document.getElementById("api-last-updated");
+        if (keepUpdatedEl) keepUpdatedEl.textContent = "Update failed — showing last data, retrying…";
+        console.warn("ESPN refresh failed; keeping previous match data.");
+        return;
+    }
+
+    apiMatches = fetched;
+    apiLoading = false;
 
     // Update live match counter badge
     const liveCount = apiMatches.filter(m => m.status === "live").length;
@@ -668,11 +769,11 @@ async function loadAPIMatches() {
     if (badge) badge.textContent = `${liveCount || apiMatches.length} Matches (API)`;
     if (statNum) statNum.textContent = liveCount || apiMatches.length;
 
-    // Update status bar timestamp
+    // Update status bar timestamp (includes active transport for transparency)
     const lastUpdatedEl = document.getElementById("api-last-updated");
     if (lastUpdatedEl) {
         const now = new Date();
-        lastUpdatedEl.textContent = `Updated ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · ${apiMatches.length} events`;
+        lastUpdatedEl.textContent = `Updated ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · ${apiMatches.length} events · via ${espnTransportName()}`;
     }
 
     renderMatches();
@@ -1420,7 +1521,7 @@ function initEventHandlers() {
     });
 }
 
-// --- INITIALIZATION ---
+// --- INITIALIZATION --- 
 function init() {
     initEventHandlers();
     
@@ -1430,6 +1531,10 @@ function init() {
     renderNews();
     renderMatches();
     setSpotlightMatch("fb-1");
+    
+    // Start in Live API mode — automatically falls back to Simulation Mode
+    // if ESPN is unreachable (loadAPIMatches handles the fallback)
+    setApiMode(true);
     
     // Start Live Match Simulation (guarded — skips when isApiMode === true)
     setInterval(simulationLoop, 6000);   // clock ticks every 6 s
