@@ -396,6 +396,8 @@ const notificationBtn = document.getElementById("notification-btn");
 const notificationDropdown = document.getElementById("notification-dropdown");
 const navHome = document.getElementById("nav-home");
 const navLive = document.getElementById("nav-live");
+const navToggleBtn = document.getElementById("nav-toggle-btn");
+const mainNav = document.querySelector(".main-nav");
 const heroBtnLive = document.getElementById("hero-btn-live");
 
 // API controls
@@ -1492,6 +1494,51 @@ function initEventHandlers() {
         notificationDropdown.classList.toggle("active");
         document.querySelector(".notification-badge").classList.remove("active");
     });
+
+    // Mobile navigation drawer (hamburger)
+    const closeMobileNav = () => {
+        document.body.classList.remove("nav-open");
+        navToggleBtn.setAttribute("aria-expanded", "false");
+        navToggleBtn.setAttribute("aria-label", "Open menu");
+    };
+
+    navToggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = document.body.classList.toggle("nav-open");
+        navToggleBtn.setAttribute("aria-expanded", String(isOpen));
+        navToggleBtn.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+    });
+
+    // Close the drawer after choosing a destination
+    mainNav.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", closeMobileNav);
+    });
+
+    // Close when tapping the backdrop / anywhere outside
+    document.addEventListener("click", (e) => {
+        if (
+            document.body.classList.contains("nav-open") &&
+            !e.target.closest(".main-nav") &&
+            !e.target.closest("#nav-toggle-btn")
+        ) {
+            closeMobileNav();
+        }
+    });
+
+    // Close on Escape
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMobileNav();
+    });
+
+    // Reset drawer state when resizing up to desktop
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 992) closeMobileNav();
+    });
+
+    // Compact search placeholder on very small screens
+    if (window.matchMedia("(max-width: 480px)").matches) {
+        searchInput.placeholder = "Search teams, matches...";
+    }
     
     // Quick link binds
     navHome.addEventListener("click", (e) => {
