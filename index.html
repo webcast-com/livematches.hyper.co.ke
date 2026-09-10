@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07090e">
     <title>ScoreHub - Every Score. Every Moment.</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +37,7 @@
                     </div>
                 </div>
                 
-                <nav class="main-nav">
+                <nav class="main-nav" id="main-nav">
                     <ul>
                         <li><a href="#" class="nav-link active" id="nav-home">Home</a></li>
                         <li><a href="#" class="nav-link" id="nav-live">Live Scores</a></li>
@@ -101,6 +102,13 @@
                 </button>
                 
                 <button class="btn btn-login" id="login-btn">Login</button>
+
+                <!-- Mobile nav toggle (hamburger) -->
+                <button class="icon-btn nav-toggle-btn" id="nav-toggle-btn" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+                    <span class="nav-toggle-bar"></span>
+                    <span class="nav-toggle-bar"></span>
+                    <span class="nav-toggle-bar"></span>
+                </button>
             </div>
         </header>
 
@@ -278,63 +286,8 @@
                     <h3>Top Scorers</h3>
                     <a href="#" class="view-all-link">View All</a>
                 </div>
-                <div class="scorers-list">
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">1</span>
-                            <div class="player-avatar-mini">EH</div>
-                            <div class="player-meta">
-                                <span class="player-name">Erling Haaland</span>
-                                <span class="player-club">Man City</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">21</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">2</span>
-                            <div class="player-avatar-mini">KM</div>
-                            <div class="player-meta">
-                                <span class="player-name">Kylian Mbappé</span>
-                                <span class="player-club">PSG</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">18</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">3</span>
-                            <div class="player-avatar-mini">HK</div>
-                            <div class="player-meta">
-                                <span class="player-name">Harry Kane</span>
-                                <span class="player-club">Bayern Munich</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">17</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">4</span>
-                            <div class="player-avatar-mini">LM</div>
-                            <div class="player-meta">
-                                <span class="player-name">Lautaro Martínez</span>
-                                <span class="player-club">Inter Milan</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">16</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">5</span>
-                            <div class="player-avatar-mini">MS</div>
-                            <div class="player-meta">
-                                <span class="player-name">Mohamed Salah</span>
-                                <span class="player-club">Liverpool</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">15</span>
-                    </div>
-                </div>
+                <!-- Rows populated by JS: ESPN golden boot in Live API mode, mock data otherwise -->
+                <div class="scorers-list" id="scorers-list"></div>
             </div>
             
         </section>
@@ -632,30 +585,115 @@
                 
                 <div class="footer-download-col">
                     <h4>Download Our App</h4>
-                    <p>Get the latest scores and updates on your mobile device.</p>
-                    
-                    <div class="app-badges">
-                        <a href="#" class="download-badge badge-google-play">
-                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>GET IT ON</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>Google Play</text></svg>" alt="Google Play">
-                        </a>
-                        <a href="#" class="download-badge badge-app-store">
-                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>Download on the</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>App Store</text></svg>" alt="App Store">
-                        </a>
-                    </div>
-                    
-                    <!-- Phone Preview Container -->
-                    <div class="phone-mockup-wrapper">
-                        <div class="phone-frame">
-                            <div class="phone-screen">
-                                <div class="phone-header">ScoreHub</div>
-                                <div class="phone-match-card">
-                                    <div class="phone-league">Champions League</div>
-                                    <div class="phone-teams">
-                                        <span>ARS</span>
-                                        <span class="phone-score">2 - 1</span>
-                                        <span>CHE</span>
+
+                    <div class="footer-download-inner">
+                        <div class="footer-download-info">
+                            <p>Get the latest scores and updates on your mobile device.</p>
+
+                            <div class="app-badges">
+                                <a href="#" class="download-badge badge-google-play">
+                                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>GET IT ON</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>Google Play</text></svg>" alt="Google Play">
+                                </a>
+                                <a href="#" class="download-badge badge-app-store">
+                                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>Download on the</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>App Store</text></svg>" alt="App Store">
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Phone Preview Container (decorative app mockup, built at 2x and scaled down for crispness) -->
+                        <div class="phone-mockup-wrapper" aria-hidden="true">
+                            <div class="phone-mockup-scale">
+                                <div class="phone-frame">
+                                    <div class="phone-notch"></div>
+                                    <div class="phone-screen">
+                                        <!-- Status bar -->
+                                        <div class="phone-status-bar">
+                                            <span class="psb-time">21:45</span>
+                                            <span class="psb-icons">
+                                                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><rect x="0" y="7" width="2.6" height="4" rx="0.9"/><rect x="4.1" y="5" width="2.6" height="6" rx="0.9"/><rect x="8.2" y="2.5" width="2.6" height="8.5" rx="0.9"/><rect x="12.3" y="0" width="2.6" height="11" rx="0.9" opacity="0.35"/></svg>
+                                                <svg width="15" height="11" viewBox="0 0 24 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M2 5.5C8.5 -1 15.5 -1 22 5.5"/><path d="M6.5 9.5c3-2.8 8-2.8 11 0"/><path d="M12 13.5h.01"/></svg>
+                                                <svg width="21" height="11" viewBox="0 0 25 12" fill="none"><rect x="0.75" y="0.75" width="20" height="10.5" rx="3" stroke="currentColor" stroke-width="1.5" opacity="0.45"/><rect x="2.8" y="2.8" width="12" height="6.4" rx="1.4" fill="currentColor"/><path d="M23 4.2v3.6c1.1-.4 1.1-3.2 0-3.6z" fill="currentColor" opacity="0.45"/></svg>
+                                            </span>
+                                        </div>
+                                        <!-- App header -->
+                                        <div class="phone-app-bar">
+                                            <span class="pab-logo">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.5" stroke="#00f2fe" stroke-width="2.6"/><path d="M12 7.2V12l3.4 2.1" stroke="#00f2fe" stroke-width="2.2" stroke-linecap="round"/></svg>
+                                            </span>
+                                            <span class="pab-title">ScoreHub</span>
+                                            <span class="pab-live"><i class="pab-live-dot"></i>LIVE</span>
+                                        </div>
+                                        <!-- Featured live match -->
+                                        <div class="phone-feature-card">
+                                            <div class="pfc-meta">
+                                                <span class="pfc-league">Champions League</span>
+                                                <span class="pfc-minute"><i class="pfc-dot"></i>72'</span>
+                                            </div>
+                                            <div class="pfc-scoreline">
+                                                <div class="pfc-team">
+                                                    <span class="pfc-crest crest-ars">ARS</span>
+                                                    <span class="pfc-name">Arsenal</span>
+                                                </div>
+                                                <div class="pfc-score">2 - 1</div>
+                                                <div class="pfc-team">
+                                                    <span class="pfc-crest crest-che">CHE</span>
+                                                    <span class="pfc-name">Chelsea</span>
+                                                </div>
+                                            </div>
+                                            <div class="pfc-possession">
+                                                <span>58%</span>
+                                                <div class="pfc-bar"><i></i></div>
+                                                <span>42%</span>
+                                            </div>
+                                        </div>
+                                        <!-- Match list -->
+                                        <div class="phone-matches">
+                                            <div class="pm-header">
+                                                <span>Today's Matches</span>
+                                                <span class="pm-live-count"><i></i>12 Live</span>
+                                            </div>
+                                            <div class="pm-row">
+                                                <span class="pm-crest crest-rma">RMA</span>
+                                                <span class="pm-names">RMA <b>1 - 0</b> BAR</span>
+                                                <span class="pm-min is-live">63'</span>
+                                            </div>
+                                            <div class="pm-row">
+                                                <span class="pm-crest crest-psg">PSG</span>
+                                                <span class="pm-names">PSG <b>2 - 2</b> LIL</span>
+                                                <span class="pm-min is-live">78'</span>
+                                            </div>
+                                            <div class="pm-row">
+                                                <span class="pm-crest crest-mun">MUN</span>
+                                                <span class="pm-names">MUN <b>0 - 0</b> NEW</span>
+                                                <span class="pm-min">FT</span>
+                                            </div>
+                                            <div class="pm-row">
+                                                <span class="pm-crest crest-juv">JUV</span>
+                                                <span class="pm-names">JUV <b>1 - 0</b> NAP</span>
+                                                <span class="pm-min">FT</span>
+                                            </div>
+                                            <div class="pm-row">
+                                                <span class="pm-crest crest-bay">BAY</span>
+                                                <span class="pm-names">BAY <b>3 - 1</b> DOR</span>
+                                                <span class="pm-min is-live">81'</span>
+                                            </div>
+                                        </div>
+                                        <!-- Bottom tab bar -->
+                                        <div class="phone-tab-bar">
+                                            <span class="ptb-item active">
+                                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+                                                Home
+                                            </span>
+                                            <span class="ptb-item">
+                                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5.5 5.5c4 3.2 9 3.2 13 0M5.5 18.5c4-3.2 9-3.2 13 0"/></svg>
+                                                Scores
+                                            </span>
+                                            <span class="ptb-item">
+                                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13v16H6a2 2 0 0 1-2-2V4z"/><path d="M17 8h3v10a2 2 0 0 1-2 2"/><path d="M7.5 8h6M7.5 12h6M7.5 16h4"/></svg>
+                                                News
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="phone-time">72' Live</div>
                                 </div>
                             </div>
                         </div>
@@ -675,7 +713,7 @@
             <div class="modal-card video-player-card">
                 <button class="close-modal-btn" id="close-watch-modal">&times;</button>
                 <div class="modal-body">
-                    <h3>Live Match Broadcast - Arsenal vs Chelsea</h3>
+                    <h3 id="watch-modal-title">Live Match Broadcast - Arsenal vs Chelsea</h3>
                     <div class="video-container">
                         <!-- Simulated Interactive Live Tracker / Stream -->
                         <div class="video-player-placeholder">
@@ -701,6 +739,7 @@
                             <div class="player-controls">
                                 <button class="btn btn-control" id="play-pause-btn">Pause Stream</button>
                                 <span class="stream-stat" id="stream-viewers-count">👁️ 84,392 Watching</span>
+                                <span class="stream-stat" id="watch-broadcast-info" title="TV/stream broadcast">📺 —</span>
                                 <span class="stream-stat">🔊 HD Stereo</span>
                             </div>
                         </div>

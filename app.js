@@ -345,6 +345,14 @@ const MOCK_NEWS = [
     }
 ];
 
+const MOCK_SCORERS = [
+    { rank: 1, name: "Erling Haaland", club: "Man City", goals: 21 },
+    { rank: 2, name: "Kylian Mbappé", club: "PSG", goals: 18 },
+    { rank: 3, name: "Harry Kane", club: "Bayern Munich", goals: 17 },
+    { rank: 4, name: "Lautaro Martínez", club: "Inter Milan", goals: 16 },
+    { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15 }
+];
+
 // --- APP STATE ---
 let currentSport = "all";
 let currentFilter = "all";
@@ -354,6 +362,26 @@ let searchOpen = false;
 let isApiMode = false;
 let apiMatches = [];
 let apiLoading = false;
+
+// Live API extras (populated when Live API mode is active)
+let liveStandings = {};        // leagueKey → parsed standings rows
+let liveStandingsAt = {};      // leagueKey → fetch timestamp (TTL cache)
+let liveNews = null;           // parsed news articles
+let liveNewsAt = 0;
+let liveScorers = null;        // parsed golden-boot rows for current tab league
+let liveScorersAt = 0;
+let liveScorersLeague = null;  // which league liveScorers belongs to
+let espnSeasonYear = null;     // current season year captured from scoreboard responses
+let usingLiveCommentary = false; // real commentary feed active in Watch Live modal
+const summaryCache = new Map();   // espnEventId → { data, ts }
+let summaryFetchTimer = null;
+
+// Standings tab → ESPN league slug (also drives the Top Scorers league)
+const STANDINGS_TAB_SLUGS = {
+    EPL: "eng.1",
+    LaLiga: "esp.1",
+    SerieA: "ita.1"
+};
 
 // --- DOM ELEMENTS ---
 const matchesContainer = document.getElementById("matches-container");
@@ -396,6 +424,8 @@ const notificationBtn = document.getElementById("notification-btn");
 const notificationDropdown = document.getElementById("notification-dropdown");
 const navHome = document.getElementById("nav-home");
 const navLive = document.getElementById("nav-live");
+const navToggleBtn = document.getElementById("nav-toggle-btn");
+const mainNav = document.querySelector(".main-nav");
 const heroBtnLive = document.getElementById("hero-btn-live");
 
 // API controls
@@ -497,31 +527,34 @@ const TEAM_COLORS = {
 
 const ESPN_FETCH_TIMEOUT_MS = 10000;
 
-// Each strategy: build(path) → fetchable URL, parse(resp) → ESPN JSON
+// Each strategy: build(path, host) → fetchable URL, parse(resp) → ESPN JSON.
+// "host" is the ESPN origin serving the requested path (defaults to site.api.espn.com);
+// the direct·web mirror only applies to the site.api host.
 const ESPN_STRATEGIES = [
     {
         name: "direct·web",
-        build: p => `https://site.web.api.espn.com${p}`,
+        build: (p, host) => `https://site.web.api.espn.com${p}`,
+        applies: host => host === "site.api.espn.com",
         parse: r => r.json()
     },
     {
         name: "direct",
-        build: p => `https://site.api.espn.com${p}`,
+        build: (p, host) => `https://${host}${p}`,
         parse: r => r.json()
     },
     {
         name: "proxy·allorigins",
-        build: p => `https://api.allorigins.win/raw?url=${encodeURIComponent("https://site.api.espn.com" + p)}`,
+        build: (p, host) => `https://api.allorigins.win/raw?url=${encodeURIComponent("https://" + host + p)}`,
         parse: r => r.json()
     },
     {
         name: "proxy·codetabs",
-        build: p => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent("https://site.api.espn.com" + p)}`,
+        build: (p, host) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent("https://" + host + p)}`,
         parse: r => r.json()
     },
     {
         name: "proxy·allorigins·wrapped",
-        build: p => `https://api.allorigins.win/get?url=${encodeURIComponent("https://site.api.espn.com" + p)}`,
+        build: (p, host) => `https://api.allorigins.win/get?url=${encodeURIComponent("https://" + host + p)}`,
         parse: async r => {
             const wrapper = await r.json();
             if (wrapper && wrapper.status && wrapper.status.http_code && wrapper.status.http_code !== 200) {
@@ -554,10 +587,11 @@ function espnTransportName() {
     return espnWorkingStrategy !== null ? ESPN_STRATEGIES[espnWorkingStrategy].name : "auto";
 }
 
-// Fetch ESPN scoreboard for a specific endpoint slug, trying each transport
-// strategy in order until one returns valid ESPN JSON.
-async function fetchESPNLeague(slug) {
-    const path = `/apis/site/v2/sports/${slug}/scoreboard`;
+// Fetch any ESPN JSON resource, trying each transport strategy (memoized first)
+// until one returns data that passes the endpoint-specific validator.
+async function fetchESPNPath(path, opts = {}) {
+    const host = opts.host || "site.api.espn.com";
+    const validate = opts.validate || isValidESPNData;
 
     // Try the memoized strategy first, then the rest in order
     const order = [];
@@ -569,11 +603,12 @@ async function fetchESPNLeague(slug) {
     let lastError = null;
     for (const idx of order) {
         const strategy = ESPN_STRATEGIES[idx];
+        if (strategy.applies && !strategy.applies(host)) continue;
         try {
-            const resp = await fetchWithTimeout(strategy.build(path), ESPN_FETCH_TIMEOUT_MS);
+            const resp = await fetchWithTimeout(strategy.build(path, host), ESPN_FETCH_TIMEOUT_MS);
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await strategy.parse(resp);
-            if (!isValidESPNData(data)) throw new Error("response is not ESPN JSON (likely a CDN block page)");
+            if (!validate(data)) throw new Error("response failed validation (likely a CDN block page)");
             espnWorkingStrategy = idx; // remember what works
             return data;
         } catch (err) {
@@ -582,14 +617,19 @@ async function fetchESPNLeague(slug) {
             } else {
                 lastError = err;
             }
-            console.warn(`ESPN fetch via ${strategy.name} failed for ${slug}:`, lastError.message);
+            console.warn(`ESPN fetch via ${strategy.name} (${host}) failed:`, lastError.message);
         }
     }
-    throw new Error(`All transports failed for ${slug} (${lastError ? lastError.message : "unknown error"})`);
+    throw new Error(`All transports failed for ${host}${path} (${lastError ? lastError.message : "unknown error"})`);
+}
+
+// Fetch ESPN scoreboard for a specific endpoint slug
+async function fetchESPNLeague(slug) {
+    return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard`);
 }
 
 // Convert ESPN event JSON → internal match object
-function parseESPNEvent(event, leagueInfo) {
+function parseESPNEvent(event, leagueInfo, leagueSlug) {
     const comp = event.competitions[0];
     if (!comp) return null;
 
@@ -669,8 +709,43 @@ function parseESPNEvent(event, leagueInfo) {
         possession = parseInt(possessionStat.displayValue, 10) || 50;
     }
 
+    // TV / streaming broadcast channel (e.g. "Peacock") when ESPN provides one
+    let broadcast = "";
+    if (Array.isArray(comp.broadcasts) && comp.broadcasts[0] && Array.isArray(comp.broadcasts[0].names)) {
+        broadcast = comp.broadcasts[0].names.join(", ");
+    } else if (Array.isArray(comp.geoBroadcasts) && comp.geoBroadcasts[0] && comp.geoBroadcasts[0].media) {
+        broadcast = comp.geoBroadcasts[0].media.shortName || comp.geoBroadcasts[0].media.displayName || "";
+    }
+
+    // Betting odds (ESPN BET) — converted to decimal odds at render time
+    let odds = null;
+    const oddsInfo = Array.isArray(comp.odds) ? comp.odds.find(o => o && (o.details || o.overUnder || o.homeTeamOdds)) : null;
+    if (oddsInfo) {
+        odds = {
+            details: oddsInfo.details || "",
+            overUnder: oddsInfo.overUnder != null ? oddsInfo.overUnder : "",
+            provider: (oddsInfo.provider && oddsInfo.provider.name) || "ESPN BET",
+            home: oddsInfo.homeTeamOdds ? oddsInfo.homeTeamOdds.moneyLine : null,
+            draw: oddsInfo.drawOdds ? oddsInfo.drawOdds.moneyLine : null,
+            away: oddsInfo.awayTeamOdds ? oddsInfo.awayTeamOdds.moneyLine : null
+        };
+    }
+
+    // Each team's leading scorer this season (embedded in scoreboard data)
+    const extractTopScorer = (competitor) => {
+        if (!competitor || !Array.isArray(competitor.leaders)) return null;
+        const goalsCat = competitor.leaders.find(l => l.name === "goals" || l.name === "goalsLeaders");
+        if (!goalsCat || !Array.isArray(goalsCat.leaders) || !goalsCat.leaders[0]) return null;
+        const leader = goalsCat.leaders[0];
+        const name = leader.athlete ? (leader.athlete.displayName || leader.athlete.shortName) : "";
+        if (!name) return null;
+        return { name, goals: parseInt(leader.displayValue, 10) || Math.round(leader.value || 0) };
+    };
+
     return {
         id: `api-${event.id}`,
+        espnEventId: event.id,
+        leagueSlug,
         sport: leagueInfo.sport,
         league: leagueInfo.name,
         leagueId: leagueInfo.code,
@@ -685,6 +760,12 @@ function parseESPNEvent(event, leagueInfo) {
         halftimeScore: halftimeScore || `${homeScore}-${awayScore}`,
         time: matchTime,
         status: matchStatus,
+        broadcast,
+        odds,
+        topScorers: {
+            home: extractTopScorer(home),
+            away: extractTopScorer(away)
+        },
         favorites: false,
         stats: {
             possession,
@@ -729,10 +810,12 @@ async function loadAPIMatches() {
         endpoints.map(async slug => {
             try {
                 const data = await fetchESPNLeague(slug);
+                // Remember the current season year (used for the leaders endpoint)
+                if (data.season && data.season.year) espnSeasonYear = data.season.year;
                 const leagueInfo = LEAGUE_NAMES[slug] || { name: slug, code: slug.split("/")[1].toUpperCase(), sport: "football" };
                 const events = data.events || [];
                 events.forEach(evt => {
-                    const match = parseESPNEvent(evt, leagueInfo);
+                    const match = parseESPNEvent(evt, leagueInfo, slug);
                     if (match) fetched.push(match);
                 });
             } catch (err) {
@@ -759,6 +842,21 @@ async function loadAPIMatches() {
         return;
     }
 
+    // Score-change detection (smooth roll animation + goal alerts)
+    const prevById = new Map(apiMatches.map(m => [m.id, m]));
+    scoreDeltas.clear();
+    fetched.forEach(m => {
+        const prev = prevById.get(m.id);
+        if (prev && (prev.homeScore !== m.homeScore || prev.awayScore !== m.awayScore)) {
+            scoreDeltas.set(m.id, {
+                home: prev.homeScore !== m.homeScore,
+                away: prev.awayScore !== m.awayScore,
+                prevHome: prev.homeScore,
+                prevAway: prev.awayScore
+            });
+        }
+    });
+
     apiMatches = fetched;
     apiLoading = false;
 
@@ -783,6 +881,19 @@ async function loadAPIMatches() {
     const firstLive = apiMatches.find(m => m.status === "live");
     const firstMatch = firstLive || apiMatches[0];
     if (firstMatch) setSpotlightMatch(firstMatch.id);
+
+    // Goal alerts for live score changes picked up by this refresh
+    scoreDeltas.forEach((delta, id) => {
+        const m = apiMatches.find(x => x.id === id);
+        if (m && m.status !== "pre") {
+            const scoringTeam = delta.home ? m.homeTeam : m.awayTeam;
+            showNotification(`GOAL! ${scoringTeam} — ${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam}`);
+        }
+    });
+    scoreDeltas.clear(); // one animation per change — don't replay on unrelated re-renders
+
+    // Load standings / news / top scorers from the API (TTL-cached, fire & forget)
+    loadLiveExtras();
 }
 
 // Toggle between Simulation and Live API modes
@@ -816,10 +927,401 @@ function setApiMode(enable) {
         if (badge) badge.textContent = "54 Matches Live Now";
         if (statNum) statNum.textContent = "54";
 
+        // Restore the simulated extras (standings / news / scorers)
+        usingLiveCommentary = false;
+        scoreDeltas.clear();
+        renderStandings();
+        renderNews();
+        renderScorers();
+        updateFullTableLink(null);
+
         renderMatches();
         renderTicker();
         setSpotlightMatch("fb-1");
     }
+}
+
+// --- LIVE API EXTRAS: standings, top scorers, news, match summary ---
+
+const LIVE_EXTRAS_TTL_MS = 5 * 60 * 1000;   // standings / news / scorers refresh window
+const SUMMARY_TTL_MS = 90 * 1000;           // per-match summary cache window
+
+function initials(name) {
+    if (!name) return "?";
+    const parts = String(name).trim().split(/\s+/);
+    const first = parts[0] ? parts[0][0] : "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase() || "?";
+}
+
+function timeAgoString(iso) {
+    const t = Date.parse(iso);
+    if (isNaN(t)) return "";
+    const mins = Math.max(1, Math.round((Date.now() - t) / 60000));
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.round(hours / 24)}d ago`;
+}
+
+// American moneyline (e.g. -135 / +150) → decimal odds (1.74 / 2.50)
+function americanToDecimal(moneyLine) {
+    const v = parseFloat(moneyLine);
+    if (isNaN(v) || v === 0) return null;
+    return v > 0 ? 1 + v / 100 : 1 + 100 / Math.abs(v);
+}
+
+function oddsSummary(odds) {
+    if (!odds) return "";
+    const h = americanToDecimal(odds.home);
+    const d = americanToDecimal(odds.draw);
+    const a = americanToDecimal(odds.away);
+    if (h && d && a) return `${h.toFixed(2)} · ${d.toFixed(2)} · ${a.toFixed(2)}`;
+    if (odds.details) return odds.details;
+    if (odds.overUnder) return `O/U ${odds.overUnder}`;
+    return "";
+}
+
+function pickNewsCategory(article) {
+    const cats = Array.isArray(article.categories) ? article.categories : [];
+    const league = cats.find(c => c.type === "league" && c.description);
+    if (league) return league.description;
+    const topic = cats.find(c => c.type === "topic" && c.description);
+    if (topic) return topic.description;
+    return "Soccer";
+}
+
+// Resolve a core-API $ref link (athlete / team) to a display name
+async function resolveCoreRefDisplayName(ref, field = "displayName") {
+    if (!ref || !ref.$ref) return null;
+    try {
+        const url = new URL(ref.$ref.replace(/^http:/, "https:"));
+        const data = await fetchESPNPath(url.pathname + url.search, {
+            host: url.hostname,
+            validate: d => !!(d && typeof d === "object" && (d.id || d.displayName || d.name))
+        });
+        return data[field] || data.displayName || data.shortDisplayName || data.name || null;
+    } catch (err) {
+        return null;
+    }
+}
+
+// Standings via the site.web apis/v2 endpoint (the old site/v2 path returns an empty object)
+async function loadLiveStandings(leagueKey) {
+    const slug = STANDINGS_TAB_SLUGS[leagueKey];
+    if (!slug) return null;
+    const path = `/apis/v2/sports/soccer/${slug}/standings?region=us&lang=en&contentorigin=espn`;
+    const data = await fetchESPNPath(path, {
+        validate: d => !!(d && typeof d === "object" && Array.isArray(d.children) && d.children.length)
+    });
+    const child = data.children[0] || {};
+    const node = child.standings || (child.children && child.children[0] && child.children[0].standings) || null;
+    if (!node || !Array.isArray(node.entries)) return null;
+
+    const statOf = (entry, name) => {
+        const s = (entry.stats || []).find(x => x.name === name);
+        return s ? (s.displayValue !== undefined && s.displayValue !== "" ? s.displayValue : s.value) : "0";
+    };
+    const rows = node.entries.map(entry => ({
+        rank: parseInt(statOf(entry, "rank"), 10) || 0,
+        team: entry.team ? (entry.team.displayName || entry.team.shortDisplayName || entry.team.name || "?") : "?",
+        abbrev: entry.team ? (entry.team.abbreviation || "") : "",
+        logo: (entry.team && Array.isArray(entry.team.logos) && entry.team.logos[0]) ? entry.team.logos[0].href : "",
+        played: parseInt(statOf(entry, "gamesPlayed"), 10) || 0,
+        gd: parseInt(statOf(entry, "pointDifferential"), 10) || 0,
+        pts: parseInt(statOf(entry, "points"), 10) || 0,
+        zone: entry.note ? { color: entry.note.color || "#81D6AC", desc: entry.note.description || "" } : null
+    }));
+    rows.sort((a, b) => (a.rank || 999) - (b.rank || 999));
+    return rows;
+}
+
+// Latest headlines from the ESPN news endpoint
+async function loadLiveNews() {
+    const data = await fetchESPNPath(`/apis/site/v2/sports/soccer/eng.1/news?limit=6`, {
+        validate: d => !!(d && Array.isArray(d.articles))
+    });
+    return data.articles.slice(0, 5).map(a => ({
+        id: a.id,
+        title: a.headline || a.description || "Untitled",
+        category: pickNewsCategory(a),
+        time: timeAgoString(a.published),
+        image: (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "",
+        link: (a.links && a.links.web && a.links.web.href) || "https://www.espn.com/soccer/"
+    }));
+}
+
+// Golden boot via the core API leaders endpoint (player/team names come as $refs)
+async function loadLiveScorers(leagueKey) {
+    const slug = STANDINGS_TAB_SLUGS[leagueKey];
+    if (!slug) return null;
+    const year = espnSeasonYear || new Date().getFullYear();
+    const path = `/v2/sports/soccer/leagues/${slug}/seasons/${year}/types/1/leaders`;
+    const data = await fetchESPNPath(path, {
+        host: "sports.core.api.espn.com",
+        validate: d => !!(d && Array.isArray(d.categories))
+    });
+    const goalsCat = data.categories.find(c => c.name === "goalsLeaders" || c.displayName === "Goals");
+    if (!goalsCat || !Array.isArray(goalsCat.leaders) || !goalsCat.leaders.length) return null;
+
+    const top = goalsCat.leaders.slice(0, 5);
+    const rows = await Promise.all(top.map(async (leader, i) => {
+        const [name, club] = await Promise.all([
+            resolveCoreRefDisplayName(leader.athlete),
+            resolveCoreRefDisplayName(leader.team)
+        ]);
+        return {
+            rank: i + 1,
+            name: name || `Player ${i + 1}`,
+            club: club || "",
+            goals: Math.round(leader.value || 0) || parseInt(leader.displayValue, 10) || 0
+        };
+    }));
+    return rows;
+}
+
+// Fallback: derive a scorers list from each team's leading scorer in today's scoreboard
+function scorersFromMatches() {
+    const pool = [];
+    apiMatches.forEach(m => {
+        if (m.topScorers && m.topScorers.home) pool.push({ name: m.topScorers.home.name, club: m.homeTeam, goals: m.topScorers.home.goals });
+        if (m.topScorers && m.topScorers.away) pool.push({ name: m.topScorers.away.name, club: m.awayTeam, goals: m.topScorers.away.goals });
+    });
+    const seen = new Set();
+    const unique = pool.filter(p => {
+        if (!p.name || seen.has(p.name)) return false;
+        seen.add(p.name);
+        return true;
+    });
+    unique.sort((a, b) => b.goals - a.goals);
+    return unique.slice(0, 5).map((p, i) => ({ rank: i + 1, ...p }));
+}
+
+// Load / refresh the auxiliary widgets (TTL-cached, fire & forget)
+function loadLiveExtras(force = false) {
+    if (!isApiMode) return;
+
+    const leagueKey = currentStandingLeague;
+    const slug = STANDINGS_TAB_SLUGS[leagueKey];
+
+    if (slug && (force || !liveStandings[leagueKey] || Date.now() - (liveStandingsAt[leagueKey] || 0) > LIVE_EXTRAS_TTL_MS)) {
+        loadLiveStandings(leagueKey).then(rows => {
+            if (rows && rows.length) {
+                liveStandings[leagueKey] = rows;
+                liveStandingsAt[leagueKey] = Date.now();
+                if (isApiMode) renderStandings();
+            }
+        }).catch(err => console.warn("Standings fetch failed:", err.message));
+    }
+
+    if (slug && (force || liveScorersLeague !== leagueKey || !liveScorers || Date.now() - liveScorersAt > LIVE_EXTRAS_TTL_MS)) {
+        loadLiveScorers(leagueKey).then(rows => {
+            if (rows && rows.length) {
+                liveScorers = rows;
+                liveScorersAt = Date.now();
+                liveScorersLeague = leagueKey;
+                if (isApiMode) renderScorers();
+            }
+        }).catch(err => console.warn("Scorers fetch failed (using fallback):", err.message));
+    }
+
+    if (force || !liveNews || Date.now() - liveNewsAt > LIVE_EXTRAS_TTL_MS) {
+        loadLiveNews().then(rows => {
+            if (rows && rows.length) {
+                liveNews = rows;
+                liveNewsAt = Date.now();
+                if (isApiMode) renderNews();
+            }
+        }).catch(err => console.warn("News fetch failed:", err.message));
+    }
+}
+
+// Point the "View Full Table" link at ESPN when live standings are shown
+function updateFullTableLink(slug) {
+    const link = document.querySelector(".view-full-table-row .view-all-link");
+    if (!link) return;
+    if (slug) {
+        link.href = `https://www.espn.com/soccer/table/_/league/${slug}`;
+        link.target = "_blank";
+        link.rel = "noopener";
+    } else {
+        link.href = "#";
+        link.removeAttribute("target");
+        link.removeAttribute("rel");
+    }
+}
+
+// Fetch the full match summary (boxscore, lineups, commentary) for one event
+async function ensureMatchSummary(match, force = false) {
+    if (!match || !match.espnEventId || !match.leagueSlug) return null;
+    const cached = summaryCache.get(match.espnEventId);
+    if (!force && cached && Date.now() - cached.ts < SUMMARY_TTL_MS) return cached.data;
+
+    const path = `/apis/site/v2/sports/${match.leagueSlug}/summary?event=${match.espnEventId}`;
+    const data = await fetchESPNPath(path, {
+        validate: d => !!(d && typeof d === "object" && (d.boxscore || d.header))
+    });
+    summaryCache.set(match.espnEventId, { data, ts: Date.now() });
+    return data;
+}
+
+// Merge real boxscore stats into a match object (soccer stat sets only)
+function applySummaryStats(match, data) {
+    const teams = data && data.boxscore && Array.isArray(data.boxscore.teams) ? data.boxscore.teams : null;
+    if (!teams || teams.length < 2) return false;
+
+    const homeT = teams.find(t => t.homeAway === "home") || teams[0];
+    const awayT = teams.find(t => t.homeAway === "away") || teams[1];
+    const names = new Set([...(homeT.statistics || []), ...(awayT.statistics || [])].map(s => s.name));
+    if (!names.has("possessionPct") && !names.has("totalShots")) return false; // non-soccer stat set
+
+    const pick = (t, name) => {
+        const s = (t.statistics || []).find(x => x.name === name);
+        const v = s ? parseFloat(s.displayValue) : NaN;
+        return isNaN(v) ? 0 : Math.round(v);
+    };
+
+    match.stats = {
+        possession: pick(homeT, "possessionPct") || match.stats.possession,
+        shots: pick(homeT, "totalShots"),
+        shotsOnTarget: pick(homeT, "shotsOnTarget"),
+        corners: pick(homeT, "wonCorners"),
+        fouls: pick(homeT, "foulsCommitted"),
+        yellowCards: pick(homeT, "yellowCards"),
+        redCards: pick(homeT, "redCards")
+    };
+    match.awayStats = {
+        possession: pick(awayT, "possessionPct"),
+        shots: pick(awayT, "totalShots"),
+        shotsOnTarget: pick(awayT, "shotsOnTarget"),
+        corners: pick(awayT, "wonCorners"),
+        fouls: pick(awayT, "foulsCommitted"),
+        yellowCards: pick(awayT, "yellowCards"),
+        redCards: pick(awayT, "redCards")
+    };
+    return true;
+}
+
+// Render the real play-by-play commentary feed inside the Watch Live modal
+function renderLiveCommentary(match, data) {
+    const commList = document.getElementById("commentary-list");
+    if (!commList) return;
+    const comm = (data && (Array.isArray(data.commentary) ? data.commentary : (Array.isArray(data.plays) ? data.plays : []))) || [];
+
+    if (!comm.length) {
+        commList.innerHTML = `<p><strong>[${match.time}]</strong> ${match.status === "live"
+            ? "Live commentary will appear here once the feed updates…"
+            : "Play-by-play commentary is available for this fixture on ESPN."}</p>`;
+        return;
+    }
+
+    const latest = comm.slice(-6).reverse();
+    commList.innerHTML = latest.map(c => {
+        const min = c.time && c.time.displayValue ? c.time.displayValue : "";
+        const text = c.text || (c.play && c.play.text) || "";
+        return `<p><strong>[${min}]</strong> ${text}</p>`;
+    }).join("");
+}
+
+// Plot real shot positions (from commentary play data) on the tactical pitch
+function renderPitchShots(match, data) {
+    const pitch = document.getElementById("live-pitch-animation");
+    if (!pitch) return;
+    pitch.querySelectorAll(".pitch-shot-marker").forEach(el => el.remove());
+
+    const comm = (data && (Array.isArray(data.commentary) ? data.commentary : (Array.isArray(data.plays) ? data.plays : []))) || [];
+    const shotTypes = ["shot-on-target", "shot-off-target", "shot-blocked"];
+    // play.type is an object in ESPN data ({ id, text, type: "shot-…" }) — normalize it
+    const shots = comm.filter(c => {
+        if (!c.play || !(c.play.fieldPositionX > 0)) return false;
+        const playType = c.play.type && typeof c.play.type === "object" ? c.play.type.type : c.play.type;
+        return shotTypes.includes(playType);
+    });
+
+    shots.slice(-8).forEach(c => {
+        const isHome = !!(c.play.team && c.play.team.displayName === match.homeTeam);
+        const dot = document.createElement("div");
+        dot.className = `pitch-shot-marker ${isHome ? "home-shot" : "away-shot"}`;
+        dot.style.left = `${(c.play.fieldPositionX * 100).toFixed(1)}%`;
+        dot.style.top = `${(c.play.fieldPositionY * 100).toFixed(1)}%`;
+        dot.title = c.text || (c.play && c.play.text) || "";
+        pitch.appendChild(dot);
+    });
+}
+
+// Debounced summary fetch for the spotlighted match (fills the stats card with real numbers)
+function scheduleSummaryFetch(match) {
+    clearTimeout(summaryFetchTimer);
+    if (!match || !match.espnEventId || !match.leagueSlug) return;
+    const targetId = match.id;
+    summaryFetchTimer = setTimeout(async () => {
+        try {
+            const data = await ensureMatchSummary(match);
+            if (data && applySummaryStats(match, data) && spotlightMatchId === targetId) {
+                renderStatsBars(match);
+            }
+        } catch (err) {
+            console.warn("Summary fetch failed:", err.message);
+        }
+    }, 500);
+}
+
+// Refresh the open Watch Live modal with fresh commentary / stats (called on the 60s cycle)
+async function refreshLiveMatchCentre() {
+    if (!isApiMode || !watchLiveModal.classList.contains("active")) return;
+    const match = apiMatches.find(m => m.id === spotlightMatchId);
+    if (!match || !match.espnEventId) return;
+    try {
+        const data = await ensureMatchSummary(match, true);
+        usingLiveCommentary = true;
+        renderLiveCommentary(match, data);
+        renderPitchShots(match, data);
+        if (applySummaryStats(match, data)) renderStatsBars(match);
+    } catch (err) {
+        // keep last known state
+    }
+}
+
+// --- SMOOTH SCORE TRANSITIONS ---
+// When a score changes (goal in live API data or in simulation), the new value
+// rolls into place with a glow instead of silently jumping between renders.
+
+const scoreDeltas = new Map();      // matchId → { home, away, prevHome, prevAway }
+const elLastScore = new WeakMap();  // persistent score element → last shown value
+const scoreRollTokens = new WeakMap();
+
+// Markup for re-rendered lists (match cards / ticker): the roll plays on insertion
+function scoreCell(value, prev) {
+    if (prev === null || prev === undefined) return `${value}`;
+    return `<span class="score-roll score-glow"><span class="score-roll-old">${prev}</span><span class="score-roll-new">${value}</span></span>`;
+}
+
+// Value setter for persistent score elements (spotlight scoreboard + stats header)
+function setScoreSmooth(el, value) {
+    if (!el) return;
+    const num = parseInt(value, 10);
+    if (isNaN(num)) {
+        el.textContent = value;
+        elLastScore.delete(el);
+        return;
+    }
+    const prev = elLastScore.get(el);
+    elLastScore.set(el, num);
+    if (prev === undefined || prev === num) {
+        el.textContent = num;
+        return;
+    }
+    el.classList.remove("score-roll", "score-glow");
+    void el.offsetWidth; // force reflow so the animations restart
+    el.innerHTML = `<span class="score-roll-old">${prev}</span><span class="score-roll-new">${num}</span>`;
+    el.classList.add("score-roll", "score-glow");
+    const token = {};
+    scoreRollTokens.set(el, token);
+    setTimeout(() => {
+        if (scoreRollTokens.get(el) !== token) return; // superseded by a newer change
+        el.textContent = num;
+        el.classList.remove("score-roll", "score-glow");
+    }, 1000);
 }
 
 // Render Live Ticker
@@ -852,12 +1354,15 @@ function renderTicker() {
 
         const isLive = match.status === "live";
         const liveBadge = isLive ? `<span class="ticker-live-dot"></span>` : "";
+        const delta = scoreDeltas.get(match.id);
+        const homeScoreHTML = scoreCell(match.homeScore, delta && delta.home ? delta.prevHome : null);
+        const awayScoreHTML = scoreCell(match.awayScore, delta && delta.away ? delta.prevAway : null);
 
         card.innerHTML = `
             <span class="ticker-league">${match.leagueId}</span>
             <div class="ticker-match">
                 <span class="ticker-team">${match.homeCode}</span>
-                <span class="ticker-score">${liveBadge}${match.homeScore} - ${match.awayScore}</span>
+                <span class="ticker-score">${liveBadge}${homeScoreHTML} - ${awayScoreHTML}</span>
                 <span class="ticker-team">${match.awayCode}</span>
             </div>
             <span class="ticker-time">${match.time}</span>
@@ -874,22 +1379,33 @@ function renderTicker() {
 // Render Standings
 function renderStandings() {
     standingsBody.innerHTML = "";
-    const list = MOCK_STANDINGS[currentStandingLeague];
-    
-    list.forEach((row) => {
+    const live = isApiMode ? liveStandings[currentStandingLeague] : null;
+    const list = (live && live.length) ? live : MOCK_STANDINGS[currentStandingLeague];
+    if (!list) return;
+
+    updateFullTableLink((live && live.length) ? STANDINGS_TAB_SLUGS[currentStandingLeague] : null);
+
+    list.slice(0, 6).forEach((row) => {
         const tr = document.createElement("tr");
-        // Highlight active teams in mock live matches
-        const isLiveTeam = row.team === "Arsenal" || row.team === "Chelsea" || row.team === "Man City";
+        // Highlight active teams in mock live matches (simulation mode only)
+        const isLiveTeam = !live && (row.team === "Arsenal" || row.team === "Chelsea" || row.team === "Man City");
         if (isLiveTeam) {
             tr.className = "highlight-row";
         }
-        
+
+        const zoneDot = (live && row.zone)
+            ? `<i class="zone-dot" style="background:${row.zone.color}" title="${row.zone.desc}"></i>`
+            : "";
+        const teamVisual = (live && row.logo)
+            ? `<img class="table-team-logo" src="${row.logo}" alt="" loading="lazy" onerror="this.style.display='none'">`
+            : `<div class="player-avatar-mini" style="font-size: 8px; width: 18px; height: 18px;">${row.logo || row.abbrev || ""}</div>`;
+
         tr.innerHTML = `
             <td class="col-rank">${row.rank}</td>
             <td class="col-team">
                 <div class="table-team-cell">
-                    <div class="player-avatar-mini" style="font-size: 8px; width: 18px; height: 18px;">${row.logo}</div>
-                    <span>${row.team}</span>
+                    ${teamVisual}
+                    <span>${row.team}${zoneDot}</span>
                 </div>
             </td>
             <td class="col-stat">${row.played}</td>
@@ -900,14 +1416,51 @@ function renderStandings() {
     });
 }
 
+// Render Top Scorers (ESPN golden boot in Live API mode, mock data otherwise)
+function renderScorers() {
+    const listEl = document.getElementById("scorers-list");
+    if (!listEl) return;
+
+    let rows = null;
+    if (isApiMode) {
+        rows = (liveScorers && liveScorers.length) ? liveScorers : scorersFromMatches();
+    }
+    if (!rows || !rows.length) rows = MOCK_SCORERS;
+
+    listEl.innerHTML = rows.map(r => `
+        <div class="scorer-row">
+            <div class="scorer-rank-info">
+                <span class="rank-num">${r.rank}</span>
+                <div class="player-avatar-mini">${initials(r.name)}</div>
+                <div class="player-meta">
+                    <span class="player-name">${r.name}</span>
+                    <span class="player-club">${r.club}</span>
+                </div>
+            </div>
+            <span class="goals-count">${r.goals}</span>
+        </div>
+    `).join("");
+}
+
 // Render News
 function renderNews() {
     newsContainer.innerHTML = "";
-    MOCK_NEWS.forEach((news) => {
-        const card = document.createElement("div");
+    const useLive = isApiMode && liveNews && liveNews.length;
+    const list = useLive ? liveNews : MOCK_NEWS;
+
+    list.forEach((news) => {
+        const card = document.createElement(useLive ? "a" : "div");
         card.className = "news-card";
+        if (useLive) {
+            card.href = news.link || "#";
+            card.target = "_blank";
+            card.rel = "noopener";
+        }
+        const thumbStyle = news.image
+            ? `background-image: url('${news.image}');`
+            : `background: ${news.grad}`;
         card.innerHTML = `
-            <div class="news-thumb" style="background: ${news.grad}"></div>
+            <div class="news-thumb" style="${thumbStyle}"></div>
             <div class="news-meta">
                 <span class="news-category-badge">${news.category}</span>
                 <h4 class="news-title">${news.title}</h4>
@@ -949,7 +1502,8 @@ function renderMatches() {
     
     filtered.forEach((match) => {
         const card = document.createElement("div");
-        card.className = `match-card ${match.id === spotlightMatchId ? 'active-spotlight' : ''}`;
+        const scoreDelta = scoreDeltas.get(match.id);
+        card.className = `match-card ${match.id === spotlightMatchId ? 'active-spotlight' : ''}${scoreDelta ? ' scored' : ''}`;
         card.setAttribute("data-match-id", match.id);
         
         const isLive = match.status === "live";
@@ -972,9 +1526,9 @@ function renderMatches() {
                 </div>
                 
                 <div class="match-card-scores">
-                    <span>${match.homeScore}</span>
+                    <span>${scoreCell(match.homeScore, scoreDelta && scoreDelta.home ? scoreDelta.prevHome : null)}</span>
                     <span class="score-dash">-</span>
-                    <span>${match.awayScore}</span>
+                    <span>${scoreCell(match.awayScore, scoreDelta && scoreDelta.away ? scoreDelta.prevAway : null)}</span>
                 </div>
                 
                 <div class="match-card-team-info away">
@@ -985,6 +1539,7 @@ function renderMatches() {
             
             <div class="match-card-footer">
                 <div class="match-stat-capsules">
+                    ${match.odds ? `<span class="stat-capsule" title="Odds ${match.homeCode}/${match.awayCode}/Draw via ${match.odds.provider}">🎲 ${oddsSummary(match.odds)}</span>` : ""}
                     <span class="stat-capsule">⚽ ${match.homeScore + match.awayScore} Goals</span>
                     <span class="stat-capsule">📊 ${match.stats.possession}% Poss</span>
                 </div>
@@ -1039,11 +1594,11 @@ function setSpotlightMatch(id) {
     spotlightLeague.innerText = match.league;
     spotlightTime.innerText = match.time;
     
-    // Set scoreboard
+    // Set scoreboard (smooth score roll when the value changes)
     spotlightHomeName.innerText = match.homeTeam;
     spotlightAwayName.innerText = match.awayTeam;
-    spotlightHomeScore.innerText = match.homeScore;
-    spotlightAwayScore.innerText = match.awayScore;
+    setScoreSmooth(spotlightHomeScore, match.homeScore);
+    setScoreSmooth(spotlightAwayScore, match.awayScore);
     spotlightHalftimeScore.innerText = match.halftimeScore;
     
     // SVG Logos
@@ -1070,11 +1625,14 @@ function setSpotlightMatch(id) {
     // Update comparison stats header
     statsHomeName.innerText = match.homeCode;
     statsAwayName.innerText = match.awayCode;
-    statsHomeScore.innerText = match.homeScore;
-    statsAwayScore.innerText = match.awayScore;
+    setScoreSmooth(statsHomeScore, match.homeScore);
+    setScoreSmooth(statsAwayScore, match.awayScore);
     
     // Render Stats Progress Bars
     renderStatsBars(match);
+
+    // Fill the stats card with real boxscore numbers when in API mode (debounced + cached)
+    if (isApiMode) scheduleSummaryFetch(match);
 }
 
 // Render Stats Bars
@@ -1096,15 +1654,20 @@ function renderStatsBars(match) {
         
         let homeVal = match.stats[stat.key];
         let awayVal;
-        
-        // Possession is home%, away% is 100-home%
+
         if (stat.key === "possession") {
-            awayVal = 100 - homeVal;
+            // Possession: away% is 100-home% unless real numbers are available
+            awayVal = (match.awayStats && typeof match.awayStats.possession === "number" && match.awayStats.possession > 0)
+                ? match.awayStats.possession
+                : 100 - homeVal;
+        } else if (match.awayStats && typeof match.awayStats[stat.key] === "number" && match.awayStats[stat.key] > 0) {
+            // Real away-team value from the ESPN match summary
+            awayVal = match.awayStats[stat.key];
         } else {
             // For other statistics, we mock a reasonable away number or fetch it
             // Chelsea/Newcastle have actual stats or we simulate
             // Let's calculate percentage values for bars
-            awayVal = Math.round(homeVal * 0.8) || 1; 
+            awayVal = Math.round(homeVal * 0.8) || 1;
             if (match.id === "fb-1") {
                 // Exact matching image
                 const referenceMap = {
@@ -1240,11 +1803,13 @@ function eventSimulation() {
         const minStr = match.time.replace("'", "");
         
         if (isHomeEvent) {
+            scoreDeltas.set(match.id, { home: true, away: false, prevHome: match.homeScore, prevAway: match.awayScore });
             match.homeScore += 1;
             match.scorers.home.push(`${minStr}' ${player}`);
             match.stats.shots += 1;
             match.stats.shotsOnTarget += 1;
         } else {
+            scoreDeltas.set(match.id, { home: false, away: true, prevHome: match.homeScore, prevAway: match.awayScore });
             match.awayScore += 1;
             match.scorers.away.push(`${minStr}' ${player}`);
             match.stats.shots += 1;
@@ -1253,17 +1818,7 @@ function eventSimulation() {
         
         showNotification(`GOAL! ${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam} (${player} ${match.time})`);
         
-        // Highlight score flash animation
-        if (match.id === spotlightMatchId) {
-            const scoreDisp = document.querySelector(".score-display");
-            scoreDisp.style.color = "var(--accent)";
-            scoreDisp.style.transform = "scale(1.15)";
-            setTimeout(() => {
-                scoreDisp.style.color = "";
-                scoreDisp.style.transform = "";
-            }, 1500);
-        }
-        
+        // Score flash/pop is applied by the smooth score roll in setSpotlightMatch()
     } else if (roll < 0.5) {
         // Shot
         match.stats.shots += 1;
@@ -1281,9 +1836,11 @@ function eventSimulation() {
     
     // Sync UI elements
     renderMatches();
+    renderTicker();
     if (match.id === spotlightMatchId) {
         setSpotlightMatch(match.id);
     }
+    scoreDeltas.clear(); // one animation per change — don't replay on unrelated re-renders
 }
 
 // --- PITCH BROADCAST TRACKER ANIMATION ---
@@ -1334,7 +1891,8 @@ function runPitchTrackerAnimation() {
         "Ref signals to continue after a slide tackle."
     ];
     
-    if (Math.random() > 0.6) {
+    // Dummy commentary is only injected when the real ESPN feed isn't active
+    if (Math.random() > 0.6 && !usingLiveCommentary) {
         const commList = document.getElementById("commentary-list");
         const log = document.createElement("p");
         const match = MOCK_MATCHES.find((m) => m.id === spotlightMatchId) || MOCK_MATCHES[0];
@@ -1381,14 +1939,43 @@ function initEventHandlers() {
         showNotification("Successfully logged in as administrator!");
     });
     
-    watchLiveBtn.addEventListener("click", () => {
+    watchLiveBtn.addEventListener("click", async () => {
         watchLiveModal.classList.add("active");
-        // Run commentary list clean reset
         const commList = document.getElementById("commentary-list");
-        commList.innerHTML = `<p><strong>[Live]</strong> Connected to stream. Fetching tactical match feed...</p>`;
+        commList.innerHTML = `<p><strong>[Live]</strong> Connecting to match feed...</p>`;
+
+        const match = (isApiMode ? apiMatches : MOCK_MATCHES).find(m => m.id === spotlightMatchId);
+        const titleEl = document.getElementById("watch-modal-title");
+        const broadcastEl = document.getElementById("watch-broadcast-info");
+
+        if (titleEl) {
+            titleEl.textContent = match
+                ? `Live Match Centre — ${match.homeTeam} vs ${match.awayTeam}`
+                : "Live Match Broadcast";
+        }
+        if (broadcastEl) {
+            broadcastEl.textContent = (match && match.broadcast) ? `📺 ${match.broadcast}` : "📺 No broadcast info";
+        }
+
+        if (match && isApiMode && match.espnEventId) {
+            try {
+                const data = await ensureMatchSummary(match, true);
+                usingLiveCommentary = true;
+                renderLiveCommentary(match, data);
+                renderPitchShots(match, data);
+                if (applySummaryStats(match, data)) renderStatsBars(match);
+            } catch (err) {
+                usingLiveCommentary = false;
+                commList.innerHTML = `<p><strong>[${match.time}]</strong> Live commentary feed unavailable — showing simulated broadcast.</p>`;
+            }
+        } else {
+            usingLiveCommentary = false;
+            commList.innerHTML = `<p><strong>[Live]</strong> Connected to stream. Fetching tactical match feed...</p>`;
+        }
     });
     closeWatchModal.addEventListener("click", () => {
         watchLiveModal.classList.remove("active");
+        usingLiveCommentary = false;
     });
     
     // Play/Pause stream simulation
@@ -1425,7 +2012,7 @@ function initEventHandlers() {
         });
     });
     
-    // Standings tabs switcher
+    // Standings tabs switcher (also drives the Top Scorers league in API mode)
     const standingTabs = document.querySelectorAll(".standings-tab");
     standingTabs.forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -1433,6 +2020,8 @@ function initEventHandlers() {
             tab.classList.add("active");
             currentStandingLeague = tab.getAttribute("data-standing-league");
             renderStandings();
+            renderScorers();
+            if (isApiMode) loadLiveExtras();
         });
     });
     
@@ -1492,6 +2081,51 @@ function initEventHandlers() {
         notificationDropdown.classList.toggle("active");
         document.querySelector(".notification-badge").classList.remove("active");
     });
+
+    // Mobile navigation drawer (hamburger)
+    const closeMobileNav = () => {
+        document.body.classList.remove("nav-open");
+        navToggleBtn.setAttribute("aria-expanded", "false");
+        navToggleBtn.setAttribute("aria-label", "Open menu");
+    };
+
+    navToggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = document.body.classList.toggle("nav-open");
+        navToggleBtn.setAttribute("aria-expanded", String(isOpen));
+        navToggleBtn.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+    });
+
+    // Close the drawer after choosing a destination
+    mainNav.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", closeMobileNav);
+    });
+
+    // Close when tapping the backdrop / anywhere outside
+    document.addEventListener("click", (e) => {
+        if (
+            document.body.classList.contains("nav-open") &&
+            !e.target.closest(".main-nav") &&
+            !e.target.closest("#nav-toggle-btn")
+        ) {
+            closeMobileNav();
+        }
+    });
+
+    // Close on Escape
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMobileNav();
+    });
+
+    // Reset drawer state when resizing up to desktop
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 992) closeMobileNav();
+    });
+
+    // Compact search placeholder on very small screens
+    if (window.matchMedia("(max-width: 480px)").matches) {
+        searchInput.placeholder = "Search teams, matches...";
+    }
     
     // Quick link binds
     navHome.addEventListener("click", (e) => {
@@ -1528,6 +2162,7 @@ function init() {
     // Initial Render
     renderTicker();
     renderStandings();
+    renderScorers();
     renderNews();
     renderMatches();
     setSpotlightMatch("fb-1");
@@ -1544,6 +2179,8 @@ function init() {
     setInterval(() => {
         if (isApiMode && !apiLoading) {
             loadAPIMatches();
+            loadLiveExtras(); // TTL-cached internally, refreshes every ~5 min
+            refreshLiveMatchCentre(); // updates the open Watch Live modal
         }
     }, 60000);
     
