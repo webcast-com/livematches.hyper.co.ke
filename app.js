@@ -842,6 +842,21 @@ async function loadAPIMatches() {
         return;
     }
 
+    // Score-change detection (smooth roll animation + goal alerts)
+    const prevById = new Map(apiMatches.map(m => [m.id, m]));
+    scoreDeltas.clear();
+    fetched.forEach(m => {
+        const prev = prevById.get(m.id);
+        if (prev && (prev.homeScore !== m.homeScore || prev.awayScore !== m.awayScore)) {
+            scoreDeltas.set(m.id, {
+                home: prev.homeScore !== m.homeScore,
+                away: prev.awayScore !== m.awayScore,
+                prevHome: prev.homeScore,
+                prevAway: prev.awayScore
+            });
+        }
+    });
+
     apiMatches = fetched;
     apiLoading = false;
 
@@ -866,6 +881,16 @@ async function loadAPIMatches() {
     const firstLive = apiMatches.find(m => m.status === "live");
     const firstMatch = firstLive || apiMatches[0];
     if (firstMatch) setSpotlightMatch(firstMatch.id);
+
+    // Goal alerts for live score changes picked up by this refresh
+    scoreDeltas.forEach((delta, id) => {
+        const m = apiMatches.find(x => x.id === id);
+        if (m && m.status !== "pre") {
+            const scoringTeam = delta.home ? m.homeTeam : m.awayTeam;
+            showNotification(`GOAL! ${scoringTeam} — ${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam}`);
+        }
+    });
+    scoreDeltas.clear(); // one animation per change — don't replay on unrelated re-renders
 
     // Load standings / news / top scorers from the API (TTL-cached, fire & forget)
     loadLiveExtras();
@@ -904,6 +929,7 @@ function setApiMode(enable) {
 
         // Restore the simulated extras (standings / news / scorers)
         usingLiveCommentary = false;
+        scoreDeltas.clear();
         renderStandings();
         renderNews();
         renderScorers();
@@ -1256,6 +1282,48 @@ async function refreshLiveMatchCentre() {
     }
 }
 
+// --- SMOOTH SCORE TRANSITIONS ---
+// When a score changes (goal in live API data or in simulation), the new value
+// rolls into place with a glow instead of silently jumping between renders.
+
+const scoreDeltas = new Map();      // matchId → { home, away, prevHome, prevAway }
+const elLastScore = new WeakMap();  // persistent score element → last shown value
+const scoreRollTokens = new WeakMap();
+
+// Markup for re-rendered lists (match cards / ticker): the roll plays on insertion
+function scoreCell(value, prev) {
+    if (prev === null || prev === undefined) return `${value}`;
+    return `<span class="score-roll score-glow"><span class="score-roll-old">${prev}</span><span class="score-roll-new">${value}</span></span>`;
+}
+
+// Value setter for persistent score elements (spotlight scoreboard + stats header)
+function setScoreSmooth(el, value) {
+    if (!el) return;
+    const num = parseInt(value, 10);
+    if (isNaN(num)) {
+        el.textContent = value;
+        elLastScore.delete(el);
+        return;
+    }
+    const prev = elLastScore.get(el);
+    elLastScore.set(el, num);
+    if (prev === undefined || prev === num) {
+        el.textContent = num;
+        return;
+    }
+    el.classList.remove("score-roll", "score-glow");
+    void el.offsetWidth; // force reflow so the animations restart
+    el.innerHTML = `<span class="score-roll-old">${prev}</span><span class="score-roll-new">${num}</span>`;
+    el.classList.add("score-roll", "score-glow");
+    const token = {};
+    scoreRollTokens.set(el, token);
+    setTimeout(() => {
+        if (scoreRollTokens.get(el) !== token) return; // superseded by a newer change
+        el.textContent = num;
+        el.classList.remove("score-roll", "score-glow");
+    }, 1000);
+}
+
 // Render Live Ticker
 function renderTicker() {
     tickerSlider.innerHTML = "";
@@ -1286,12 +1354,15 @@ function renderTicker() {
 
         const isLive = match.status === "live";
         const liveBadge = isLive ? `<span class="ticker-live-dot"></span>` : "";
+        const delta = scoreDeltas.get(match.id);
+        const homeScoreHTML = scoreCell(match.homeScore, delta && delta.home ? delta.prevHome : null);
+        const awayScoreHTML = scoreCell(match.awayScore, delta && delta.away ? delta.prevAway : null);
 
         card.innerHTML = `
             <span class="ticker-league">${match.leagueId}</span>
             <div class="ticker-match">
                 <span class="ticker-team">${match.homeCode}</span>
-                <span class="ticker-score">${liveBadge}${match.homeScore} - ${match.awayScore}</span>
+                <span class="ticker-score">${liveBadge}${homeScoreHTML} - ${awayScoreHTML}</span>
                 <span class="ticker-team">${match.awayCode}</span>
             </div>
             <span class="ticker-time">${match.time}</span>
@@ -1431,7 +1502,8 @@ function renderMatches() {
     
     filtered.forEach((match) => {
         const card = document.createElement("div");
-        card.className = `match-card ${match.id === spotlightMatchId ? 'active-spotlight' : ''}`;
+        const scoreDelta = scoreDeltas.get(match.id);
+        card.className = `match-card ${match.id === spotlightMatchId ? 'active-spotlight' : ''}${scoreDelta ? ' scored' : ''}`;
         card.setAttribute("data-match-id", match.id);
         
         const isLive = match.status === "live";
@@ -1454,9 +1526,9 @@ function renderMatches() {
                 </div>
                 
                 <div class="match-card-scores">
-                    <span>${match.homeScore}</span>
+                    <span>${scoreCell(match.homeScore, scoreDelta && scoreDelta.home ? scoreDelta.prevHome : null)}</span>
                     <span class="score-dash">-</span>
-                    <span>${match.awayScore}</span>
+                    <span>${scoreCell(match.awayScore, scoreDelta && scoreDelta.away ? scoreDelta.prevAway : null)}</span>
                 </div>
                 
                 <div class="match-card-team-info away">
@@ -1522,11 +1594,11 @@ function setSpotlightMatch(id) {
     spotlightLeague.innerText = match.league;
     spotlightTime.innerText = match.time;
     
-    // Set scoreboard
+    // Set scoreboard (smooth score roll when the value changes)
     spotlightHomeName.innerText = match.homeTeam;
     spotlightAwayName.innerText = match.awayTeam;
-    spotlightHomeScore.innerText = match.homeScore;
-    spotlightAwayScore.innerText = match.awayScore;
+    setScoreSmooth(spotlightHomeScore, match.homeScore);
+    setScoreSmooth(spotlightAwayScore, match.awayScore);
     spotlightHalftimeScore.innerText = match.halftimeScore;
     
     // SVG Logos
@@ -1553,8 +1625,8 @@ function setSpotlightMatch(id) {
     // Update comparison stats header
     statsHomeName.innerText = match.homeCode;
     statsAwayName.innerText = match.awayCode;
-    statsHomeScore.innerText = match.homeScore;
-    statsAwayScore.innerText = match.awayScore;
+    setScoreSmooth(statsHomeScore, match.homeScore);
+    setScoreSmooth(statsAwayScore, match.awayScore);
     
     // Render Stats Progress Bars
     renderStatsBars(match);
@@ -1731,11 +1803,13 @@ function eventSimulation() {
         const minStr = match.time.replace("'", "");
         
         if (isHomeEvent) {
+            scoreDeltas.set(match.id, { home: true, away: false, prevHome: match.homeScore, prevAway: match.awayScore });
             match.homeScore += 1;
             match.scorers.home.push(`${minStr}' ${player}`);
             match.stats.shots += 1;
             match.stats.shotsOnTarget += 1;
         } else {
+            scoreDeltas.set(match.id, { home: false, away: true, prevHome: match.homeScore, prevAway: match.awayScore });
             match.awayScore += 1;
             match.scorers.away.push(`${minStr}' ${player}`);
             match.stats.shots += 1;
@@ -1744,17 +1818,7 @@ function eventSimulation() {
         
         showNotification(`GOAL! ${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam} (${player} ${match.time})`);
         
-        // Highlight score flash animation
-        if (match.id === spotlightMatchId) {
-            const scoreDisp = document.querySelector(".score-display");
-            scoreDisp.style.color = "var(--accent)";
-            scoreDisp.style.transform = "scale(1.15)";
-            setTimeout(() => {
-                scoreDisp.style.color = "";
-                scoreDisp.style.transform = "";
-            }, 1500);
-        }
-        
+        // Score flash/pop is applied by the smooth score roll in setSpotlightMatch()
     } else if (roll < 0.5) {
         // Shot
         match.stats.shots += 1;
@@ -1772,9 +1836,11 @@ function eventSimulation() {
     
     // Sync UI elements
     renderMatches();
+    renderTicker();
     if (match.id === spotlightMatchId) {
         setSpotlightMatch(match.id);
     }
+    scoreDeltas.clear(); // one animation per change — don't replay on unrelated re-renders
 }
 
 // --- PITCH BROADCAST TRACKER ANIMATION ---

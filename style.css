@@ -1523,6 +1523,8 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     border-radius: 3px 0 0 3px;
     width: 50%;
     transition: var(--transition-smooth);
+    transform-origin: left center;
+    animation: statGrowIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stat-fill-away {
@@ -1531,6 +1533,12 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     border-radius: 0 3px 3px 0;
     width: 50%;
     transition: var(--transition-smooth);
+    transform-origin: right center;
+    animation: statGrowIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes statGrowIn {
+    from { transform: scaleX(0); }
 }
 
 /* Highlight away team stats in blue */
@@ -2399,6 +2407,48 @@ a.news-card:hover .news-title {
     color: var(--primary);
 }
 
+/* --- Smooth score transitions (goal roll, glow, card flash) --- */
+.score-roll {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+}
+.score-roll-old {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    animation: scoreRollOut 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.score-roll-new {
+    display: block;
+    animation: scoreRollIn 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes scoreRollOut {
+    from { transform: translateY(0); opacity: 1; }
+    to   { transform: translateY(-110%); opacity: 0.25; }
+}
+@keyframes scoreRollIn {
+    from { transform: translateY(110%); opacity: 0.25; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+.score-glow {
+    animation: scorePop 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes scorePop {
+    0%   { transform: scale(1);    text-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+    35%  { transform: scale(1.22); text-shadow: 0 0 18px rgba(16, 185, 129, 0.85); }
+    100% { transform: scale(1);    text-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+}
+.match-card.scored {
+    animation: cardScoredFlash 1.6s ease-out;
+}
+@keyframes cardScoredFlash {
+    0%   { border-color: rgba(16, 185, 129, 0.55); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.30); }
+    100% { border-color: var(--border-color); box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+}
+
 .btn-control {
     background: var(--primary);
     border: none;
@@ -2869,6 +2919,19 @@ a.news-card:hover .news-title {
     .pab-live-dot,
     .pfc-dot,
     .pm-live-count i {
+        animation: none;
+    }
+    /* Score transitions: jump straight to the new value */
+    .score-roll-old {
+        display: none;
+    }
+    .score-roll-new {
+        animation: none;
+    }
+    .score-glow,
+    .match-card.scored,
+    .stat-fill-home,
+    .stat-fill-away {
         animation: none;
     }
 }
