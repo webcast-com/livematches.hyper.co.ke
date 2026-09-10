@@ -286,63 +286,8 @@
                     <h3>Top Scorers</h3>
                     <a href="#" class="view-all-link">View All</a>
                 </div>
-                <div class="scorers-list">
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">1</span>
-                            <div class="player-avatar-mini">EH</div>
-                            <div class="player-meta">
-                                <span class="player-name">Erling Haaland</span>
-                                <span class="player-club">Man City</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">21</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">2</span>
-                            <div class="player-avatar-mini">KM</div>
-                            <div class="player-meta">
-                                <span class="player-name">Kylian Mbappé</span>
-                                <span class="player-club">PSG</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">18</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">3</span>
-                            <div class="player-avatar-mini">HK</div>
-                            <div class="player-meta">
-                                <span class="player-name">Harry Kane</span>
-                                <span class="player-club">Bayern Munich</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">17</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">4</span>
-                            <div class="player-avatar-mini">LM</div>
-                            <div class="player-meta">
-                                <span class="player-name">Lautaro Martínez</span>
-                                <span class="player-club">Inter Milan</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">16</span>
-                    </div>
-                    <div class="scorer-row">
-                        <div class="scorer-rank-info">
-                            <span class="rank-num">5</span>
-                            <div class="player-avatar-mini">MS</div>
-                            <div class="player-meta">
-                                <span class="player-name">Mohamed Salah</span>
-                                <span class="player-club">Liverpool</span>
-                            </div>
-                        </div>
-                        <span class="goals-count">15</span>
-                    </div>
-                </div>
+                <!-- Rows populated by JS: ESPN golden boot in Live API mode, mock data otherwise -->
+                <div class="scorers-list" id="scorers-list"></div>
             </div>
             
         </section>
@@ -768,7 +713,7 @@
             <div class="modal-card video-player-card">
                 <button class="close-modal-btn" id="close-watch-modal">&times;</button>
                 <div class="modal-body">
-                    <h3>Live Match Broadcast - Arsenal vs Chelsea</h3>
+                    <h3 id="watch-modal-title">Live Match Broadcast - Arsenal vs Chelsea</h3>
                     <div class="video-container">
                         <!-- Simulated Interactive Live Tracker / Stream -->
                         <div class="video-player-placeholder">
@@ -794,6 +739,7 @@
                             <div class="player-controls">
                                 <button class="btn btn-control" id="play-pause-btn">Pause Stream</button>
                                 <span class="stream-stat" id="stream-viewers-count">👁️ 84,392 Watching</span>
+                                <span class="stream-stat" id="watch-broadcast-info" title="TV/stream broadcast">📺 —</span>
                                 <span class="stream-stat">🔊 HD Stereo</span>
                             </div>
                         </div>

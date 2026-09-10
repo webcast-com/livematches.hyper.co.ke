@@ -2350,6 +2350,55 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     color: var(--text-secondary);
 }
 
+/* --- Live API data extras --- */
+
+/* Standings: real team logos + qualification zone dots */
+.table-team-logo {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.zone-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-left: 7px;
+    vertical-align: middle;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Match cards: allow the odds capsule to wrap on narrow screens */
+.match-stat-capsules {
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+/* Watch Live modal: real shot positions plotted on the tactical pitch */
+.pitch-shot-marker {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+.pitch-shot-marker.home-shot { background: #00f2fe; }
+.pitch-shot-marker.away-shot { background: #ef4444; }
+
+/* News cards become real links in Live API mode */
+a.news-card {
+    text-decoration: none;
+    color: inherit;
+}
+a.news-card:hover .news-title {
+    color: var(--primary);
+}
+
 .btn-control {
     background: var(--primary);
     border: none;
