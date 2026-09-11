@@ -76,6 +76,15 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Mobile browser polish: stop iOS auto text inflation & tap flash */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
@@ -1190,6 +1199,13 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
 .filter-options-btn:hover {
     color: var(--text-primary);
     border-color: var(--text-secondary);
+}
+
+/* Active state when league-sorted ordering is toggled on */
+.filter-options-btn.active-sort {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: rgba(0, 242, 254, 0.06);
 }
 
 /* Match Cards */
@@ -2532,6 +2548,22 @@ a.news-card:hover .news-title {
    RESPONSIVE DESIGN BREAKPOINTS
    ========================================== */
 
+/* Lock background scroll while the mobile drawer or a modal is open */
+body.nav-open,
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Anchor targets clear the sticky header when scrolled into view */
+.live-scores-section,
+.sidebar-leagues,
+.sidebar-news,
+.standings-card,
+.stats-comparison-card,
+#match-spotlight {
+    scroll-margin-top: 90px;
+}
+
 @keyframes navDrop {
     from { opacity: 0; transform: translateY(-10px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -2689,8 +2721,38 @@ a.news-card:hover .news-title {
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
+    /* Popular Leagues becomes a compact horizontal swipe strip (was hidden) */
     .sidebar-leagues {
-        display: none; /* Hide in tablet/mobile drawer if needed, here hidden for space */
+        display: block;
+    }
+    .sidebar-leagues .card-box {
+        padding: 14px;
+    }
+    .sidebar-leagues .card-header-row {
+        margin-bottom: 10px;
+    }
+    .sidebar-leagues .card-header-row h3 {
+        font-size: 14px;
+    }
+    .leagues-list {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .leagues-list::-webkit-scrollbar {
+        display: none;
+    }
+    .league-row {
+        flex-shrink: 0;
+        border: 1px solid var(--border-color);
+        padding: 8px 14px;
+        min-height: 44px;
+    }
+    .league-row .teams-count {
+        display: none;
     }
     .standings-stats-section {
         grid-column: span 1;
@@ -2761,8 +2823,16 @@ a.news-card:hover .news-title {
         width: 34px;
         height: 34px;
     }
+    /* Dropdown becomes a fixed sheet so it can't overflow the viewport edges */
     .notification-dropdown {
-        max-width: calc(100vw - 24px);
+        position: fixed;
+        top: 132px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
     /* --- Nav drawer sits closer to the edges on phones --- */
@@ -2779,6 +2849,27 @@ a.news-card:hover .news-title {
     }
     .sports-track::-webkit-scrollbar {
         display: none;
+    }
+    .sport-tab {
+        min-height: 44px;
+    }
+
+    /* --- Live ticker: manual swipe instead of auto-scroll (tappable cards) --- */
+    .ticker-strip {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .ticker-strip::-webkit-scrollbar {
+        display: none;
+    }
+    .ticker-content {
+        animation: none;
+        width: max-content;
+        padding-right: 14px;
+    }
+    .ticker-card {
+        padding: 10px 16px;
     }
 
     /* --- Hero / spotlight --- */
@@ -2821,6 +2912,49 @@ a.news-card:hover .news-title {
     .dashboard-grid {
         gap: 14px;
     }
+    /* Scores header stacks so filter pills never squeeze off-screen */
+    .scores-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .scores-filters {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .scores-filters::-webkit-scrollbar {
+        display: none;
+    }
+    .filter-tab {
+        flex-shrink: 0;
+        min-height: 36px;
+        padding: 8px 14px;
+    }
+    .filter-options-btn {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+    }
+    .standings-tab {
+        min-height: 32px;
+        padding: 6px 12px;
+    }
+    .match-card-scores {
+        font-size: 16px;
+    }
+    /* Taller sticky header on phones needs a bigger scroll offset */
+    .live-scores-section,
+    .sidebar-leagues,
+    .sidebar-news,
+    .standings-card,
+    .stats-comparison-card,
+    #match-spotlight {
+        scroll-margin-top: 150px;
+    }
     .features-strip {
         grid-template-columns: 1fr;
     }
@@ -2846,6 +2980,26 @@ a.news-card:hover .news-title {
         flex-wrap: wrap;
         justify-content: center;
         gap: 8px;
+    }
+
+    /* --- Toasts, status bar & inputs --- */
+    .notification-toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        max-width: none;
+    }
+    .api-status-bar {
+        padding: 7px 14px;
+        font-size: 11px;
+    }
+    .search-results {
+        max-height: 50vh;
+    }
+    /* 16px inputs stop iOS auto-zoom on focus */
+    #search-input,
+    .form-group input {
+        font-size: 16px;
     }
 
     /* --- Footer --- */
@@ -2903,11 +3057,62 @@ a.news-card:hover .news-title {
         align-items: center;
         gap: 4px;
     }
-    .api-toggle-container {
-        display: none; /* live/sim status still visible in the API status bar */
+    .spotlight-details .scorers {
+        width: 100%;
+        text-align: center;
+    }
+    .spotlight-details .home-scorers,
+    .spotlight-details .away-scorers {
+        text-align: center;
+    }
+    /* Header triage: keep the API toggle (no mobile alternative), drop the
+       header star (Favorites filter tab covers it) and tighten everything */
+    #favs-toggle-top-btn {
+        display: none;
+    }
+    .main-header {
+        gap: 6px;
+    }
+    .logo-text h1 {
+        font-size: 16px;
+    }
+    .icon-btn {
+        padding: 5px;
+    }
+    .icon-btn svg {
+        width: 17px;
+        height: 17px;
+    }
+    .btn-login {
+        padding: 7px 10px;
+        font-size: 11px;
+    }
+    .api-status-bar .api-sb-timestamp {
+        display: none;
+    }
+    .standings-header {
+        flex-wrap: wrap;
+        gap: 8px;
     }
     .stat-num {
         font-size: 14px;
+    }
+    /* Match cards breathe on narrow screens */
+    .match-card {
+        padding: 12px;
+    }
+    .match-card-team-info {
+        gap: 8px;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .match-card-scores {
+        width: auto;
+        flex-shrink: 0;
+        gap: 8px;
+    }
+    .match-team-name {
+        font-size: 11.5px;
     }
 }
 
