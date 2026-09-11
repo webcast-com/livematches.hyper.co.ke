@@ -40,16 +40,16 @@ independently shippable and revertible.
 
 | # | Idea | Source | Effort | Risk | Fallback |
 |---|------|--------|--------|------|----------|
-| 1.1 | **Persist theme + favorites in `localStorage`** (both reset on refresh today) | Browser only | S | Very low | In-memory behavior if storage blocked |
-| 1.2 | **More standings tabs** — add UCL, Bundesliga, Ligue 1 alongside EPL/LaLiga/Serie A | Same ESPN standings endpoint, new slugs | S | Very low | Tab hidden if its fetch fails |
-| 1.3 | **Assists leaders toggle** in Top Scorers (Goals / Assists) | Same core-API leaders endpoint, `assistsLeaders` category | S | Very low | Goals-only if category missing |
+| 1.1 ✅ | **Persist theme + favorites in `localStorage`** (both reset on refresh today) | Browser only | S | Very low | In-memory behavior if storage blocked |
+| 1.2 ✅ | **More standings tabs** — add UCL, Bundesliga, Ligue 1 alongside EPL/LaLiga/Serie A | Same ESPN standings endpoint, new slugs | S | Very low | Tab hidden if its fetch fails |
+| 1.3 ✅ | **Assists leaders toggle** in Top Scorers (Goals / Assists) | Same core-API leaders endpoint, `assistsLeaders` category | S | Very low | Goals-only if category missing |
 | 1.4 | **Fixtures calendar strip** — browse past/future days | ESPN scoreboard `?dates=YYYYMMDD` (same endpoint + transport) | M | Low | "No events" empty state per day |
 | 1.5 | **Match timeline tab** in Watch Live modal (goals/cards/subs on a minute axis) | Already-fetched summary commentary/plays — pure render work | M | Low | Tab hidden when no play data |
 | 1.6 | **Lineups + bench** in Watch Live modal | Summary `boxscore.players` / `lineups` where provided | M | Low | Section hidden when absent |
 | 1.7 | **Share match** (Web Share API) + **Add to Calendar** (`.ics` download) | Browser only, guarded by feature detection | S | Very low | Buttons hidden if unsupported |
 | 1.8 | **Goal alerts as system notifications** while the page is open | Notification API (permission-gated), hooks into existing `showNotification` | S | Very low | In-app toast only |
 | 1.9 | **Offline + stale-data banner** (`navigator.onLine`, failed-refresh state) | Browser only | S | Very low | N/A (purely additive UI) |
-| 1.10 | **SEO/social meta** (OG/Twitter tags, description, favicon) | Static HTML | S | Very low | N/A |
+| 1.10 ✅ | **SEO/social meta** (OG/Twitter tags, description, favicon) | Static HTML | S | Very low | N/A |
 
 ## Phase 2 — Deeper ESPN (same vendor, proven transport)
 
@@ -123,7 +123,7 @@ experience; the backend only adds sync + out-of-band alerts.
 - Which club/league matters most to your audience? (shapes 2.x + 4.4 defaults)
 - Do you want accounts/sync at all, or stay 100% static? (gates Phase 5)
 - Kiswahili + Kenyan leagues (FKF Premier League?) priority? (6.1 + data wishlist)
+- Any monetization timeline? (shapes 6.4 slot placement)
 
 ## Shipped Log
 - **2026-09-12 — PR-A "Sticky + complete"**: 1.1 theme/favorites persistence, 1.2 UCL/Bundesliga/Ligue 1 standings tabs, 1.3 Goals/Assists leaders toggle, 1.10 SEO/social meta.
-- Any monetization timeline? (shapes 6.4 slot placement)
