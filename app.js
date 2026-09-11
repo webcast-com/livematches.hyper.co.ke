@@ -311,6 +311,27 @@ const MOCK_STANDINGS = {
         { rank: 3, team: "Bologna", logo: "BOL", played: 37, gd: 22, pts: 68 },
         { rank: 4, team: "Juventus", logo: "JUV", played: 37, gd: 21, pts: 68 },
         { rank: 5, team: "Atalanta", logo: "ATA", played: 37, gd: 28, pts: 66 }
+    ],
+    UCL: [
+        { rank: 1, team: "Liverpool", logo: "LIV", played: 8, gd: 12, pts: 21 },
+        { rank: 2, team: "Barcelona", logo: "BAR", played: 8, gd: 15, pts: 19 },
+        { rank: 3, team: "Arsenal", logo: "ARS", played: 8, gd: 13, pts: 19 },
+        { rank: 4, team: "Inter Milan", logo: "INT", played: 8, gd: 11, pts: 19 },
+        { rank: 5, team: "Atletico Madrid", logo: "ATM", played: 8, gd: 8, pts: 18 }
+    ],
+    Bundesliga: [
+        { rank: 1, team: "Bayern Munich", logo: "FCB", played: 34, gd: 67, pts: 82 },
+        { rank: 2, team: "Leverkusen", logo: "LEV", played: 34, gd: 38, pts: 69 },
+        { rank: 3, team: "Frankfurt", logo: "SGE", played: 34, gd: 22, pts: 60 },
+        { rank: 4, team: "Dortmund", logo: "BVB", played: 34, gd: 18, pts: 57 },
+        { rank: 5, team: "Freiburg", logo: "SCF", played: 34, gd: -4, pts: 55 }
+    ],
+    Ligue1: [
+        { rank: 1, team: "Paris Saint-Germain", logo: "PSG", played: 34, gd: 57, pts: 84 },
+        { rank: 2, team: "Marseille", logo: "OM", played: 34, gd: 27, pts: 65 },
+        { rank: 3, team: "Monaco", logo: "ASM", played: 34, gd: 25, pts: 61 },
+        { rank: 4, team: "Nice", logo: "NICE", played: 34, gd: 20, pts: 60 },
+        { rank: 5, team: "Lille", logo: "LIL", played: 34, gd: 19, pts: 60 }
     ]
 };
 
@@ -353,11 +374,41 @@ const MOCK_SCORERS = [
     { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15 }
 ];
 
+// Same row shape (`goals` holds the assist count) so the renderer is shared
+const MOCK_ASSISTS = [
+    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13 },
+    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12 },
+    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11 },
+    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10 },
+    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10 }
+];
+
 // --- APP STATE ---
+// --- Persistent preferences (theme + favorites), guarded for private mode ---
+const store = {
+    get(key, fallback) {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw === null ? fallback : JSON.parse(raw);
+        } catch { return fallback; }
+    },
+    set(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); }
+        catch { /* storage unavailable — stay in-memory */ }
+    }
+};
+const FAVS_KEY = "scorehub-favs-v1";
+const THEME_KEY = "scorehub-theme";
+const favoriteIds = new Set(store.get(FAVS_KEY, []));
+function persistFavorites() { store.set(FAVS_KEY, [...favoriteIds]); }
+// Re-apply saved stars to the simulation dataset (API matches: after each fetch)
+MOCK_MATCHES.forEach(m => { m.favorites = favoriteIds.has(m.id); });
+
 let currentSport = "all";
 let currentFilter = "all";
 let currentLeague = "all";
 let sortByLeague = false;
+let leadersCategory = "goals";
 let currentStandingLeague = "EPL";
 let spotlightMatchId = "fb-1";
 let searchOpen = false;
@@ -373,6 +424,7 @@ let liveNewsAt = 0;
 let liveScorers = null;        // parsed golden-boot rows for current tab league
 let liveScorersAt = 0;
 let liveScorersLeague = null;  // which league liveScorers belongs to
+let liveScorersCat = "goals";    // which category ("goals" | "assists")
 let espnSeasonYear = null;     // current season year captured from scoreboard responses
 let usingLiveCommentary = false; // real commentary feed active in Watch Live modal
 const summaryCache = new Map();   // espnEventId → { data, ts }
@@ -382,7 +434,10 @@ let summaryFetchTimer = null;
 const STANDINGS_TAB_SLUGS = {
     EPL: "eng.1",
     LaLiga: "esp.1",
-    SerieA: "ita.1"
+    SerieA: "ita.1",
+    UCL: "uefa.champions",
+    Bundesliga: "ger.1",
+    Ligue1: "fra.1"
 };
 
 // --- DOM ELEMENTS ---
@@ -870,6 +925,7 @@ async function loadAPIMatches() {
     });
 
     apiMatches = fetched;
+    apiMatches.forEach(m => { m.favorites = favoriteIds.has(m.id); });
     apiLoading = false;
 
     // Update live match counter badge
@@ -1063,8 +1119,9 @@ async function loadLiveNews() {
     }));
 }
 
-// Golden boot via the core API leaders endpoint (player/team names come as $refs)
-async function loadLiveScorers(leagueKey) {
+// Golden boot (or assist leaders) via the core API leaders endpoint
+// (player/team names come as $refs)
+async function loadLiveScorers(leagueKey, category = "goals") {
     const slug = STANDINGS_TAB_SLUGS[leagueKey];
     if (!slug) return null;
     const year = espnSeasonYear || new Date().getFullYear();
@@ -1073,7 +1130,10 @@ async function loadLiveScorers(leagueKey) {
         host: "sports.core.api.espn.com",
         validate: d => !!(d && Array.isArray(d.categories))
     });
-    const goalsCat = data.categories.find(c => c.name === "goalsLeaders" || c.displayName === "Goals");
+    const wantAssists = category === "assists";
+    const goalsCat = data.categories.find(c => wantAssists
+        ? (c.name === "assistsLeaders" || c.displayName === "Assists")
+        : (c.name === "goalsLeaders" || c.displayName === "Goals"));
     if (!goalsCat || !Array.isArray(goalsCat.leaders) || !goalsCat.leaders.length) return null;
 
     const top = goalsCat.leaders.slice(0, 5);
@@ -1126,12 +1186,13 @@ function loadLiveExtras(force = false) {
         }).catch(err => console.warn("Standings fetch failed:", err.message));
     }
 
-    if (slug && (force || liveScorersLeague !== leagueKey || !liveScorers || Date.now() - liveScorersAt > LIVE_EXTRAS_TTL_MS)) {
-        loadLiveScorers(leagueKey).then(rows => {
+    if (slug && (force || liveScorersLeague !== leagueKey || liveScorersCat !== leadersCategory || !liveScorers || Date.now() - liveScorersAt > LIVE_EXTRAS_TTL_MS)) {
+        loadLiveScorers(leagueKey, leadersCategory).then(rows => {
             if (rows && rows.length) {
                 liveScorers = rows;
                 liveScorersAt = Date.now();
                 liveScorersLeague = leagueKey;
+                liveScorersCat = leadersCategory;
                 if (isApiMode) renderScorers();
             }
         }).catch(err => console.warn("Scorers fetch failed (using fallback):", err.message));
@@ -1428,16 +1489,21 @@ function renderStandings() {
     });
 }
 
-// Render Top Scorers (ESPN golden boot in Live API mode, mock data otherwise)
+// Render Top Scorers / Top Assists (ESPN leaders in Live API mode, mock data otherwise)
 function renderScorers() {
     const listEl = document.getElementById("scorers-list");
     if (!listEl) return;
 
+    const titleEl = document.querySelector(".scorers-card .card-header-row h3");
+    if (titleEl) titleEl.textContent = leadersCategory === "assists" ? "Top Assists" : "Top Scorers";
+
+    const mockRows = leadersCategory === "assists" ? MOCK_ASSISTS : MOCK_SCORERS;
     let rows = null;
     if (isApiMode) {
-        rows = (liveScorers && liveScorers.length) ? liveScorers : scorersFromMatches();
+        const liveOk = liveScorers && liveScorers.length && liveScorersCat === leadersCategory;
+        rows = liveOk ? liveScorers : (leadersCategory === "goals" ? scorersFromMatches() : mockRows);
     }
-    if (!rows || !rows.length) rows = MOCK_SCORERS;
+    if (!rows || !rows.length) rows = mockRows;
 
     listEl.innerHTML = rows.map(r => `
         <div class="scorer-row">
@@ -1582,6 +1648,9 @@ function renderMatches() {
         const favBtn = card.querySelector(".btn-star-fav");
         favBtn.addEventListener("click", () => {
             match.favorites = !match.favorites;
+            if (match.favorites) favoriteIds.add(match.id);
+            else favoriteIds.delete(match.id);
+            persistFavorites();
             favBtn.classList.toggle("favorited");
             renderMatches();
             // Show alert/notify if favorited
@@ -1954,6 +2023,7 @@ function initEventHandlers() {
         const currentTheme = document.documentElement.getAttribute("data-theme");
         const newTheme = currentTheme === "light" ? "dark" : "light";
         document.documentElement.setAttribute("data-theme", newTheme);
+        store.set(THEME_KEY, newTheme);
         
         // Swap icons
         const moon = document.querySelector(".moon-icon");
@@ -2087,6 +2157,22 @@ function initEventHandlers() {
         });
     });
     
+    // Goals / Assists leaders toggle
+    const leadersBtns = document.querySelectorAll(".segmented-btn");
+    leadersBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            leadersBtns.forEach((b) => {
+                b.classList.remove("active");
+                b.setAttribute("aria-selected", "false");
+            });
+            btn.classList.add("active");
+            btn.setAttribute("aria-selected", "true");
+            leadersCategory = btn.getAttribute("data-leaders-cat") || "goals";
+            renderScorers();
+            if (isApiMode) loadLiveExtras();
+        });
+    });
+
     // Search filter input logic
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase().trim();
@@ -2314,8 +2400,20 @@ function initEventHandlers() {
     });
 }
 
+// Apply the persisted theme (if any) before first render
+function applyStoredTheme() {
+    const saved = store.get(THEME_KEY, null);
+    if (saved !== "light" && saved !== "dark") return;
+    document.documentElement.setAttribute("data-theme", saved);
+    const moon = document.querySelector(".moon-icon");
+    const sun = document.querySelector(".sun-icon");
+    if (moon) moon.classList.toggle("hidden", saved === "light");
+    if (sun) sun.classList.toggle("hidden", saved !== "light");
+}
+
 // --- INITIALIZATION --- 
 function init() {
+    applyStoredTheme();
     initEventHandlers();
     
     // Initial Render

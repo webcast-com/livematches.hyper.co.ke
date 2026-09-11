@@ -122,5 +122,8 @@ experience; the backend only adds sync + out-of-band alerts.
 ## Open Questions (answer whenever — roadmap stands regardless)
 - Which club/league matters most to your audience? (shapes 2.x + 4.4 defaults)
 - Do you want accounts/sync at all, or stay 100% static? (gates Phase 5)
-- Kiswahili + Kenyan leagues (FKF Premier League?) priority? (6.1 + data Wunsch)
+- Kiswahili + Kenyan leagues (FKF Premier League?) priority? (6.1 + data wishlist)
+
+## Shipped Log
+- **2026-09-12 — PR-A "Sticky + complete"**: 1.1 theme/favorites persistence, 1.2 UCL/Bundesliga/Ligue 1 standings tabs, 1.3 Goals/Assists leaders toggle, 1.10 SEO/social meta.
 - Any monetization timeline? (shapes 6.4 slot placement)

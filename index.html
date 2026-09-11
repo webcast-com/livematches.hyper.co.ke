@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#07090e">
+    <meta name="description" content="ScoreHub - real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%2300f2fe' stroke-width='4'/><path d='M16 9v7l5 3' stroke='%2300f2fe' stroke-width='3' stroke-linecap='round' fill='none'/></svg>">
+    <link rel="canonical" href="https://livematches.hyper.co.ke/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ScoreHub">
+    <meta property="og:title" content="ScoreHub - Every Score. Every Moment.">
+    <meta property="og:description" content="Real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
+    <meta property="og:url" content="https://livematches.hyper.co.ke/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ScoreHub - Every Score. Every Moment.">
+    <meta name="twitter:description" content="Real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
     <title>ScoreHub - Every Score. Every Moment.</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -284,7 +295,10 @@
             <div class="hero-card scorers-card">
                 <div class="card-header-row">
                     <h3>Top Scorers</h3>
-                    <a href="#" class="view-all-link">View All</a>
+                    <div class="segmented" role="tablist" aria-label="Leaders category">
+                        <button class="segmented-btn active" data-leaders-cat="goals" role="tab" aria-selected="true">Goals</button>
+                        <button class="segmented-btn" data-leaders-cat="assists" role="tab" aria-selected="false">Assists</button>
+                    </div>
                 </div>
                 <!-- Rows populated by JS: ESPN golden boot in Live API mode, mock data otherwise -->
                 <div class="scorers-list" id="scorers-list"></div>
@@ -398,6 +412,9 @@
                             <button class="standings-tab active" data-standing-league="EPL">EPL</button>
                             <button class="standings-tab" data-standing-league="LaLiga">La Liga</button>
                             <button class="standings-tab" data-standing-league="SerieA">Serie A</button>
+                            <button class="standings-tab" data-standing-league="UCL">UCL</button>
+                            <button class="standings-tab" data-standing-league="Bundesliga">Bundesliga</button>
+                            <button class="standings-tab" data-standing-league="Ligue1">Ligue 1</button>
                         </div>
                     </div>
                     

@@ -912,6 +912,37 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     text-decoration: underline;
 }
 
+/* Segmented Goals / Assists toggle */
+.segmented {
+    display: flex;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.segmented-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    min-height: 32px;
+}
+.segmented-btn:hover {
+    color: var(--text-primary);
+}
+.segmented-btn.active {
+    background: rgba(0, 242, 254, 0.12);
+    color: var(--primary);
+}
+
 .scorers-list {
     display: flex;
     flex-direction: column;
@@ -1369,6 +1400,7 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     margin-bottom: 16px;
 }
 
@@ -1380,9 +1412,18 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
 .standings-tabs {
     display: flex;
     gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+.standings-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .standings-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
