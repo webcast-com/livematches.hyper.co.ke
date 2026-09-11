@@ -409,6 +409,11 @@ let currentFilter = "all";
 let currentLeague = "all";
 let sortByLeague = false;
 let leadersCategory = "goals";
+let selectedDate = null;   // YYYYMMDD string, or null for the default (today) feed
+// --- Formula 1 (Jolpica Ergast API) ---
+let f1Data = null;           // { season, drivers, last }
+let f1DataAt = 0;
+let f1Loading = false;
 let currentStandingLeague = "EPL";
 let spotlightMatchId = "fb-1";
 let searchOpen = false;
@@ -696,7 +701,8 @@ async function fetchESPNPath(path, opts = {}) {
 
 // Fetch ESPN scoreboard for a specific endpoint slug
 async function fetchESPNLeague(slug) {
-    return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard`);
+    const qs = selectedDate ? `?dates=${selectedDate}` : "";
+    return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard${qs}`);
 }
 
 // Convert ESPN event JSON → internal match object
@@ -871,6 +877,7 @@ function showSkeletons(count = 4) {
 
 // Fetch and load all matches for the selected sport from the ESPN API
 async function loadAPIMatches() {
+    if (currentSport === "f1") { loadF1Data(); return; }
     if (apiLoading) return;
     apiLoading = true;
     showSkeletons(5);
@@ -946,7 +953,8 @@ async function loadAPIMatches() {
     const lastUpdatedEl = document.getElementById("api-last-updated");
     if (lastUpdatedEl) {
         const now = new Date();
-        lastUpdatedEl.textContent = `Updated ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · ${apiMatches.length} events · via ${espnTransportName()}`;
+                const dayLabel = selectedDate ? ` · ${selectedDate.slice(6, 8)}/${selectedDate.slice(4, 6)}` : "";
+        lastUpdatedEl.textContent = `Updated ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · ${apiMatches.length} events${dayLabel} · via ${espnTransportName()}`;
     }
 
     renderMatches();
@@ -1698,7 +1706,224 @@ function renderNews() {
 }
 
 // Render Matches List
+// --- FIXTURES CALENDAR (ESPN scoreboard ?dates= support) ---
+const DATE_STRIP_OFFSETS = [-2, -1, 0, 1, 2, 3, 4, 5];
+
+function toYYYYMMDD(d) {
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
+function renderDateStrip() {
+    const strip = document.getElementById("date-strip");
+    if (!strip) return;
+    const today = new Date();
+    strip.innerHTML = "";
+    DATE_STRIP_OFFSETS.forEach(offset => {
+        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+        const ymd = toYYYYMMDD(d);
+        const btn = document.createElement("button");
+        btn.className = "date-pill" + ((offset === 0 && !selectedDate) || selectedDate === ymd ? " active" : "");
+        const dow = offset === 0 ? "Today" : d.toLocaleDateString([], { weekday: "short" });
+        const dayNum = d.getDate();
+        const mon = d.toLocaleDateString([], { month: "short" });
+        btn.innerHTML = `<span class="date-pill-dow">${dow}</span><span class="date-pill-day">${dayNum} ${mon}</span>`;
+        btn.setAttribute("aria-label", d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }));
+        btn.addEventListener("click", () => {
+            if (!isApiMode) {
+                showNotification("Date browsing needs Live API Mode — tap the mode toggle up top", true);
+                return;
+            }
+            selectedDate = offset === 0 ? null : ymd;
+            renderDateStrip();
+            loadAPIMatches();
+        });
+        strip.appendChild(btn);
+    });
+}
+
+// --- FORMULA 1 (Jolpica Ergast API: no key, CORS-enabled) ---
+const F1_API = "https://api.jolpi.ca/ergast/f1";
+const F1_TTL_MS = 10 * 60 * 1000;
+
+const F1_NATIONALITY_FLAGS = {
+    "British": "gb", "Dutch": "nl", "Spanish": "es", "French": "fr", "German": "de",
+    "Italian": "it", "Australian": "au", "Japanese": "jp", "American": "us", "Canadian": "ca",
+    "Mexican": "mx", "Brazilian": "br", "Austrian": "at", "Finnish": "fi", "Danish": "dk",
+    "Swedish": "se", "Monegasque": "mc", "Thai": "th", "Chinese": "cn", "Argentine": "ar",
+    "New Zealander": "nz", "Swiss": "ch", "Belgian": "be", "Portuguese": "pt", "Indian": "in"
+};
+
+async function fetchF1(path) {
+    const resp = await fetchWithTimeout(`${F1_API}${path}`, ESPN_FETCH_TIMEOUT_MS);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (!data || !data.MRData) throw new Error("bad F1 payload");
+    return data.MRData;
+}
+
+function f1RaceDateTime(race) {
+    if (!race || !race.date) return null;
+    const d = new Date(race.time ? `${race.date}T${race.time}` : `${race.date}T12:00:00Z`);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+function f1CountdownParts(target) {
+    const ms = Math.max(0, target.getTime() - Date.now());
+    return {
+        days: Math.floor(ms / 86400000),
+        hours: Math.floor(ms / 3600000) % 24,
+        mins: Math.floor(ms / 60000) % 60
+    };
+}
+
+function f1DriverName(d) {
+    if (!d) return "Unknown";
+    return [d.givenName, d.familyName].filter(Boolean).join(" ") || "Unknown";
+}
+
+async function loadF1Data(force = false) {
+    if (f1Loading) return;
+    if (!force && f1Data && Date.now() - f1DataAt < F1_TTL_MS) {
+        if (currentSport === "f1") renderF1();
+        return;
+    }
+    f1Loading = true;
+    if (currentSport === "f1") showSkeletons(3);
+    try {
+        const results = await Promise.all([
+            fetchF1("/current.json"),
+            fetchF1("/current/driverStandings.json"),
+            fetchF1("/current/last/results.json").catch(() => null) // null when no race completed yet
+        ]);
+        f1Data = { season: results[0], drivers: results[1], last: results[2] };
+        f1DataAt = Date.now();
+    } catch (err) {
+        console.warn("F1 fetch failed:", err.message);
+    } finally {
+        f1Loading = false;
+        if (currentSport === "f1") renderF1();
+    }
+}
+
+function f1FlagImg(nationality) {
+    const code = F1_NATIONALITY_FLAGS[nationality];
+    if (!code) return "";
+    return `<img class="f1-flag" src="https://flagcdn.com/w40/${code}.png" alt="" loading="lazy" onerror="this.remove()">`;
+}
+
+function renderF1() {
+    matchesContainer.innerHTML = "";
+    const section = document.querySelector(".live-scores-section");
+    if (section) section.classList.add("f1-mode");
+    const titleEl = document.querySelector(".live-scores-section .scores-header h3");
+    if (titleEl) titleEl.textContent = "Formula 1";
+
+    if (!isApiMode && !f1Data) {
+        matchesContainer.innerHTML = `
+            <div class="f1-note">Formula 1 data is live-only in this demo.</div>
+            <button class="f1-retry-btn" id="f1-enable-live">Switch to Live API Mode</button>`;
+        document.getElementById("f1-enable-live").addEventListener("click", () => setApiMode(true));
+        return;
+    }
+    if (!f1Data) {
+        matchesContainer.innerHTML = `
+            <div class="f1-note">Formula 1 data is unavailable right now.</div>
+            <button class="f1-retry-btn" id="f1-retry">Retry</button>`;
+        document.getElementById("f1-retry").addEventListener("click", () => loadF1Data(true));
+        return;
+    }
+
+    const seasonTable = f1Data.season && f1Data.season.RaceTable;
+    const races = (seasonTable && seasonTable.Races) || [];
+    const now = Date.now();
+    const upcoming = races.map(r => ({ race: r, at: f1RaceDateTime(r) }))
+        .filter(x => x.at && x.at.getTime() > now - 3 * 3600000);
+    const next = upcoming[0];
+
+    if (next) {
+        const cd = f1CountdownParts(next.at);
+        const when = next.at.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + " · " +
+            next.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        matchesContainer.innerHTML += `
+            <div class="f1-hero">
+                <div class="f1-kicker">Next Race · Round ${escHtml(next.race.round || "")}</div>
+                <div class="f1-race-name">${escHtml(next.race.raceName || "Grand Prix")}</div>
+                <div class="f1-circuit">${escHtml((next.race.Circuit && next.race.Circuit.circuitName) || "")} · ${escHtml(when)}</div>
+                <div class="f1-countdown">
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.days}</span><span class="f1-count-lbl">Days</span></div>
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.hours}</span><span class="f1-count-lbl">Hrs</span></div>
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.mins}</span><span class="f1-count-lbl">Min</span></div>
+                </div>
+            </div>`;
+    }
+
+    const lastTable = f1Data.last && f1Data.last.RaceTable;
+    const lastRaces = (lastTable && lastTable.Races) || [];
+    if (lastRaces.length && lastRaces[0].Results) {
+        const lr = lastRaces[0];
+        let html = `<div class="f1-section-title">Last Race · ${escHtml(lr.raceName || "")}</div>`;
+        lr.Results.slice(0, 5).forEach(r => {
+            html += `<div class="f1-row"><span class="f1-pos">P${escHtml(r.position)}</span>`
+                + f1FlagImg(r.Driver && r.Driver.nationality)
+                + `<span class="f1-driver">${escHtml(f1DriverName(r.Driver))}</span>`
+                + `<span class="f1-team">${escHtml(r.Constructor ? r.Constructor.name : "")}</span>`
+                + `<span class="f1-pts">${escHtml(r.points)} pts</span></div>`;
+        });
+        matchesContainer.innerHTML += html;
+    }
+
+    const stTable = f1Data.drivers && f1Data.drivers.StandingsTable;
+    const lists = (stTable && stTable.StandingsLists) || [];
+    if (lists.length && lists[0].DriverStandings) {
+        let html = `<div class="f1-section-title">Driver Standings</div>`;
+        lists[0].DriverStandings.slice(0, 8).forEach(s => {
+            html += `<div class="f1-row"><span class="f1-pos">${escHtml(s.position)}</span>`
+                + f1FlagImg(s.Driver && s.Driver.nationality)
+                + `<span class="f1-driver">${escHtml(f1DriverName(s.Driver))}</span>`
+                + `<span class="f1-team">${escHtml(s.Constructors && s.Constructors[0] ? s.Constructors[0].name : "")}</span>`
+                + `<span class="f1-pts">${escHtml(s.points)}</span></div>`;
+        });
+        matchesContainer.innerHTML += html;
+        const upd = new Date(f1DataAt);
+        matchesContainer.innerHTML += `<div class="f1-note">Updated ${upd.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · data: Jolpica F1 API</div>`;
+    }
+}
+
+// --- LEAGUE FLAG IMAGES (progressive enhancement; emoji stays as fallback) ---
+const LEAGUE_FLAG_CODES = {
+    EPL: "gb-eng",
+    UCL: "eu",
+    LaLiga: "es",
+    SerieA: "it",
+    Bundesliga: "de",
+    Ligue1: "fr"
+};
+
+function enhanceLeagueFlags() {
+    document.querySelectorAll(".league-row").forEach(row => {
+        const code = LEAGUE_FLAG_CODES[row.getAttribute("data-league-id")];
+        const flagEl = row.querySelector(".league-flag");
+        if (!code || !flagEl || flagEl.querySelector("img")) return;
+        const emoji = flagEl.textContent;
+        const img = document.createElement("img");
+        img.src = `https://flagcdn.com/w40/${code}.png`;
+        img.alt = "";
+        img.loading = "lazy";
+        img.className = "league-flag-img";
+        img.onerror = () => { flagEl.textContent = emoji; };
+        flagEl.textContent = "";
+        flagEl.appendChild(img);
+    });
+}
+
 function renderMatches() {
+    // Formula 1 renders its own view inside the scores card
+    const scoresSection = document.querySelector(".live-scores-section");
+    if (currentSport === "f1") { renderF1(); return; }
+    if (scoresSection) scoresSection.classList.remove("f1-mode");
+    const scoresTitle = document.querySelector(".live-scores-section .scores-header h3");
+    if (scoresTitle) scoresTitle.textContent = "Live Scores";
     matchesContainer.innerHTML = "";
     
     const activeMatches = isApiMode ? apiMatches : MOCK_MATCHES;
@@ -2398,7 +2623,9 @@ function initEventHandlers() {
             sportTabs.forEach((t) => t.classList.remove("active"));
             tab.classList.add("active");
             currentSport = tab.getAttribute("data-sport");
-            if (isApiMode) {
+            if (currentSport === "f1") {
+                loadF1Data();
+            } else if (isApiMode) {
                 // Re-fetch API data for the newly selected sport
                 loadAPIMatches();
             } else {
@@ -2600,6 +2827,8 @@ function initEventHandlers() {
         e.preventDefault();
         currentSport = "all";
         currentLeague = "all";
+        selectedDate = null;
+        renderDateStrip();
         sportTabs.forEach((t) => t.classList.remove("active"));
         sportTabs[0].classList.add("active");
         leagueRows.forEach((r) => r.classList.remove("active"));
@@ -2711,6 +2940,8 @@ function applyStoredTheme() {
 function init() {
     applyStoredTheme();
     initEventHandlers();
+    renderDateStrip();
+    enhanceLeagueFlags();
     
     // Initial Render
     renderTicker();
@@ -2731,7 +2962,8 @@ function init() {
     // Auto-refresh ESPN API data every 60 seconds when in API mode
     setInterval(() => {
         if (isApiMode && !apiLoading) {
-            loadAPIMatches();
+            if (currentSport === "f1") loadF1Data();
+            else loadAPIMatches();
             loadLiveExtras(); // TTL-cached internally, refreshes every ~5 min
             refreshLiveMatchCentre(); // updates the open Watch Live modal
         }

@@ -43,7 +43,7 @@ independently shippable and revertible.
 | 1.1 ✅ | **Persist theme + favorites in `localStorage`** (both reset on refresh today) | Browser only | S | Very low | In-memory behavior if storage blocked |
 | 1.2 ✅ | **More standings tabs** — add UCL, Bundesliga, Ligue 1 alongside EPL/LaLiga/Serie A | Same ESPN standings endpoint, new slugs | S | Very low | Tab hidden if its fetch fails |
 | 1.3 ✅ | **Assists leaders toggle** in Top Scorers (Goals / Assists) | Same core-API leaders endpoint, `assistsLeaders` category | S | Very low | Goals-only if category missing |
-| 1.4 | **Fixtures calendar strip** — browse past/future days | ESPN scoreboard `?dates=YYYYMMDD` (same endpoint + transport) | M | Low | "No events" empty state per day |
+| 1.4 ✅ | **Fixtures calendar strip** — browse past/future days | ESPN scoreboard `?dates=YYYYMMDD` (same endpoint + transport) | M | Low | "No events" empty state per day |
 | 1.5 ✅ | **Match timeline tab** in Watch Live modal (goals/cards/subs on a minute axis) | Already-fetched summary commentary/plays — pure render work | M | Low | Tab hidden when no play data |
 | 1.6 ✅ | **Lineups + bench** in Watch Live modal | Summary `boxscore.players` / `lineups` where provided | M | Low | Section hidden when absent |
 | 1.7 ✅ | **Share match** (Web Share API) + **Add to Calendar** (`.ics` download) | Browser only, guarded by feature detection | S | Very low | Buttons hidden if unsupported |
@@ -70,10 +70,10 @@ independently shippable and revertible.
 
 | # | Idea | Source | Effort | Risk | Fallback |
 |---|------|--------|--------|------|----------|
-| 3.1 | **Formula 1 tab** — schedule, standings, results (brand-new sport vertical) | [Jolpica F1 API](https://api.jolpi.ca/ergast/f1/) (Ergast mirror, free, CORS) | M | Low | Tab hidden if unreachable |
+| 3.1 ✅ | **Formula 1 tab** — schedule, standings, results (brand-new sport vertical) | [Jolpica F1 API](https://api.jolpi.ca/ergast/f1/) (Ergast mirror, free, CORS) | M | Low | Tab hidden if unreachable |
 | 3.2 | **Deeper German fixtures** (BL1/BL2/DFB-Pokal history + matchdays) | [OpenLigaDB](https://api.openligadb.de) (free, no key, CORS) | M | Low | ESPN coverage remains |
 | 3.3 | **Matchday weather widget** in Watch Live (temp, rain, wind at venue) | [Open-Meteo](https://open-meteo.com) (no key, CORS) + venue/city geocoding | M | Low | Widget hidden |
-| 3.4 | **Country flags** on leagues/teams | [flagcdn.com](https://flagcdn.com) image CDN (hotlink, no key) | S | Very low | Emoji flags stay |
+| 3.4 ✅ | **Country flags** on leagues/teams | [flagcdn.com](https://flagcdn.com) image CDN (hotlink, no key) | S | Very low | Emoji flags stay |
 | 3.5 | **Highlights deep-links** ("Watch highlights" → YouTube search for the fixture) | Plain outbound link, zero API calls | S | Very low | N/A |
 
 ## Phase 4 — Engagement Without a Backend (all local-first)
@@ -128,3 +128,4 @@ experience; the backend only adds sync + out-of-band alerts.
 ## Shipped Log
 - **2026-09-12 — PR-A "Sticky + complete"**: 1.1 theme/favorites persistence, 1.2 UCL/Bundesliga/Ligue 1 standings tabs, 1.3 Goals/Assists leaders toggle, 1.10 SEO/social meta.
 - **2026-09-12 — PR-B "Match centre depth"**: 1.5 key-events timeline, 1.6 lineups, 1.7 share + .ics calendar export, 1.9 offline/stale-data banner.
+- **2026-09-12 — PR-C "Time travel + new sport"**: 1.4 fixtures calendar (?dates=), 3.1 Formula 1 tab (Jolpica API), 3.4 flag CDN with emoji fallback.
