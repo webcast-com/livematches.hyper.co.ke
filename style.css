@@ -76,6 +76,15 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Mobile browser polish: stop iOS auto text inflation & tap flash */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
@@ -903,6 +912,37 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     text-decoration: underline;
 }
 
+/* Segmented Goals / Assists toggle */
+.segmented {
+    display: flex;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.segmented-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    min-height: 32px;
+}
+.segmented-btn:hover {
+    color: var(--text-primary);
+}
+.segmented-btn.active {
+    background: rgba(0, 242, 254, 0.12);
+    color: var(--primary);
+}
+
 .scorers-list {
     display: flex;
     flex-direction: column;
@@ -1192,6 +1232,13 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     border-color: var(--text-secondary);
 }
 
+/* Active state when league-sorted ordering is toggled on */
+.filter-options-btn.active-sort {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: rgba(0, 242, 254, 0.06);
+}
+
 /* Match Cards */
 .matches-list {
     display: flex;
@@ -1353,6 +1400,7 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     margin-bottom: 16px;
 }
 
@@ -1364,9 +1412,18 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
 .standings-tabs {
     display: flex;
     gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+.standings-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .standings-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
@@ -2478,6 +2535,241 @@ a.news-card:hover .news-title {
     gap: 6px;
 }
 
+/* Spotlight secondary actions (Share / Add to calendar) */
+.spotlight-actions {
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.btn-ghost-icon {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.btn-ghost-icon:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+/* Match centre tabs (Commentary / Timeline / Lineups) */
+.match-centre-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 4px 0 10px;
+}
+.mc-tab {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: var(--transition-smooth);
+    min-height: 34px;
+}
+.mc-tab:hover { color: var(--text-primary); }
+.mc-tab.active {
+    color: var(--primary);
+    background: rgba(0, 242, 254, 0.06);
+    border-color: rgba(0, 242, 254, 0.25);
+}
+.mc-pane[hidden] { display: none; }
+
+/* Fixtures date strip */
+.date-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 2px 10px;
+    margin-bottom: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.date-strip::-webkit-scrollbar { display: none; }
+.date-pill {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    min-width: 62px;
+    min-height: 52px;
+    padding: 7px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+.date-pill:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+.date-pill.active {
+    color: var(--primary);
+    background: rgba(0, 242, 254, 0.06);
+    border-color: rgba(0, 242, 254, 0.25);
+}
+.date-pill-dow { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.date-pill-day { font-size: 13px; font-weight: 800; white-space: nowrap; }
+
+/* F1 mode: date strip, filters and footer hide inside the scores card */
+.live-scores-section.f1-mode .scores-filters,
+.live-scores-section.f1-mode .date-strip,
+.live-scores-section.f1-mode .view-all-matches-footer { display: none; }
+
+/* Formula 1 cards */
+.f1-hero {
+    background: linear-gradient(135deg, rgba(225, 6, 0, 0.10), rgba(15, 21, 32, 0.4));
+    border: 1px solid rgba(225, 6, 0, 0.25);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+.f1-kicker { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #ff6b6b; }
+.f1-race-name { font-size: 18px; font-weight: 800; margin: 4px 0 2px; }
+.f1-circuit { font-size: 12px; color: var(--text-secondary); }
+.f1-countdown { display: flex; gap: 8px; margin-top: 12px; }
+.f1-count-box {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+}
+.f1-count-num { display: block; font-size: 18px; font-weight: 800; color: var(--text-primary); }
+.f1-count-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.f1-section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); margin: 14px 0 8px; }
+.f1-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    background: rgba(15, 21, 32, 0.4);
+    font-size: 12.5px;
+}
+.f1-pos { font-weight: 800; color: var(--text-muted); min-width: 22px; text-align: center; flex-shrink: 0; }
+.f1-driver { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.f1-team { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38%; }
+.f1-pts { font-weight: 800; color: var(--accent); flex-shrink: 0; }
+.f1-flag { width: 20px; height: 13px; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
+.f1-note { font-size: 11.5px; color: var(--text-muted); text-align: center; padding: 12px 4px; }
+.f1-retry-btn {
+    display: block;
+    margin: 4px auto 0;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.f1-retry-btn:hover { border-color: var(--text-secondary); }
+
+/* League flag images (progressive enhancement over emoji) */
+.league-flag { display: inline-flex; align-items: center; }
+.league-flag-img { width: 20px; height: 14px; object-fit: cover; border-radius: 2px; display: block; }
+
+/* Key-events timeline */
+.timeline-list {
+    max-height: 220px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+}
+.timeline-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 7px 0 7px 18px;
+    position: relative;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    border-left: 2px solid rgba(255, 255, 255, 0.08);
+    margin-left: 6px;
+}
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 11px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+}
+.timeline-item.ev-goal::before { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.timeline-item.ev-card-y::before { background: var(--warning); }
+.timeline-item.ev-card-r::before { background: var(--danger); }
+.timeline-item.ev-sub::before { background: var(--primary); }
+.timeline-min {
+    font-weight: 800;
+    color: var(--text-primary);
+    min-width: 34px;
+    flex-shrink: 0;
+}
+.timeline-text { flex: 1; }
+.timeline-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 14px 4px;
+    text-align: center;
+}
+
+/* Lineups */
+.lineups-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+.lineup-col h5 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+.lineup-player {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11.5px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+.lineup-pos {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+@media (max-width: 480px) {
+    .lineups-grid { grid-template-columns: 1fr; }
+}
+
 /* Login/Auth styles */
 .auth-card {
     max-width: 400px;
@@ -2531,6 +2823,22 @@ a.news-card:hover .news-title {
 /* ==========================================
    RESPONSIVE DESIGN BREAKPOINTS
    ========================================== */
+
+/* Lock background scroll while the mobile drawer or a modal is open */
+body.nav-open,
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Anchor targets clear the sticky header when scrolled into view */
+.live-scores-section,
+.sidebar-leagues,
+.sidebar-news,
+.standings-card,
+.stats-comparison-card,
+#match-spotlight {
+    scroll-margin-top: 90px;
+}
 
 @keyframes navDrop {
     from { opacity: 0; transform: translateY(-10px); }
@@ -2689,8 +2997,38 @@ a.news-card:hover .news-title {
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
+    /* Popular Leagues becomes a compact horizontal swipe strip (was hidden) */
     .sidebar-leagues {
-        display: none; /* Hide in tablet/mobile drawer if needed, here hidden for space */
+        display: block;
+    }
+    .sidebar-leagues .card-box {
+        padding: 14px;
+    }
+    .sidebar-leagues .card-header-row {
+        margin-bottom: 10px;
+    }
+    .sidebar-leagues .card-header-row h3 {
+        font-size: 14px;
+    }
+    .leagues-list {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .leagues-list::-webkit-scrollbar {
+        display: none;
+    }
+    .league-row {
+        flex-shrink: 0;
+        border: 1px solid var(--border-color);
+        padding: 8px 14px;
+        min-height: 44px;
+    }
+    .league-row .teams-count {
+        display: none;
     }
     .standings-stats-section {
         grid-column: span 1;
@@ -2761,8 +3099,16 @@ a.news-card:hover .news-title {
         width: 34px;
         height: 34px;
     }
+    /* Dropdown becomes a fixed sheet so it can't overflow the viewport edges */
     .notification-dropdown {
-        max-width: calc(100vw - 24px);
+        position: fixed;
+        top: 132px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
     /* --- Nav drawer sits closer to the edges on phones --- */
@@ -2779,6 +3125,27 @@ a.news-card:hover .news-title {
     }
     .sports-track::-webkit-scrollbar {
         display: none;
+    }
+    .sport-tab {
+        min-height: 44px;
+    }
+
+    /* --- Live ticker: manual swipe instead of auto-scroll (tappable cards) --- */
+    .ticker-strip {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .ticker-strip::-webkit-scrollbar {
+        display: none;
+    }
+    .ticker-content {
+        animation: none;
+        width: max-content;
+        padding-right: 14px;
+    }
+    .ticker-card {
+        padding: 10px 16px;
     }
 
     /* --- Hero / spotlight --- */
@@ -2821,6 +3188,49 @@ a.news-card:hover .news-title {
     .dashboard-grid {
         gap: 14px;
     }
+    /* Scores header stacks so filter pills never squeeze off-screen */
+    .scores-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .scores-filters {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .scores-filters::-webkit-scrollbar {
+        display: none;
+    }
+    .filter-tab {
+        flex-shrink: 0;
+        min-height: 36px;
+        padding: 8px 14px;
+    }
+    .filter-options-btn {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+    }
+    .standings-tab {
+        min-height: 32px;
+        padding: 6px 12px;
+    }
+    .match-card-scores {
+        font-size: 16px;
+    }
+    /* Taller sticky header on phones needs a bigger scroll offset */
+    .live-scores-section,
+    .sidebar-leagues,
+    .sidebar-news,
+    .standings-card,
+    .stats-comparison-card,
+    #match-spotlight {
+        scroll-margin-top: 150px;
+    }
     .features-strip {
         grid-template-columns: 1fr;
     }
@@ -2846,6 +3256,26 @@ a.news-card:hover .news-title {
         flex-wrap: wrap;
         justify-content: center;
         gap: 8px;
+    }
+
+    /* --- Toasts, status bar & inputs --- */
+    .notification-toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        max-width: none;
+    }
+    .api-status-bar {
+        padding: 7px 14px;
+        font-size: 11px;
+    }
+    .search-results {
+        max-height: 50vh;
+    }
+    /* 16px inputs stop iOS auto-zoom on focus */
+    #search-input,
+    .form-group input {
+        font-size: 16px;
     }
 
     /* --- Footer --- */
@@ -2903,11 +3333,62 @@ a.news-card:hover .news-title {
         align-items: center;
         gap: 4px;
     }
-    .api-toggle-container {
-        display: none; /* live/sim status still visible in the API status bar */
+    .spotlight-details .scorers {
+        width: 100%;
+        text-align: center;
+    }
+    .spotlight-details .home-scorers,
+    .spotlight-details .away-scorers {
+        text-align: center;
+    }
+    /* Header triage: keep the API toggle (no mobile alternative), drop the
+       header star (Favorites filter tab covers it) and tighten everything */
+    #favs-toggle-top-btn {
+        display: none;
+    }
+    .main-header {
+        gap: 6px;
+    }
+    .logo-text h1 {
+        font-size: 16px;
+    }
+    .icon-btn {
+        padding: 5px;
+    }
+    .icon-btn svg {
+        width: 17px;
+        height: 17px;
+    }
+    .btn-login {
+        padding: 7px 10px;
+        font-size: 11px;
+    }
+    .api-status-bar .api-sb-timestamp {
+        display: none;
+    }
+    .standings-header {
+        flex-wrap: wrap;
+        gap: 8px;
     }
     .stat-num {
         font-size: 14px;
+    }
+    /* Match cards breathe on narrow screens */
+    .match-card {
+        padding: 12px;
+    }
+    .match-card-team-info {
+        gap: 8px;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .match-card-scores {
+        width: auto;
+        flex-shrink: 0;
+        gap: 8px;
+    }
+    .match-team-name {
+        font-size: 11.5px;
     }
 }
 
@@ -3109,6 +3590,42 @@ a.news-card:hover .news-title {
 }
 
 .api-status-bar.visible { display: flex; }
+
+/* Network / stale-data banner (in-flow, below the sticky header) */
+.net-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.07);
+    color: var(--warning);
+}
+.net-banner[hidden] { display: none; }
+.net-banner-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    animation: pulse-orange 2s infinite;
+}
+.net-banner-text { flex: 1; }
+.net-banner-retry {
+    background: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    border-radius: 8px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.net-banner-retry[hidden] { display: none; }
 
 .api-status-bar .api-sb-dot {
     width: 7px; height: 7px;

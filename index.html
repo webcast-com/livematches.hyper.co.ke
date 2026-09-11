@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#07090e">
+    <meta name="description" content="ScoreHub - real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%2300f2fe' stroke-width='4'/><path d='M16 9v7l5 3' stroke='%2300f2fe' stroke-width='3' stroke-linecap='round' fill='none'/></svg>">
+    <link rel="canonical" href="https://livematches.hyper.co.ke/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ScoreHub">
+    <meta property="og:title" content="ScoreHub - Every Score. Every Moment.">
+    <meta property="og:description" content="Real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
+    <meta property="og:url" content="https://livematches.hyper.co.ke/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ScoreHub - Every Score. Every Moment.">
+    <meta name="twitter:description" content="Real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
     <title>ScoreHub - Every Score. Every Moment.</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -112,6 +123,13 @@
             </div>
         </header>
 
+        <!-- NETWORK / STALE-DATA BANNER (offline or failed-refresh states) -->
+        <div class="net-banner" id="net-banner" hidden>
+            <span class="net-banner-dot"></span>
+            <span class="net-banner-text" id="net-banner-text"></span>
+            <button class="net-banner-retry" id="net-banner-retry" hidden>Retry</button>
+        </div>
+
         <!-- API STATUS BAR (shown when Live API mode is active) -->
         <div class="api-status-bar" id="api-status-bar">
             <span class="api-sb-dot"></span>
@@ -169,6 +187,10 @@
                 <button class="sport-tab" data-sport="mma">
                     <span class="sport-icon">🥊</span>
                     <span class="sport-name">MMA</span>
+                </button>
+                <button class="sport-tab" data-sport="f1">
+                    <span class="sport-icon">🏎️</span>
+                    <span class="sport-name">Formula 1</span>
                 </button>
             </div>
         </section>
@@ -277,6 +299,14 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                         Watch Live
                     </button>
+                    <button class="btn btn-ghost-icon" id="share-match-btn" title="Share this match">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        <span>Share</span>
+                    </button>
+                    <button class="btn btn-ghost-icon" id="add-calendar-btn" title="Add to calendar (.ics)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span>.ICS</span>
+                    </button>
                 </div>
             </div>
             
@@ -284,7 +314,10 @@
             <div class="hero-card scorers-card">
                 <div class="card-header-row">
                     <h3>Top Scorers</h3>
-                    <a href="#" class="view-all-link">View All</a>
+                    <div class="segmented" role="tablist" aria-label="Leaders category">
+                        <button class="segmented-btn active" data-leaders-cat="goals" role="tab" aria-selected="true">Goals</button>
+                        <button class="segmented-btn" data-leaders-cat="assists" role="tab" aria-selected="false">Assists</button>
+                    </div>
                 </div>
                 <!-- Rows populated by JS: ESPN golden boot in Live API mode, mock data otherwise -->
                 <div class="scorers-list" id="scorers-list"></div>
@@ -310,7 +343,7 @@
                         <a href="#" class="view-all-link">View All</a>
                     </div>
                     <div class="leagues-list">
-                        <div class="league-row active" data-league-id="EPL">
+                        <div class="league-row" data-league-id="EPL">
                             <div class="league-info">
                                 <span class="league-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
                                 <span class="league-name">Premier League</span>
@@ -378,6 +411,7 @@
                         </div>
                     </div>
                     
+                    <div class="date-strip" id="date-strip" aria-label="Match dates"></div>
                     <div class="matches-list" id="matches-container">
                         <!-- Matches injected here dynamically by JS -->
                     </div>
@@ -398,6 +432,9 @@
                             <button class="standings-tab active" data-standing-league="EPL">EPL</button>
                             <button class="standings-tab" data-standing-league="LaLiga">La Liga</button>
                             <button class="standings-tab" data-standing-league="SerieA">Serie A</button>
+                            <button class="standings-tab" data-standing-league="UCL">UCL</button>
+                            <button class="standings-tab" data-standing-league="Bundesliga">Bundesliga</button>
+                            <button class="standings-tab" data-standing-league="Ligue1">Ligue 1</button>
                         </div>
                     </div>
                     
@@ -744,13 +781,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="chat-ticker-container">
+                    <div class="match-centre-tabs" role="tablist" aria-label="Match centre views">
+                        <button class="mc-tab active" data-mc-tab="commentary" role="tab" aria-selected="true">Commentary</button>
+                        <button class="mc-tab" data-mc-tab="timeline" role="tab" aria-selected="false">Timeline</button>
+                        <button class="mc-tab" data-mc-tab="lineups" role="tab" aria-selected="false">Lineups</button>
+                    </div>
+                    <div class="chat-ticker-container mc-pane" id="mc-pane-commentary">
                         <h4>Live Commentary</h4>
                         <div class="commentary-list" id="commentary-list">
                             <p><strong>[72']</strong> Arsenal keeps possession in the middle third.</p>
                             <p><strong>[70']</strong> Substitution Chelsea: Mudryk replaces Sterling.</p>
                             <p><strong>[68']</strong> Yellow Card: Cole Palmer (Chelsea) for a tactical foul.</p>
                         </div>
+                    </div>
+                    <div class="chat-ticker-container mc-pane" id="mc-pane-timeline" hidden>
+                        <h4>Key Events</h4>
+                        <div class="timeline-list" id="timeline-list"></div>
+                    </div>
+                    <div class="chat-ticker-container mc-pane" id="mc-pane-lineups" hidden>
+                        <h4>Lineups</h4>
+                        <div class="lineups-grid" id="lineups-grid"></div>
                     </div>
                 </div>
             </div>
