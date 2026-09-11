@@ -2535,6 +2535,139 @@ a.news-card:hover .news-title {
     gap: 6px;
 }
 
+/* Spotlight secondary actions (Share / Add to calendar) */
+.spotlight-actions {
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.btn-ghost-icon {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.btn-ghost-icon:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+/* Match centre tabs (Commentary / Timeline / Lineups) */
+.match-centre-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 4px 0 10px;
+}
+.mc-tab {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: var(--transition-smooth);
+    min-height: 34px;
+}
+.mc-tab:hover { color: var(--text-primary); }
+.mc-tab.active {
+    color: var(--primary);
+    background: rgba(0, 242, 254, 0.06);
+    border-color: rgba(0, 242, 254, 0.25);
+}
+.mc-pane[hidden] { display: none; }
+
+/* Key-events timeline */
+.timeline-list {
+    max-height: 220px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+}
+.timeline-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 7px 0 7px 18px;
+    position: relative;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    border-left: 2px solid rgba(255, 255, 255, 0.08);
+    margin-left: 6px;
+}
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 11px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+}
+.timeline-item.ev-goal::before { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.timeline-item.ev-card-y::before { background: var(--warning); }
+.timeline-item.ev-card-r::before { background: var(--danger); }
+.timeline-item.ev-sub::before { background: var(--primary); }
+.timeline-min {
+    font-weight: 800;
+    color: var(--text-primary);
+    min-width: 34px;
+    flex-shrink: 0;
+}
+.timeline-text { flex: 1; }
+.timeline-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 14px 4px;
+    text-align: center;
+}
+
+/* Lineups */
+.lineups-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+.lineup-col h5 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+.lineup-player {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11.5px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+.lineup-pos {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+@media (max-width: 480px) {
+    .lineups-grid { grid-template-columns: 1fr; }
+}
+
 /* Login/Auth styles */
 .auth-card {
     max-width: 400px;
@@ -3355,6 +3488,42 @@ body.modal-open {
 }
 
 .api-status-bar.visible { display: flex; }
+
+/* Network / stale-data banner (in-flow, below the sticky header) */
+.net-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.07);
+    color: var(--warning);
+}
+.net-banner[hidden] { display: none; }
+.net-banner-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    animation: pulse-orange 2s infinite;
+}
+.net-banner-text { flex: 1; }
+.net-banner-retry {
+    background: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    border-radius: 8px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.net-banner-retry[hidden] { display: none; }
 
 .api-status-bar .api-sb-dot {
     width: 7px; height: 7px;

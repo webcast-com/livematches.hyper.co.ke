@@ -429,6 +429,8 @@ let espnSeasonYear = null;     // current season year captured from scoreboard r
 let usingLiveCommentary = false; // real commentary feed active in Watch Live modal
 const summaryCache = new Map();   // espnEventId → { data, ts }
 let summaryFetchTimer = null;
+let mcSummaryData = null;    // last match-summary payload for the open Match Centre
+let mcSummaryMatchId = null;
 
 // Standings tab → ESPN league slug (also drives the Top Scorers league)
 const STANDINGS_TAB_SLUGS = {
@@ -474,6 +476,8 @@ const closeLoginModal = document.getElementById("close-login-modal");
 const loginForm = document.getElementById("login-form");
 const watchLiveBtn = document.getElementById("watch-live-btn");
 const watchLiveModal = document.getElementById("watch-live-modal");
+const shareMatchBtn = document.getElementById("share-match-btn");
+const addCalendarBtn = document.getElementById("add-calendar-btn");
 const closeWatchModal = document.getElementById("close-watch-modal");
 const searchInput = document.getElementById("search-input");
 const searchResults = document.getElementById("search-results");
@@ -813,6 +817,7 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
         id: `api-${event.id}`,
         espnEventId: event.id,
         leagueSlug,
+        date: event.date || null,
         sport: leagueInfo.sport,
         league: leagueInfo.name,
         leagueId: leagueInfo.code,
@@ -906,6 +911,7 @@ async function loadAPIMatches() {
         const keepUpdatedEl = document.getElementById("api-last-updated");
         if (keepUpdatedEl) keepUpdatedEl.textContent = "Update failed — showing last data, retrying…";
         console.warn("ESPN refresh failed; keeping previous match data.");
+        showNetBanner("Live update failed — showing last available scores.", true);
         return;
     }
 
@@ -936,6 +942,7 @@ async function loadAPIMatches() {
     if (statNum) statNum.textContent = liveCount || apiMatches.length;
 
     // Update status bar timestamp (includes active transport for transparency)
+    hideNetBanner(); // fresh data — clear any stale warning
     const lastUpdatedEl = document.getElementById("api-last-updated");
     if (lastUpdatedEl) {
         const now = new Date();
@@ -945,10 +952,20 @@ async function loadAPIMatches() {
     renderMatches();
     renderTicker();
 
-    // Auto-spotlight the first live match, or first match overall
-    const firstLive = apiMatches.find(m => m.status === "live");
-    const firstMatch = firstLive || apiMatches[0];
-    if (firstMatch) setSpotlightMatch(firstMatch.id);
+    // Deep link wins; otherwise auto-spotlight the first live match (or first overall)
+    let deepLinked = false;
+    try {
+        const deepId = new URLSearchParams(window.location.search).get("match");
+        if (deepId && apiMatches.some(m => m.id === deepId)) {
+            setSpotlightMatch(deepId);
+            deepLinked = true;
+        }
+    } catch (e) {}
+    if (!deepLinked) {
+        const firstLive = apiMatches.find(m => m.status === "live");
+        const firstMatch = firstLive || apiMatches[0];
+        if (firstMatch) setSpotlightMatch(firstMatch.id);
+    }
 
     // Goal alerts for live score changes picked up by this refresh
     scoreDeltas.forEach((delta, id) => {
@@ -1006,6 +1023,7 @@ function setApiMode(enable) {
         renderMatches();
         renderTicker();
         setSpotlightMatch("fb-1");
+        handleDeepLinkMatch();
     }
 }
 
@@ -1296,6 +1314,132 @@ function renderLiveCommentary(match, data) {
     }).join("");
 }
 
+// Render the key-events timeline (goals / cards / subs) for the Match Centre
+function classifyTimelineEvent(c) {
+    const typeObj = c.play && c.play.type ? c.play.type : null;
+    const typeStr = ((typeObj && typeof typeObj === "object" ? (typeObj.type || typeObj.text || "") : (typeObj || "")) + "").toLowerCase();
+    const text = ((c.text || "") + " " + (c.play && c.play.text ? c.play.text : "")).toLowerCase();
+    const hay = typeStr + " " + text;
+    if (c.scoringPlay || /(\bgoal\b|penalty scored|scores|own goal)/.test(hay)) return { cls: "ev-goal", icon: "\u26BD" };
+    if (/(red card|sent off|second yellow)/.test(hay)) return { cls: "ev-card-r", icon: "\u{1F7E5}" };
+    if (/(yellow card|booked|caution)/.test(hay)) return { cls: "ev-card-y", icon: "\u{1F7E8}" };
+    if (/(substitut|replaces|replaced by|comes on for)/.test(hay)) return { cls: "ev-sub", icon: "\u{1F504}" };
+    return null;
+}
+
+function timelineMinuteValue(min) {
+    const m = String(min || "").match(/\d+/);
+    return m ? parseInt(m[0], 10) : -1;
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+}
+
+function renderTimeline(match, data) {
+    const list = document.getElementById("timeline-list");
+    if (!list) return;
+    const items = [];
+
+    const comm = (data && (Array.isArray(data.commentary) ? data.commentary : (Array.isArray(data.plays) ? data.plays : []))) || [];
+    comm.forEach(c => {
+        const kind = classifyTimelineEvent(c);
+        if (!kind) return;
+        const min = (c.time && c.time.displayValue) ? c.time.displayValue : "";
+        const text = c.text || (c.play && c.play.text) || "";
+        if (!text) return;
+        items.push({ min, order: timelineMinuteValue(min), cls: kind.cls, icon: kind.icon, text });
+    });
+
+    // Simulation fallback: build goal events from the scorer lists
+    if (!items.length && match && match.scorers) {
+        ["home", "away"].forEach(side => {
+            (match.scorers[side] || []).forEach(s => {
+                const m = String(s).match(/(\d+)'?/);
+                items.push({
+                    min: m ? m[1] + "'" : "",
+                    order: m ? parseInt(m[1], 10) : -1,
+                    cls: "ev-goal", icon: "\u26BD",
+                    text: `${String(s).replace(/^\d+'?(\+\d+)?\s*/, "")} (${side === "home" ? match.homeTeam : match.awayTeam})`
+                });
+            });
+        });
+    }
+
+    if (!items.length) {
+        list.innerHTML = `<div class="timeline-empty">No key events yet — goals, cards and substitutions will appear here.</div>`;
+        return;
+    }
+    items.sort((a, b) => b.order - a.order); // latest first, like commentary
+    list.innerHTML = items.map(e => `
+        <div class="timeline-item ${e.cls}">
+            <span class="timeline-min">${escHtml(e.min)}</span>
+            <span class="timeline-text">${e.icon} ${escHtml(e.text)}</span>
+        </div>`).join("");
+}
+
+// Render probable lineups / used players for the Match Centre (defensive: shapes vary)
+function extractLineupPlayers(data, side) {
+    if (!data) return [];
+    // Path 1: dedicated lineups block (present for some soccer summaries)
+    const lu = Array.isArray(data.lineups) ? data.lineups.find(t => (t.homeAway || t.homeaway || "").toLowerCase() === side) : null;
+    const luAthletes = lu && (lu.athletes || lu.players || lu.roster);
+    if (Array.isArray(luAthletes) && luAthletes.length) {
+        return luAthletes.slice(0, 18).map(a => ({
+            name: a.displayName || a.name || a.shortName || "?",
+            pos: (a.position && (a.position.abbreviation || a.position.name)) || ""
+        }));
+    }
+    // Path 2: boxscore player stats (used players with stats)
+    const teams = data.boxscore && Array.isArray(data.boxscore.players) ? data.boxscore.players : [];
+    const node = teams.find(t => (t.homeAway || "").toLowerCase() === side) || teams[side === "home" ? 0 : 1];
+    const stats = node && Array.isArray(node.statistics) ? node.statistics : [];
+    const athletes = [];
+    stats.forEach(group => {
+        (group.athletes || []).forEach(a => {
+            athletes.push({
+                name: (a.athlete && (a.athlete.displayName || a.athlete.shortName)) || "?",
+                pos: (a.athlete && a.athlete.position && a.athlete.position.abbreviation) || ""
+            });
+        });
+    });
+    const seen = new Set();
+    return athletes.filter(p => {
+        if (p.name === "?" || seen.has(p.name)) return false;
+        seen.add(p.name);
+        return true;
+    }).slice(0, 18);
+}
+
+function renderLineups(match, data) {
+    const grid = document.getElementById("lineups-grid");
+    if (!grid || !match) return;
+    const home = extractLineupPlayers(data, "home");
+    const away = extractLineupPlayers(data, "away");
+    if (!home.length && !away.length) {
+        grid.innerHTML = `<div class="timeline-empty" style="grid-column: 1 / -1;">Lineups aren't published for this match yet — check back closer to kickoff.</div>`;
+        return;
+    }
+    const col = (title, players) => `
+        <div class="lineup-col">
+            <h5>${escHtml(title)}</h5>
+            ${players.map(p => `<div class="lineup-player"><span>${escHtml(p.name)}</span><span class="lineup-pos">${escHtml(p.pos)}</span></div>`).join("") || `<div class="timeline-empty">Unavailable</div>`}
+        </div>`;
+    grid.innerHTML = col(match.homeTeam, home) + col(match.awayTeam, away);
+}
+
+function resetMatchCentreTabs() {
+    document.querySelectorAll(".mc-tab").forEach(t => {
+        const active = t.getAttribute("data-mc-tab") === "commentary";
+        t.classList.toggle("active", active);
+        t.setAttribute("aria-selected", String(active));
+    });
+    ["commentary", "timeline", "lineups"].forEach(n => {
+        const pane = document.getElementById(`mc-pane-${n}`);
+        if (pane) pane.hidden = n !== "commentary";
+    });
+}
+
 // Plot real shot positions (from commentary play data) on the tactical pitch
 function renderPitchShots(match, data) {
     const pitch = document.getElementById("live-pitch-animation");
@@ -1346,8 +1490,12 @@ async function refreshLiveMatchCentre() {
     if (!match || !match.espnEventId) return;
     try {
         const data = await ensureMatchSummary(match, true);
+        mcSummaryData = data;
+        mcSummaryMatchId = match.id;
         usingLiveCommentary = true;
         renderLiveCommentary(match, data);
+        renderTimeline(match, data);
+        renderLineups(match, data);
         renderPitchShots(match, data);
         if (applySummaryStats(match, data)) renderStatsBars(match);
     } catch (err) {
@@ -1791,6 +1939,21 @@ function renderStatsBars(match) {
     });
 }
 
+// --- NETWORK / STALE-DATA BANNER ---
+function showNetBanner(text, showRetry) {
+    const banner = document.getElementById("net-banner");
+    const label = document.getElementById("net-banner-text");
+    const retry = document.getElementById("net-banner-retry");
+    if (!banner || !label) return;
+    label.textContent = text;
+    if (retry) retry.hidden = !showRetry;
+    banner.hidden = false;
+}
+function hideNetBanner() {
+    const banner = document.getElementById("net-banner");
+    if (banner) banner.hidden = true;
+}
+
 // Show live notification — adds to dropdown list AND shows a toast overlay
 function showNotification(message, isToast = false) {
     const badge = document.querySelector(".notification-badge");
@@ -1821,6 +1984,83 @@ function showNotification(message, isToast = false) {
             toast.classList.add("hide");
             setTimeout(() => toast.remove(), 400);
         }, 4000);
+    }
+}
+
+// --- SHARE + CALENDAR (spotlight match) ---
+function spotlightMatch() {
+    return (isApiMode ? apiMatches : MOCK_MATCHES).find(m => m.id === spotlightMatchId) || null;
+}
+
+function matchShareUrl(match) {
+    const url = new URL(window.location.href.split("#")[0]);
+    url.searchParams.set("match", match.id);
+    return url.toString();
+}
+
+async function shareSpotlightMatch() {
+    const match = spotlightMatch();
+    if (!match) return;
+    const shareData = {
+        title: `ScoreHub — ${match.homeTeam} vs ${match.awayTeam}`,
+        text: `${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam} (${match.league})`,
+        url: matchShareUrl(match)
+    };
+    if (navigator.share) {
+        try { await navigator.share(shareData); } catch (e) { /* user cancelled */ }
+        return;
+    }
+    try {
+        await navigator.clipboard.writeText(shareData.url);
+        showNotification("Match link copied to clipboard", true);
+    } catch (e) {
+        showNotification(shareData.url, true);
+    }
+}
+
+function icsDateUTC(d) {
+    return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+function downloadSpotlightICS() {
+    const match = spotlightMatch();
+    if (!match) return;
+    if (!match.date) {
+        showNotification("Kickoff time unavailable in Simulation Mode — switch to Live API Mode", true);
+        return;
+    }
+    const start = new Date(match.date);
+    if (isNaN(start.getTime())) {
+        showNotification("Kickoff time unavailable for this match", true);
+        return;
+    }
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ScoreHub//Match//EN", "BEGIN:VEVENT",
+        `UID:${match.id}@scorehub`, `DTSTAMP:${icsDateUTC(new Date())}`,
+        `DTSTART:${icsDateUTC(start)}`, `DTEND:${icsDateUTC(end)}`,
+        `SUMMARY:${match.homeTeam} vs ${match.awayTeam} (${match.league})`,
+        `DESCRIPTION:Follow live on ScoreHub - ${matchShareUrl(match)}`,
+        "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    const blob = new Blob([ics], { type: "text/calendar" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${match.homeCode}-vs-${match.awayCode}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    showNotification("Calendar file downloaded", true);
+}
+
+// Deep link: ?match=<id> spotlights + scrolls to that match (runs after data loads)
+function handleDeepLinkMatch() {
+    let id = null;
+    try { id = new URLSearchParams(window.location.search).get("match"); } catch (e) { return; }
+    if (!id) return;
+    const pool = (isApiMode ? apiMatches : MOCK_MATCHES);
+    if (pool.some(m => m.id === id)) {
+        setSpotlightMatch(id);
+        const el = document.getElementById("match-spotlight");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 }
 
@@ -2089,20 +2329,31 @@ function initEventHandlers() {
             broadcastEl.textContent = (match && match.broadcast) ? `📺 ${match.broadcast}` : "📺 No broadcast info";
         }
 
+        resetMatchCentreTabs();
+        mcSummaryData = null;
+        mcSummaryMatchId = match ? match.id : null;
+
         if (match && isApiMode && match.espnEventId) {
             try {
                 const data = await ensureMatchSummary(match, true);
+                mcSummaryData = data;
                 usingLiveCommentary = true;
                 renderLiveCommentary(match, data);
+                renderTimeline(match, data);
+                renderLineups(match, data);
                 renderPitchShots(match, data);
                 if (applySummaryStats(match, data)) renderStatsBars(match);
             } catch (err) {
                 usingLiveCommentary = false;
                 commList.innerHTML = `<p><strong>[${match.time}]</strong> Live commentary feed unavailable — showing simulated broadcast.</p>`;
+                renderTimeline(match, null);
+                renderLineups(match, null);
             }
         } else {
             usingLiveCommentary = false;
             commList.innerHTML = `<p><strong>[Live]</strong> Connected to stream. Fetching tactical match feed...</p>`;
+            renderTimeline(match, null);
+            renderLineups(match, null);
         }
     });
     closeWatchModal.addEventListener("click", () => {
@@ -2110,6 +2361,29 @@ function initEventHandlers() {
         usingLiveCommentary = false;
     });
     
+    // Match Centre tabs (Commentary / Timeline / Lineups)
+    const mcTabs = document.querySelectorAll(".mc-tab");
+    mcTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            mcTabs.forEach((t) => {
+                t.classList.remove("active");
+                t.setAttribute("aria-selected", "false");
+            });
+            tab.classList.add("active");
+            tab.setAttribute("aria-selected", "true");
+            const name = tab.getAttribute("data-mc-tab");
+            ["commentary", "timeline", "lineups"].forEach(n => {
+                const pane = document.getElementById(`mc-pane-${n}`);
+                if (pane) pane.hidden = n !== name;
+            });
+            // Re-render the newly shown pane from cached data (cheap, keeps it fresh)
+            const current = (isApiMode ? apiMatches : MOCK_MATCHES).find(m => m.id === spotlightMatchId);
+            if (!current) return;
+            if (name === "timeline") renderTimeline(current, mcSummaryData);
+            if (name === "lineups") renderLineups(current, mcSummaryData);
+        });
+    });
+
     // Play/Pause stream simulation
     const playPauseBtn = document.getElementById("play-pause-btn");
     playPauseBtn.addEventListener("click", () => {
@@ -2282,6 +2556,24 @@ function initEventHandlers() {
     // Compact search placeholder on very small screens
     syncSearchPlaceholder();
 
+    // Offline / online connectivity banner
+    const netRetryBtn = document.getElementById("net-banner-retry");
+    if (netRetryBtn) netRetryBtn.addEventListener("click", () => {
+        hideNetBanner();
+        if (isApiMode && !apiLoading) loadAPIMatches();
+    });
+    window.addEventListener("offline", () => {
+        showNetBanner("You're offline — showing last available scores.", false);
+    });
+    window.addEventListener("online", () => {
+        hideNetBanner();
+        showNotification("Back online — refreshing live scores…", true);
+        if (isApiMode && !apiLoading) loadAPIMatches();
+    });
+    if (!navigator.onLine) {
+        showNetBanner("You're offline — showing last available scores.", false);
+    }
+
     // Shared match-filter setter (keeps the filter pills in sync)
     const setFilter = (name) => {
         currentFilter = name;
@@ -2365,6 +2657,10 @@ function initEventHandlers() {
         setActiveNav(navStats);
         scrollToEl(".stats-comparison-card");
     });
+
+    // Spotlight Share / Add-to-calendar buttons
+    if (shareMatchBtn) shareMatchBtn.addEventListener("click", shareSpotlightMatch);
+    if (addCalendarBtn) addCalendarBtn.addEventListener("click", downloadSpotlightICS);
 
     // Header star → jump to favorited matches
     if (favsToggleTopBtn) favsToggleTopBtn.addEventListener("click", () => {
