@@ -106,7 +106,7 @@ function renderTable(rows) {
             + `<td style="font-weight:700;">${row.pts}</td></tr>`;
     }).join("");
     box.innerHTML = `<div class="full-table-wrap"><table class="full-table"><thead><tr>`
-        + `<th>#</th><th class="col-team">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>`
+        + `<th>#</th><th class="col-team">${t("table.team")}</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>`
         + `</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -114,7 +114,7 @@ async function loadStandings() {
     const box = document.getElementById("standings-table");
     const err = document.getElementById("standings-error");
     err.hidden = true;
-    box.innerHTML = `<p class="loading-note">Loading table&hellip;</p>`;
+    box.innerHTML = `<p class="loading-note">${t("table.loading")}</p>`;
     const L = STANDINGS_LEAGUES.find((x) => x.code === standingsCode) || STANDINGS_LEAGUES[0];
     const rows = await fetchStandings(L.slug);
     if (!rows.length) {
@@ -122,7 +122,7 @@ async function loadStandings() {
         err.hidden = false;
         return;
     }
-    renderTable(rows);
+    window.__standingsRows = rows; renderTable(rows);
 }
 
 function bootStandings() {
@@ -147,3 +147,5 @@ function bootStandings() {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("DOMContentLoaded", bootStandings);
 }
+
+window.__rerenderLang = function () { try { if (window.__standingsRows && window.__standingsRows.length) renderTable(window.__standingsRows); else loadStandings(); } catch (e) {} };

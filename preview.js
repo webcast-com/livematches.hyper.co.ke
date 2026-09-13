@@ -178,7 +178,7 @@ function sideParagraph(side, venueWord, seed) {
     bits.push(pickSeeded([
         `${side.name} come into this ${fsum}.`,
         `${side.name} arrive ${fsum}.`,
-        `Form reads ${fsum} for ${side.name}.`
+        tf("preview.formreads", { f: fsum, n: side.name })
     ], seed + side.code + "form"));
     if (side.played > 0) {
         const gpg = (side.gf / side.played).toFixed(1);
@@ -203,7 +203,7 @@ function sideParagraph(side, venueWord, seed) {
     }
     const cs = side.form.slice(0, 5).filter((g) => g.ga === 0).length;
     if (cs >= 2 && side.form.length >= 3) {
-        bits.push(`Defensively solid of late, with ${cs} clean sheets in their last five.`);
+        bits.push(`${t("preview.def1")}${cs}${t("preview.def2")}`);
     }
     return bits.join(" ");
 }
@@ -213,23 +213,23 @@ function buildVerdict(h, a) {
     const haveForm = h.form.length >= 2 && a.form.length >= 2;
     const haveTable = !!(h.pos && a.pos);
     if (!haveForm && !haveTable) {
-        return { pick: "Too close to call", confidence: "No data", reason: "There isn't enough recent form or table data to split these sides — check back closer to kickoff." };
+        return { pick: t("preview.close"), confidence: t("preview.nodataword"), reason: t("preview.nodatareason") };
     }
     const posEdge = haveTable ? (a.pos - h.pos) * 0.6 : 0;
     const homeScore = (haveForm ? hf : 7) + 1.5 + posEdge;
     const awayScore = (haveForm ? af : 7);
     const diff = homeScore - awayScore;
     let pick, conf;
-    if (diff >= 4) { pick = `${h.name} win`; conf = "Strong"; }
-    else if (diff >= 1.5) { pick = `${h.name} win`; conf = "Moderate"; }
-    else if (diff <= -3) { pick = `${a.name} win`; conf = diff <= -5 ? "Strong" : "Moderate"; }
-    else { pick = "Draw"; conf = "Lean"; }
+    if (diff >= 4) { pick = `${h.name}${t("preview.win")}`; conf = t("preview.strong"); }
+    else if (diff >= 1.5) { pick = `${h.name}${t("preview.win")}`; conf = t("preview.moderate"); }
+    else if (diff <= -3) { pick = `${a.name}${t("preview.win")}`; conf = diff <= -5 ? t("preview.strong") : t("preview.moderate"); }
+    else { pick = t("preview.draw"); conf = t("preview.lean"); }
     const reasons = [];
-    if (haveForm) reasons.push(`${h.code} have taken ${hf} points from their last five to ${a.code}'s ${af}`);
+    if (haveForm) reasons.push(tf("preview.reason", { h: h.code, p: hf, a: a.code, q: af }));
     if (haveTable) {
         reasons.push(h.pos === a.pos
             ? `they sit level in the table`
-            : `${h.pos < a.pos ? h.code + " sit higher in the table" : a.code + " sit higher in the table"} (${ord(h.pos)} vs ${ord(a.pos)})`);
+            : `${tf("preview.higher", { c: h.pos < a.pos ? h.code : a.code, a: ord(h.pos), b: ord(a.pos) })}`);
     }
     if (pick.indexOf(h.name) === 0) reasons.push("home advantage tips it");
     return { pick, confidence: conf, reason: reasons.length ? reasons.join(", ") + "." : "On the balance of the numbers." };
@@ -377,13 +377,13 @@ function previewOdds(comp) {
 function formatKickoffLong(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(appLocale(), { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 }
 
 function formatGameDate(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { day: "numeric", month: "short" });
+    return d.toLocaleString(appLocale(), { day: "numeric", month: "short" });
 }
 
 // --- Render ---
@@ -392,15 +392,15 @@ function formColHTML(name, code, logo, form) {
     const last5 = form.slice(0, 5);
     const chips = last5.length
         ? `<div class="form-chips">` + last5.map((g) =>
-            `<span class="form-chip ${g.res}" title="${esc(formatGameDate(g.date))} · ${g.ha === "H" ? "Home" : "Away"} vs ${esc(g.oppName)} ${g.gf}–${g.ga}">${g.res}</span>`
+            `<span class="form-chip ${g.res}" title="${esc(formatGameDate(g.date))} · ${g.ha === "H" ? t("preview.home") : t("preview.away")} vs ${esc(g.oppName)} ${g.gf}–${g.ga}">${g.res}</span>`
         ).join("") + `</div>`
-        : `<p class="loading-note" style="padding:4px 0;">No recent results found.</p>`;
+        : `<p class="loading-note" style="padding:4px 0;">${t("preview.norecent")}</p>`;
     const games = last5.map((g) =>
         `<div class="form-game">${esc(formatGameDate(g.date))} · ${g.ha} · <b>${g.gf}–${g.ga}</b> vs ${esc(g.opp)}</div>`
     ).join("");
     return `<div class="form-col"><h3>`
         + (logo ? `<img class="pred-logo" src="${esc(logo)}" alt="" loading="lazy" onerror="this.remove()">` : "")
-        + `${esc(name)} <span style="color:var(--text-muted);font-weight:400;">· last five</span></h3>`
+        + `${esc(name)} <span style="color:var(--text-muted);font-weight:400;">${t("preview.lastfive")}</span></h3>`
         + chips + games + `</div>`;
 }
 
@@ -411,26 +411,26 @@ function compareTableHTML(h, a) {
     return `<div class="full-table-wrap compare-wrap"><table class="full-table"><thead><tr>`
         + `<th class="col-team" style="text-align:left;">${esc(h.code)}</th><th></th><th>${esc(a.code)}</th>`
         + `</tr></thead><tbody>`
-        + row("Position", h.pos ? ord(h.pos) : dash, a.pos ? ord(a.pos) : dash)
-        + row("Played", h.played || dash, a.played || dash)
+        + row(t("preview.cPos"), h.pos ? ord(h.pos) : dash, a.pos ? ord(a.pos) : dash)
+        + row(t("preview.cPlayed"), h.played || dash, a.played || dash)
         + row("W–D–L", wdl(h), wdl(a))
-        + row("Goals for", h.played ? h.gf : dash, a.played ? a.gf : dash)
-        + row("Goals against", h.played ? h.ga : dash, a.played ? a.ga : dash)
-        + row("Form points (last 5)", formPoints(h.form), formPoints(a.form))
+        + row(t("preview.cGF"), h.played ? h.gf : dash, a.played ? a.gf : dash)
+        + row(t("preview.cGA"), h.played ? h.ga : dash, a.played ? a.ga : dash)
+        + row(t("preview.cForm"), formPoints(h.form), formPoints(a.form))
         + `</tbody></table></div>`;
 }
 
 function wirePreviewShare(H, A, ev, leagueName, pv) {
     drawShareCard(document.getElementById("share-canvas"), {
-        kicker: `${leagueName} · Match Preview`.toUpperCase(),
+        kicker: `${leagueName} · ${t("preview.tag")}`.toUpperCase(),
         home: H.name, away: A.name,
         middle: formatKickoffLong(ev.date),
-        sub: `ScoreHub says: ${pv.verdict.pick}`,
+        sub: `${t("preview.says")}: ${pv.verdict.pick}`,
         tag: "PREVIEW"
     });
     wireShareButtons(document.getElementById("share-row"), {
         title: `${H.name} vs ${A.name} preview`,
-        text: `${pv.headline} — ScoreHub says ${pv.verdict.pick}.`,
+        text: `${pv.headline} — ${t("preview.says")} ${pv.verdict.pick}.`,
         url: window.location.href,
         filename: shareFileName(`preview-${H.code}-vs-${A.code}`)
     });
@@ -444,13 +444,13 @@ async function bootPreview() {
         league = q.get("league") || ""; id = q.get("id") || ""; date = q.get("date") || "";
     } catch (e) {}
     if (!league || !id) {
-        box.innerHTML = `<h1>Preview not found</h1><div class="window-strip">Pick a fixture from <a href="index.html">Scores</a> or <a href="predictions.html">Predictions</a> to read its preview.</div>`;
+        box.innerHTML = `<h1>${t("preview.nfh1")}</h1><div class="window-strip">${t("preview.notfound")}</div>`;
         return;
     }
     const leagueName = PREVIEW_LEAGUES[league] || "Football";
     const ev = await fetchPreviewEvent(league, id, date);
     if (!ev) {
-        box.innerHTML = `<h1>Preview unavailable</h1><div class="window-strip">Couldn't find this fixture — it may have been rescheduled. Try <a href="index.html">Scores</a> for the latest fixtures.</div>`;
+        box.innerHTML = `<h1>${t("preview.unh1")}</h1><div class="window-strip">${t("preview.unavail")}</div>`;
         return;
     }
     const comp = (ev.competitions && ev.competitions[0]) || {};
@@ -474,10 +474,10 @@ async function bootPreview() {
             : `${hc.score != null ? hc.score : "–"} – ${ac.score != null ? ac.score : "–"} FT`;
         box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span>`
             + `<h1 style="margin-top:10px;">${esc(H.name)} ${esc(score)} ${esc(A.name)}</h1>`
-            + `<div class="window-strip">This match is ${st.state === "in" ? "underway" : "finished"} — previews cover upcoming fixtures only. Follow it on <a href="index.html">Scores</a>.</div>`;
+            + `<div class="window-strip">${t("preview.played1")}${st.state === "in" ? t("preview.underway") : t("preview.finished")}${t("preview.played2")}</div>`;
         return;
     }
-    box.innerHTML = `<p class="loading-note">Crunching form and table data&hellip;</p>`;
+    box.innerHTML = `<p class="loading-note">${t("preview.loading")}</p>`;
     const venueFull = (comp.venue && (comp.venue.fullName || comp.venue.shortName)) || "";
     const venueCity = (comp.venue && comp.venue.address && comp.venue.address.city) || "";
     const venue = [venueFull, venueCity].filter(Boolean).join(", ");
@@ -504,14 +504,14 @@ async function bootPreview() {
         home: h, away: a, oddsFav
     });
     try { document.title = `${H.name} vs ${A.name} preview — ScoreHub`; } catch (e) {}
-    box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span> <span class="league-tag">Match Preview</span>`
+    box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span> <span class="league-tag">${t("preview.tag")}</span>`
         + `<h1 style="margin-top:10px;">${esc(pv.headline)}</h1>`
         + `<p class="legal-updated">${esc(formatKickoffLong(ev.date))} · ${esc(countdownText(ev.date, Date.now()))}${venue ? ` · ${esc(venue)}` : ""}</p>`
         + `<p class="preview-standfirst">${esc(pv.standfirst)}</p>`
         + pv.paragraphs.map((p) => `<p class="preview-p">${esc(p)}</p>`).join("")
         + `<div class="form-cols">${formColHTML(h.name, h.code, h.logo, h.form)}${formColHTML(a.name, a.code, a.logo, a.form)}</div>`
         + compareTableHTML(h, a)
-        + `<div class="preview-verdict"><h3>ScoreHub says <span style="color:var(--text-muted);font-weight:400;">· ${esc(pv.verdict.confidence)} ${esc(pv.verdict.confidence === "No data" ? "" : "confidence")}</span></h3>`
+        + `<div class="preview-verdict"><h3>${t("preview.says")} <span style="color:var(--text-muted);font-weight:400;">· ${esc(pv.verdict.confidence)} ${esc(pv.verdict.confidence === t("preview.nodataword") ? "" : t("preview.confword"))}</span></h3>`
         + `<div class="pick">${esc(pv.verdict.pick)}</div><p>${esc(pv.verdict.reason)}</p></div>`
         + `<p class="preview-note">Auto-generated by ScoreHub from fixtures, league tables and recent results — original content, written by our template engine, not a journalist. The verdict is a stats-based lean for fun, not betting advice. Data: ESPN.</p>`
         + `<p class="preview-note">Fancy a go yourself? <a href="predictions.html" style="color:var(--primary);">Make your prediction →</a></p>`
@@ -522,3 +522,5 @@ async function bootPreview() {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("DOMContentLoaded", bootPreview);
 }
+
+window.__rerenderLang = function () { try { bootPreview(); } catch (e) {} };

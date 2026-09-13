@@ -362,13 +362,13 @@ async function fetchNextFixtures(slug, H, A) {
 function formatReportDate(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { weekday: "long", day: "numeric", month: "long" });
+    return d.toLocaleString(appLocale(), { weekday: "long", day: "numeric", month: "long" });
 }
 
 function formatNextDate(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short" });
+    return d.toLocaleString(appLocale(), { weekday: "short", day: "numeric", month: "short" });
 }
 
 // --- Render ---
@@ -435,13 +435,13 @@ async function bootReport() {
         league = q.get("league") || ""; id = q.get("id") || ""; date = q.get("date") || "";
     } catch (e) {}
     if (!league || !id) {
-        box.innerHTML = `<h1>Report not found</h1><div class="window-strip">Pick a finished match from <a href="index.html">Scores</a> or <a href="previews.html">Previews &amp; Reports</a>.</div>`;
+        box.innerHTML = `<h1>${t("report.nfh1")}</h1><div class="window-strip">${t("report.notfound")}</div>`;
         return;
     }
     const leagueName = REPORT_LEAGUES[league] || "Football";
     const ev = await fetchReportEvent(league, id, date);
     if (!ev) {
-        box.innerHTML = `<h1>Report unavailable</h1><div class="window-strip">Couldn't find this match. Try <a href="index.html">Scores</a> for the latest results.</div>`;
+        box.innerHTML = `<h1>${t("report.unh1")}</h1><div class="window-strip">${t("report.unavail")}</div>`;
         return;
     }
     const comp = (ev.competitions && ev.competitions[0]) || {};
@@ -465,12 +465,12 @@ async function bootReport() {
         const isLive = st.state === "in";
         box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span>`
             + `<h1 style="margin-top:10px;">${esc(H.name)} vs ${esc(A.name)}</h1>`
-            + `<div class="window-strip">${isLive ? "This match is underway — the report lands at full time. Follow it on" : "This match hasn't been played yet."} `
-            + (isLive ? `<a href="index.html">Scores</a>.` : `<a href="preview.html?league=${esc(league)}&id=${esc(id)}&date=${esc(date)}">Read the preview &rarr;</a>`)
+            + `<div class="window-strip">${isLive ? t("report.underway") : t("report.notplayed")} `
+            + (isLive ? `<a href="index.html">${t("report.scoreslink")}</a>.` : `<a href="preview.html?league=${esc(league)}&id=${esc(id)}&date=${esc(date)}">${t("hub.readpreview")}</a>`)
             + `</div>`;
         return;
     }
-    box.innerHTML = `<p class="loading-note">Crunching goals, cards and stats&hellip;</p>`;
+    box.innerHTML = `<p class="loading-note">${t("report.loading")}</p>`;
     const hs = parseInt(hc.score, 10), as = parseInt(ac.score, 10);
     const venue = (comp.venue && (comp.venue.fullName || comp.venue.shortName)) || "";
     const attendance = parseInt(comp.attendance, 10) || 0;
@@ -488,11 +488,11 @@ async function bootReport() {
     try { document.title = `${H.name} ${hs}–${as} ${A.name} report — ScoreHub`; } catch (e) {}
     const logoImg = (u) => u ? `<img class="pred-logo" style="width:26px;height:26px;" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">` : "";
     const nextBox = (next.H || next.A)
-        ? `<div class="report-next"><h3>What next</h3>`
+        ? `<div class="report-next"><h3>${t("report.next")}</h3>`
         + (next.H ? `<span>🔜 ${esc(H.name)} face ${esc(next.H.opp)} (${esc(formatNextDate(next.H.date))}).</span>` : "")
         + (next.A ? `<span>🔜 ${esc(A.name)} face ${esc(next.A.opp)} (${esc(formatNextDate(next.A.date))}).</span>` : "")
         + `</div>` : "";
-    box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span> <span class="league-tag">Match Report</span>`
+    box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span> <span class="league-tag">${t("report.tag")}</span>`
         + `<h1 style="margin-top:10px;">${esc(rp.headline)}</h1>`
         + `<p class="legal-updated">${esc(formatReportDate(ev.date))}${venue ? ` · ${esc(venue)}` : ""}</p>`
         + `<div class="report-scoreline">${logoImg(H.logo)}<span>${esc(H.name)} ${isNaN(hs) ? "–" : hs}–${isNaN(as) ? "–" : as} ${esc(A.name)}</span>${logoImg(A.logo)}</div>`
@@ -510,3 +510,5 @@ async function bootReport() {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("DOMContentLoaded", bootReport);
 }
+
+window.__rerenderLang = function () { try { bootReport(); } catch (e) {} };

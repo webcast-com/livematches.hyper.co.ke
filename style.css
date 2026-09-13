@@ -4098,3 +4098,12 @@ body.modal-open {
     margin-left: auto;
     flex-shrink: 0;
 }
+
+/* PWA install + language toggle (header buttons) */
+.lang-toggle span {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+#install-btn svg { display: block; }

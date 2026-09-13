@@ -75,7 +75,7 @@ function escapeHtml(s) {
 function formatPublished(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(appLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
 let transferArticles = [];
@@ -99,9 +99,9 @@ function transferCardHTML(a) {
         + `<div class="transfer-meta"><span class="league-tag">${articleLeague(a)}</span>${transferLogosHTML(a)}`
         + (teams ? `<span>${escapeHtml(teams)}</span>` : "")
         + `<span>${escapeHtml(formatPublished(a.published))}</span></div>`
-        + `<h3><a href="story.html" data-story="${a.id}">${escapeHtml(a.headline || "Untitled")}</a></h3>`
+        + `<h3><a href="story.html" data-story="${a.id}">${escapeHtml(a.headline || t("transfers.untitled"))}</a></h3>`
         + ((a.description && a.description !== a.headline) ? `<p class="transfer-desc">${escapeHtml(a.description)}</p>` : "")
-        + `<span class="transfer-readrow"><a class="transfer-read" href="story.html" data-story="${a.id}">Continue reading &rarr;</a><span class="transfer-src-inline">Source: <a href="${url}" target="_blank" rel="noopener">ESPN</a></span></span>`
+        + `<span class="transfer-readrow"><a class="transfer-read" href="story.html" data-story="${a.id}">${t("common.readmore")}</a><span class="transfer-src-inline">${t("transfers.source")} <a href="${url}" target="_blank" rel="noopener">ESPN</a></span></span>`
         + `</div></article>`;
 }
 
@@ -109,7 +109,7 @@ function renderTransfers() {
     const list = document.getElementById("transfer-list");
     const items = transferArticles.filter((a) => transferFilter === "All" || articleLeague(a) === transferFilter);
     if (!items.length) {
-        list.innerHTML = `<p class="loading-note">No ${transferFilter === "All" ? "" : transferFilter + " "}transfer stories right now — check back soon.</p>`;
+        list.innerHTML = `<p class="loading-note">${tf("transfers.empty", { f: transferFilter === "All" ? "" : ((typeof LANG !== "undefined" && LANG === "sw") ? " za " + transferFilter : transferFilter + " ") })}</p>`;
         return;
     }
     list.innerHTML = items.map(transferCardHTML).join("");
@@ -119,7 +119,7 @@ async function loadTransfers() {
     const list = document.getElementById("transfer-list");
     const err = document.getElementById("transfer-error");
     err.hidden = true;
-    list.innerHTML = `<p class="loading-note">Loading transfer news&hellip;</p>`;
+    list.innerHTML = `<p class="loading-note">${t("transfers.loading")}</p>`;
     const results = await Promise.allSettled(TRANSFER_LEAGUES.map((L) =>
         fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${L.slug}/news?limit=20`).then((r) => {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -173,3 +173,5 @@ function bootTransfers() {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("DOMContentLoaded", bootTransfers);
 }
+
+window.__rerenderLang = function () { try { renderTransfers(); } catch (e) {} };

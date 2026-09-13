@@ -1,0 +1,20 @@
+{
+  "name": "ScoreHub — Every Score. Every Moment.",
+  "short_name": "ScoreHub",
+  "description": "Live football scores, fixtures, standings, news, previews and match reports.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07090e",
+  "theme_color": "#07090e",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["sports", "news"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

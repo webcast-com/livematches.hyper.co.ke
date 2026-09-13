@@ -778,7 +778,7 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
         // pre / scheduled
         matchStatus = "today";
         const d = new Date(event.date);
-        matchTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        matchTime = d.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" });
         halftimeScore = "";
     }
 
@@ -934,7 +934,7 @@ async function loadAPIMatches() {
         apiLoading = false;
         console.info("ESPN fetch failed on all transports. Falling back to simulation.");
         setApiMode(false);
-        showNotification("Live data unreachable (network/CDN block). Switched to Simulation Mode.");
+        showNotification(t("notif.apifail"));
         return;
     }
 
@@ -944,7 +944,7 @@ async function loadAPIMatches() {
         const keepUpdatedEl = document.getElementById("api-last-updated");
         if (keepUpdatedEl) keepUpdatedEl.textContent = "Update failed — showing last data, retrying…";
         console.warn("ESPN refresh failed; keeping previous match data.");
-        showNetBanner("Live update failed — showing last available scores.", true);
+        showNetBanner(t("net.failed"), true);
         return;
     }
 
@@ -980,7 +980,7 @@ async function loadAPIMatches() {
     if (lastUpdatedEl) {
         const now = new Date();
                 const dayLabel = selectedDate ? ` · ${selectedDate.slice(6, 8)}/${selectedDate.slice(4, 6)}` : "";
-        lastUpdatedEl.textContent = `Updated ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · ${apiMatches.length} events${dayLabel} · via ${espnTransportName()}`;
+        lastUpdatedEl.textContent = tf("upd.line", { time: now.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" }), n: apiMatches.length, day: dayLabel, tp: espnTransportName() });
     }
 
     renderMatches();
@@ -1037,7 +1037,7 @@ function setApiMode(enable) {
     const lastUpdatedEl = document.getElementById("api-last-updated");
 
     if (enable) {
-        apiModeText.textContent = "Live API Mode";
+        refreshApiModeText();
         apiModeIndicator.className = "api-indicator-dot pulsing-green";
         apiModeBtn.style.borderColor = "rgba(16,185,129,0.4)";
         apiModeBtn.style.color = "var(--accent)";
@@ -1049,7 +1049,7 @@ function setApiMode(enable) {
     } else {
         isApiMode = false;
         apiMatches = [];
-        apiModeText.textContent = "Simulation Mode";
+        refreshApiModeText();
         apiModeIndicator.className = "api-indicator-dot pulsing-orange";
         apiModeBtn.style.borderColor = "";
         apiModeBtn.style.color = "";
@@ -1091,13 +1091,14 @@ function initials(name) {
 }
 
 function timeAgoString(iso) {
-    const t = Date.parse(iso);
-    if (isNaN(t)) return "";
-    const mins = Math.max(1, Math.round((Date.now() - t) / 60000));
-    if (mins < 60) return `${mins}m ago`;
+    const ts = Date.parse(iso);
+    if (isNaN(ts)) return "";
+    const sw = (typeof LANG !== "undefined" && LANG === "sw");
+    const mins = Math.max(1, Math.round((Date.now() - ts) / 60000));
+    if (mins < 60) return sw ? `${mins} dak zilizopita` : `${mins}m ago`;
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.round(hours / 24)}d ago`;
+    if (hours < 24) return sw ? `${hours} saa zilizopita` : `${hours}h ago`;
+    return sw ? `${Math.round(hours / 24)} siku zilizopita` : `${Math.round(hours / 24)}d ago`;
 }
 
 // American moneyline (e.g. -135 / +150) → decimal odds (1.74 / 2.50)
@@ -1346,8 +1347,8 @@ function renderLiveCommentary(match, data) {
 
     if (!comm.length) {
         commList.innerHTML = `<p><strong>[${match.time}]</strong> ${match.status === "live"
-            ? "Live commentary will appear here once the feed updates…"
-            : "Play-by-play commentary is available for this fixture on ESPN."}</p>`;
+            ? t("mc.livefeed")
+            : t("mc.espn")}</p>`;
         return;
     }
 
@@ -1412,7 +1413,7 @@ function renderTimeline(match, data) {
     }
 
     if (!items.length) {
-        list.innerHTML = `<div class="timeline-empty">No key events yet — goals, cards and substitutions will appear here.</div>`;
+        list.innerHTML = `<div class="timeline-empty">${t("mc.noevents")}</div>`;
         return;
     }
     items.sort((a, b) => b.order - a.order); // latest first, like commentary
@@ -1462,13 +1463,13 @@ function renderLineups(match, data) {
     const home = extractLineupPlayers(data, "home");
     const away = extractLineupPlayers(data, "away");
     if (!home.length && !away.length) {
-        grid.innerHTML = `<div class="timeline-empty" style="grid-column: 1 / -1;">Lineups aren't published for this match yet — check back closer to kickoff.</div>`;
+        grid.innerHTML = `<div class="timeline-empty" style="grid-column: 1 / -1;">${t("mc.nolineups")}</div>`;
         return;
     }
     const col = (title, players) => `
         <div class="lineup-col">
             <h5>${escHtml(title)}</h5>
-            ${players.map(p => `<div class="lineup-player"><span>${escHtml(p.name)}</span><span class="lineup-pos">${escHtml(p.pos)}</span></div>`).join("") || `<div class="timeline-empty">Unavailable</div>`}
+            ${players.map(p => `<div class="lineup-player"><span>${escHtml(p.name)}</span><span class="lineup-pos">${escHtml(p.pos)}</span></div>`).join("") || `<div class="timeline-empty">${t("mc.unavail")}</div>`}
         </div>`;
     grid.innerHTML = col(match.homeTeam, home) + col(match.awayTeam, away);
 }
@@ -1763,14 +1764,14 @@ function renderDateStrip() {
         const ymd = toYYYYMMDD(d);
         const btn = document.createElement("button");
         btn.className = "date-pill" + ((offset === 0 && !selectedDate) || selectedDate === ymd ? " active" : "");
-        const dow = offset === 0 ? "Today" : d.toLocaleDateString([], { weekday: "short" });
+        const dow = offset === 0 ? t("date.today") : d.toLocaleDateString(appLocale(), { weekday: "short" });
         const dayNum = d.getDate();
-        const mon = d.toLocaleDateString([], { month: "short" });
+        const mon = d.toLocaleDateString(appLocale(), { month: "short" });
         btn.innerHTML = `<span class="date-pill-dow">${dow}</span><span class="date-pill-day">${dayNum} ${mon}</span>`;
-        btn.setAttribute("aria-label", d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }));
+        btn.setAttribute("aria-label", d.toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" }));
         btn.addEventListener("click", () => {
             if (!isApiMode) {
-                showNotification("Date browsing needs Live API Mode — tap the mode toggle up top", true);
+                showNotification(t("notif.dateneed"), true);
                 return;
             }
             selectedDate = offset === 0 ? null : ymd;
@@ -1817,8 +1818,8 @@ function f1CountdownParts(target) {
 }
 
 function f1DriverName(d) {
-    if (!d) return "Unknown";
-    return [d.givenName, d.familyName].filter(Boolean).join(" ") || "Unknown";
+    if (!d) return t("f1.unknown");
+    return [d.givenName, d.familyName].filter(Boolean).join(" ") || t("f1.unknown");
 }
 
 async function loadF1Data(force = false) {
@@ -1860,14 +1861,14 @@ function renderF1() {
 
     if (!isApiMode && !f1Data) {
         matchesContainer.innerHTML = `
-            <div class="f1-note">Formula 1 data is live-only in this demo.</div>
+            <div class="f1-note">${t("f1.demo")}</div>
             <button class="f1-retry-btn" id="f1-enable-live">Switch to Live API Mode</button>`;
         document.getElementById("f1-enable-live").addEventListener("click", () => setApiMode(true));
         return;
     }
     if (!f1Data) {
         matchesContainer.innerHTML = `
-            <div class="f1-note">Formula 1 data is unavailable right now.</div>
+            <div class="f1-note">${t("f1.unavail")}</div>
             <button class="f1-retry-btn" id="f1-retry">Retry</button>`;
         document.getElementById("f1-retry").addEventListener("click", () => loadF1Data(true));
         return;
@@ -1882,17 +1883,17 @@ function renderF1() {
 
     if (next) {
         const cd = f1CountdownParts(next.at);
-        const when = next.at.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + " · " +
-            next.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const when = next.at.toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" }) + " · " +
+            next.at.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" });
         matchesContainer.innerHTML += `
             <div class="f1-hero">
-                <div class="f1-kicker">Next Race · Round ${escHtml(next.race.round || "")}</div>
+                <div class="f1-kicker">${tf("f1.next", { n: escHtml(next.race.round || "") })}</div>
                 <div class="f1-race-name">${escHtml(next.race.raceName || "Grand Prix")}</div>
                 <div class="f1-circuit">${escHtml((next.race.Circuit && next.race.Circuit.circuitName) || "")} · ${escHtml(when)}</div>
                 <div class="f1-countdown">
-                    <div class="f1-count-box"><span class="f1-count-num">${cd.days}</span><span class="f1-count-lbl">Days</span></div>
-                    <div class="f1-count-box"><span class="f1-count-num">${cd.hours}</span><span class="f1-count-lbl">Hrs</span></div>
-                    <div class="f1-count-box"><span class="f1-count-num">${cd.mins}</span><span class="f1-count-lbl">Min</span></div>
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.days}</span><span class="f1-count-lbl">${t("f1.days")}</span></div>
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.hours}</span><span class="f1-count-lbl">${t("f1.hrs")}</span></div>
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.mins}</span><span class="f1-count-lbl">${t("f1.min")}</span></div>
                 </div>
             </div>`;
     }
@@ -1901,7 +1902,7 @@ function renderF1() {
     const lastRaces = (lastTable && lastTable.Races) || [];
     if (lastRaces.length && lastRaces[0].Results) {
         const lr = lastRaces[0];
-        let html = `<div class="f1-section-title">Last Race · ${escHtml(lr.raceName || "")}</div>`;
+        let html = `<div class="f1-section-title">${tf("f1.last", { n: escHtml(lr.raceName || "") })}</div>`;
         lr.Results.slice(0, 5).forEach(r => {
             html += `<div class="f1-row"><span class="f1-pos">P${escHtml(r.position)}</span>`
                 + f1FlagImg(r.Driver && r.Driver.nationality)
@@ -1915,7 +1916,7 @@ function renderF1() {
     const stTable = f1Data.drivers && f1Data.drivers.StandingsTable;
     const lists = (stTable && stTable.StandingsLists) || [];
     if (lists.length && lists[0].DriverStandings) {
-        let html = `<div class="f1-section-title">Driver Standings</div>`;
+        let html = `<div class="f1-section-title">${t("f1.drivers")}</div>`;
         lists[0].DriverStandings.slice(0, 8).forEach(s => {
             html += `<div class="f1-row"><span class="f1-pos">${escHtml(s.position)}</span>`
                 + f1FlagImg(s.Driver && s.Driver.nationality)
@@ -1925,7 +1926,7 @@ function renderF1() {
         });
         matchesContainer.innerHTML += html;
         const upd = new Date(f1DataAt);
-        matchesContainer.innerHTML += `<div class="f1-note">Updated ${upd.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · data: Jolpica F1 API</div>`;
+        matchesContainer.innerHTML += `<div class="f1-note">${tf("f1.updated", { time: upd.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" }) })}</div>`;
     }
 }
 
@@ -2020,13 +2021,13 @@ function scoreStoryFinished(m) {
     const d = storyDramaFromScorers(m.scorers ? m.scorers.home : [], m.scorers ? m.scorers.away : []);
     let score = goals * 2;
     const reasons = [];
-    if (goals >= 5) { score += 2; reasons.push(`${goals}-goal thriller`); }
-    if (d.winner == null && goals >= 2) { score += 3; reasons.push("points shared in a thriller"); }
+    if (goals >= 5) { score += 2; reasons.push(`${tf("story.goalsthriller", { n: goals })}`); }
+    if (d.winner == null && goals >= 2) { score += 3; reasons.push(t("story.shared")); }
     else if (d.winner && Math.abs(hs - as) === 1) score += 1;
-    if (d.lateMin) { score += 2; reasons.push(`drama at the death (${d.lateMin}')`); }
-    if (d.comeback) { score += 2; reasons.push("stunning comeback"); }
-    if (d.brace) { score += 1; reasons.push(`${d.brace.name} ${d.brace.n >= 3 ? "hat-trick" : "brace"}`); }
-    if (!reasons.length) reasons.push(`${hs}–${as} ${d.winner ? "win" : "draw"}`);
+    if (d.lateMin) { score += 2; reasons.push(tf("story.death", { m: d.lateMin })); }
+    if (d.comeback) { score += 2; reasons.push(t("story.comeback")); }
+    if (d.brace) { score += 1; reasons.push(`${d.brace.name} ${d.brace.n >= 3 ? t("story.hattrick") : t("story.braceword")}`); }
+    if (!reasons.length) reasons.push(`${hs}–${as} ${d.winner ? t("story.winword") : t("story.drawword")}`);
     return { score, reason: `${hs}–${as} — ${reasons.join(" · ")}` };
 }
 
@@ -2069,10 +2070,10 @@ function pickStoryOfWeek(matches, tables) {
     }
     if (bestUp && bestUp.combined < 999) {
         const h = bestUp.pos.h, a = bestUp.pos.a;
-        return { id: bestUp.m.id, kind: "preview", reason: `${storyOrd(h.rank)} vs ${storyOrd(a.rank)} — ${h.team} host ${a.team}`, score: 99 - bestUp.combined };
+        return { id: bestUp.m.id, kind: "preview", reason: tf("story.vs", { a: storyOrd(h.rank), b: storyOrd(a.rank), h: h.team, t: a.team }), score: 99 - bestUp.combined };
     }
     if (bestFin) return { id: bestFin.m.id, kind: "report", reason: bestFin.reason, score: bestFin.score };
-    if (bestUp) return { id: bestUp.m.id, kind: "preview", reason: `Upcoming: ${bestUp.m.homeTeam} vs ${bestUp.m.awayTeam}`, score: 0 };
+    if (bestUp) return { id: bestUp.m.id, kind: "preview", reason: tf("story.upcoming", { h: bestUp.m.homeTeam, a: bestUp.m.awayTeam }), score: 0 };
     return null;
 }
 
@@ -2122,11 +2123,11 @@ function updateStoryTag() {
     if (btn) {
         if (match && canPreviewMatch(match)) {
             btn.hidden = false;
-            btn.innerHTML = "<span>📰 Preview</span>";
+            btn.innerHTML = "<span>" + t("story.previewbtn") + "</span>";
             btn.href = `preview.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
         } else if (match && canReportMatch(match)) {
             btn.hidden = false;
-            btn.innerHTML = "<span>📝 Report</span>";
+            btn.innerHTML = "<span>" + t("story.reportbtn") + "</span>";
             btn.href = `report.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
         } else {
             btn.hidden = true;
@@ -2140,7 +2141,7 @@ function renderMatches() {
     if (currentSport === "f1") { renderF1(); return; }
     if (scoresSection) scoresSection.classList.remove("f1-mode");
     const scoresTitle = document.querySelector(".live-scores-section .scores-header h3");
-    if (scoresTitle) scoresTitle.textContent = "Live Scores";
+    if (scoresTitle) scoresTitle.textContent = t("scores.live");
     matchesContainer.innerHTML = "";
     
     const activeMatches = isApiMode ? apiMatches : MOCK_MATCHES;
@@ -2170,7 +2171,7 @@ function renderMatches() {
     if (filtered.length === 0) {
         matchesContainer.innerHTML = `
             <div class="no-matches" style="text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 13px;">
-                No matches found matching the criteria.
+                ${t("scores.none")}
             </div>
         `;
         return;
@@ -2248,7 +2249,7 @@ function renderMatches() {
             renderMatches();
             // Show alert/notify if favorited
             if (match.favorites) {
-                showNotification(`Added ${match.homeTeam} vs ${match.awayTeam} to Favorites`);
+                showNotification(tf("fav.added", { h: match.homeTeam, a: match.awayTeam }));
             }
         });
         
@@ -2324,12 +2325,12 @@ function renderStatsBars(match) {
     statsBarsList.innerHTML = "";
     
     const statsConfig = [
-        { key: "possession", label: "Possession", suffix: "%" },
-        { key: "shots", label: "Shots", suffix: "" },
-        { key: "shotsOnTarget", label: "Shots on Target", suffix: "" },
-        { key: "corners", label: "Corners", suffix: "" },
-        { key: "fouls", label: "Fouls", suffix: "" },
-        { key: "yellowCards", label: "Yellow Cards", suffix: "" }
+        { key: "possession", label: t("stats.possession"), suffix: "%" },
+        { key: "shots", label: t("stats.shots"), suffix: "" },
+        { key: "shotsOnTarget", label: t("stats.sot"), suffix: "" },
+        { key: "corners", label: t("stats.corners"), suffix: "" },
+        { key: "fouls", label: t("stats.fouls"), suffix: "" },
+        { key: "yellowCards", label: t("stats.yellow"), suffix: "" }
     ];
     
     statsConfig.forEach((stat) => {
@@ -2387,6 +2388,12 @@ function renderStatsBars(match) {
 }
 
 // --- NETWORK / STALE-DATA BANNER ---
+function refreshApiModeText() {
+    if (typeof apiModeText !== "undefined" && apiModeText) {
+        apiModeText.textContent = t(isApiMode ? "api.live" : "api.sim");
+    }
+}
+
 function showNetBanner(text, showRetry) {
     const banner = document.getElementById("net-banner");
     const label = document.getElementById("net-banner-text");
@@ -2459,7 +2466,7 @@ async function shareSpotlightMatch() {
     }
     try {
         await navigator.clipboard.writeText(shareData.url);
-        showNotification("Match link copied to clipboard", true);
+        showNotification(t("notif.copied"), true);
     } catch (e) {
         showNotification(shareData.url, true);
     }
@@ -2473,12 +2480,12 @@ function downloadSpotlightICS() {
     const match = spotlightMatch();
     if (!match) return;
     if (!match.date) {
-        showNotification("Kickoff time unavailable in Simulation Mode — switch to Live API Mode", true);
+        showNotification(t("notif.kickoffsim"), true);
         return;
     }
     const start = new Date(match.date);
     if (isNaN(start.getTime())) {
-        showNotification("Kickoff time unavailable for this match", true);
+        showNotification(t("notif.kickoffna"), true);
         return;
     }
     const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
@@ -2495,7 +2502,7 @@ function downloadSpotlightICS() {
     document.body.appendChild(a);
     a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-    showNotification("Calendar file downloaded", true);
+    showNotification(t("notif.ics"), true);
 }
 
 // Deep link: ?match=<id> spotlights + scrolls to that match (runs after data loads)
@@ -2735,7 +2742,7 @@ function initEventHandlers() {
         e.preventDefault();
         loginBtn.innerText = "Logged In";
         closeModal(loginModal);
-        showNotification("Successfully logged in as administrator!");
+        showNotification(t("notif.login"));
     });
 
     // Close modals by tapping the backdrop or pressing Escape (expected mobile UX)
@@ -2914,7 +2921,7 @@ function initEventHandlers() {
         searchResults.innerHTML = "";
         
         if (matches.length === 0) {
-            searchResults.innerHTML = `<div style="padding: 10px 16px; font-size: 12px; color: var(--text-muted);">No results found</div>`;
+            searchResults.innerHTML = `<div style="padding: 10px 16px; font-size: 12px; color: var(--text-muted);">${t("search.none")}</div>`;
         } else {
             matches.forEach((m) => {
                 const item = document.createElement("div");
@@ -3012,15 +3019,15 @@ function initEventHandlers() {
         if (isApiMode && !apiLoading) loadAPIMatches();
     });
     window.addEventListener("offline", () => {
-        showNetBanner("You're offline — showing last available scores.", false);
+        showNetBanner(t("net.offline"), false);
     });
     window.addEventListener("online", () => {
         hideNetBanner();
-        showNotification("Back online — refreshing live scores…", true);
+        showNotification(t("net.back"), true);
         if (isApiMode && !apiLoading) loadAPIMatches();
     });
     if (!navigator.onLine) {
-        showNetBanner("You're offline — showing last available scores.", false);
+        showNetBanner(t("net.offline"), false);
     }
 
     // Shared match-filter setter (keeps the filter pills in sync)
@@ -3215,3 +3222,14 @@ function init() {
 
 // Start everything when DOM is ready
 document.addEventListener("DOMContentLoaded", init);
+
+window.__rerenderLang = function () {
+    try { refreshApiModeText(); } catch (e) {}
+    try { renderDateStrip(); } catch (e) {}
+    try { renderMatches(); } catch (e) {}
+    try { renderTicker(); } catch (e) {}
+    try { renderStandings(); } catch (e) {}
+    try { renderNews(); } catch (e) {}
+    try { renderScorers(); } catch (e) {}
+    try { updateStoryTag(); } catch (e) {}
+};

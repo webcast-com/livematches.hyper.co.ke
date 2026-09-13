@@ -67,7 +67,7 @@ function hubYmd(iso) {
 function hubKickoff(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(appLocale(), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
 function esc(s) {
@@ -137,14 +137,14 @@ function hubCardHTML(m, kind) {
     const href = isReport
         ? `report.html?league=${esc(m.slug)}&id=${esc(m.id)}&date=${hubYmd(m.date)}`
         : `preview.html?league=${esc(m.slug)}&id=${esc(m.id)}&date=${hubYmd(m.date)}`;
-    const link = isReport ? "Read report &rarr;" : "Read preview &rarr;";
+    const link = isReport ? t("hub.readreport") : t("hub.readpreview");
     const posLine = (m.hPos && m.aPos) ? `${ord(m.hPos)} vs ${ord(m.aPos)}` : "";
     const sub = isReport
         ? `<span class="hub-score">FT ${esc(m.hs)}–${esc(m.as)}</span>`
         : `${posLine}${posLine && m.venue ? " · " : ""}${esc(m.venue)}`;
     return `<div class="hub-card"><div class="hub-main">`
         + `<div class="pred-meta"><span class="league-tag">${esc(m.code)}</span><span>${esc(hubKickoff(m.date))}</span>`
-        + (!isReport && m.big ? ` <span class="big-tag">BIG MATCH</span>` : "") + `</div>`
+        + (!isReport && m.big ? ` <span class="big-tag">${t("hub.bigmatch")}</span>` : "") + `</div>`
         + `<div class="hub-teams">${hubLogoImg(m.home.logo)}<span>${esc(m.home.name)}</span>`
         + `<span class="hub-vs">vs</span><span>${esc(m.away.name)}</span>${hubLogoImg(m.away.logo)}</div>`
         + `<div class="hub-sub">${sub}</div>`
@@ -201,17 +201,19 @@ async function bootHub() {
     const reps = rankFinished(finished).slice(0, 6);
     bigBox.innerHTML = big.length
         ? big.map((m) => hubCardHTML(m, "preview")).join("")
-        : `<p class="loading-note">No standout ties found — see all fixtures below.</p>`;
+        : `<p class="loading-note">${t("hub.nobig")}</p>`;
     repBox.innerHTML = reps.length
         ? reps.map((m) => hubCardHTML(m, "report")).join("")
-        : `<p class="loading-note">No finished matches in this matchweek yet.</p>`;
+        : `<p class="loading-note">${t("hub.nofin")}</p>`;
     allBox.innerHTML = rest.length
         ? rest.map((m) => hubCardHTML(m, "preview")).join("")
-        : `<p class="loading-note">No further upcoming fixtures.</p>`;
+        : `<p class="loading-note">${t("hub.nomore")}</p>`;
     const retry = document.getElementById("hub-retry");
-    if (retry) retry.addEventListener("click", bootHub);
+    if (retry && !retry.dataset.wired) { retry.dataset.wired = "1"; retry.addEventListener("click", bootHub); }
 }
 
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("DOMContentLoaded", bootHub);
 }
+
+window.__rerenderLang = function () { try { bootHub(); } catch (e) {} };

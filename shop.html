@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Shop — ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -18,7 +21,7 @@
         <main class="card legal-card">
             <h1>Kit Finder</h1>
             <p class="legal-updated">Official club stores and trusted retailers, one tap away. ScoreHub doesn't sell anything — you buy direct.</p>
-            <input class="shop-search" id="shop-search" type="search" placeholder="Search clubs… (e.g. Arsenal)" aria-label="Search clubs">
+            <input class="shop-search" id="shop-search" type="search" placeholder="Search clubs… (e.g. Arsenal)" data-i18n-ph="shop.ph" aria-label="Search clubs" data-i18n-aria="shop.aria">
             <div class="chip-row" id="shop-chips">
                 <button class="standings-tab active" data-league="All">All</button>
                 <button class="standings-tab" data-league="EPL">Premier League</button>
@@ -191,5 +194,7 @@
         search.addEventListener("input", apply);
     })();
     </script>
+    <script src="i18n.js"></script>
+    <script src="pwa.js"></script>
 </body>
 </html>

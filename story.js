@@ -72,7 +72,7 @@ function storyImage(a) {
 function formatStoryDate(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(appLocale(), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function relatedPick(articles, currentId, teamIds, n) {
@@ -135,7 +135,7 @@ function eventCardHTML(ev) {
     const isPre = st.state === "pre";
     const when = isPre ? formatStoryDate(ev.date) : esc(st.shortDetail || "");
     const score = isPre ? "vs" : `${h.score != null ? h.score : "–"} – ${a.score != null ? a.score : "–"}`;
-    return `<div class="story-event"><div class="pred-meta"><span class="league-tag">Match centre</span><span>${when}</span></div>`
+    return `<div class="story-event"><div class="pred-meta"><span class="league-tag">${t("story.mc")}</span><span>${when}</span></div>`
         + `<div class="story-event-teams">${logo(h)}<span>${nm(h, "Home")}</span>`
         + `<span class="story-event-score">${esc(score)}</span>`
         + `<span>${nm(a, "Away")}</span>${logo(a)}</div></div>`;
@@ -167,14 +167,14 @@ async function loadStoryRelated() {
         const mine = (box.dataset.teams || "").split(",").filter(Boolean);
         const picks = relatedPick(j.articles, box.dataset.current, mine, 4);
         if (!picks.length) {
-            box.innerHTML = `<p class="loading-note">No related stories right now.</p>`;
+            box.innerHTML = `<p class="loading-note">${t("story.norel")}</p>`;
             return;
         }
         storyRelatedById = {};
         picks.forEach((a) => { storyRelatedById[String(a.id)] = a; });
         box.innerHTML = picks.map(relatedCardHTML).join("");
     } catch (e) {
-        box.innerHTML = `<p class="loading-note">Couldn't load related stories.</p>`;
+        box.innerHTML = `<p class="loading-note">${t("story.relerr")}</p>`;
     }
 }
 
@@ -183,9 +183,9 @@ function bootStory() {
     let art = null;
     try { art = JSON.parse(sessionStorage.getItem("scorehub-story") || "null"); } catch (e) {}
     if (!art || !art.headline) {
-        box.innerHTML = `<h1>Story not found</h1>`
-            + `<p class="legal-updated">This story link has expired (open stories from the homepage or Transfer Centre).</p>`
-            + `<div class="window-strip">Head back to <a href="transfers.html">Transfer Centre</a> or <a href="index.html">Scores</a> to keep reading.</div>`;
+        box.innerHTML = `<h1>${t("story.notfound")}</h1>`
+            + `<p class="legal-updated">${t("story.expired")}</p>`
+            + `<div class="window-strip">${t("story.gohome")}</div>`;
         return;
     }
     try { document.title = `${art.headline} — ScoreHub`; } catch (e) {}
@@ -208,9 +208,9 @@ function bootStory() {
         + lede
         + `<div class="story-meta">${clubs}</div>`
         + (evt ? `<div id="story-event" data-event-id="${esc(evt.id)}" data-league="${esc(evt.league)}" data-published="${esc(art.published || "")}"></div>` : "")
-        + `<div class="pred-subrow"><h2 class="pred-sub">Related stories</h2></div>`
-        + `<div class="story-related" id="story-related" data-slug="${esc(storyLeagueSlug(art))}" data-current="${esc(String(art.id))}" data-teams="${esc(teams.map((t) => t.id).join(","))}"><p class="loading-note">Loading related stories&hellip;</p></div>`
-        + `<p class="story-source">Headline, image and summary: ESPN. <a href="${esc(storyURL(art))}" target="_blank" rel="noopener">Read the full story on ESPN ↗</a></p>`;
+        + `<div class="pred-subrow"><h2 class="pred-sub">${t("story.related")}</h2></div>`
+        + `<div class="story-related" id="story-related" data-slug="${esc(storyLeagueSlug(art))}" data-current="${esc(String(art.id))}" data-teams="${esc(teams.map((t) => t.id).join(","))}"><p class="loading-note">${t("story.loadingrel")}</p></div>`
+        + `<p class="story-source">${t("story.src")} <a href="${esc(storyURL(art))}" target="_blank" rel="noopener">${t("story.full")}</a></p>`;
     document.getElementById("story-related").addEventListener("click", (e) => {
         const link = e.target.closest("a[data-story]");
         if (!link) return;
@@ -225,3 +225,5 @@ function bootStory() {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("DOMContentLoaded", bootStory);
 }
+
+window.__rerenderLang = function () { try { bootStory(); } catch (e) {} };

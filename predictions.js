@@ -70,7 +70,7 @@ function predYmd(iso) {
 function formatKickoff(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(appLocale(), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
 function esc(s) {
@@ -134,8 +134,8 @@ function fixtureCardHTML(f) {
     const ph = saved.ph != null ? saved.ph : "";
     const pa = saved.pa != null ? saved.pa : "";
     const status = locked
-        ? (saved.ph != null && saved.pa != null ? "Locked — settling after full time" : "Locked — kicked off")
-        : (saved.ph != null && saved.pa != null ? `<span class="saved">✓ Saved</span>` : "Tap a score to predict");
+        ? (saved.ph != null && saved.pa != null ? t("pred.lockedset") : t("pred.lockedko"))
+        : (saved.ph != null && saved.pa != null ? `<span class="saved">${t("pred.saved")}</span>` : t("pred.tap"));
     return `<div class="pred-card" data-id="${esc(f.id)}">`
         + `<div class="pred-meta"><span class="league-tag">${esc(f.code)}</span><span>${esc(formatKickoff(f.date))}</span>${f.league !== "demo" ? `<a class="pred-preview" href="preview.html?league=${esc(f.league)}&id=${esc(f.id)}&date=${predYmd(f.date)}">Preview &rarr;</a>` : ""}</div>`
         + `<div class="pred-teams"><span class="pred-team">${f.hl ? `<img class="pred-logo" src="${esc(f.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${esc(f.home)}</span>`
@@ -151,7 +151,7 @@ function renderFixtures() {
     const list = document.getElementById("pred-list");
     const items = predFixtures.filter((f) => predFilter === "All" || f.code === predFilter);
     if (!items.length) {
-        list.innerHTML = `<p class="loading-note">No upcoming ${predFilter === "All" ? "" : predFilter + " "}fixtures right now.</p>`;
+        list.innerHTML = `<p class="loading-note">${tf("pred.empty", { f: predFilter === "All" ? "" : ((typeof LANG !== "undefined" && LANG === "sw") ? " za " + predFilter : " " + predFilter) })}</p>`;
         return;
     }
     list.innerHTML = items.map(fixtureCardHTML).join("");
@@ -179,7 +179,7 @@ function onPredChange(e) {
     };
     saveStoreData(predStore);
     const status = card.querySelector(".pred-status");
-    if (status) status.innerHTML = `<span class="saved">✓ Saved</span>`;
+    if (status) status.innerHTML = `<span class="saved">${t("pred.saved")}</span>`;
 }
 
 async function fetchScoreboardDay(league, ymd) {
@@ -236,18 +236,18 @@ function renderResults() {
         .sort((a, b) => new Date(b.date) - new Date(a.date));
     if (!settled.length) {
         bar.hidden = true;
-        box.innerHTML = `<p class="loading-note">No settled predictions yet — come back after kickoff.</p>`;
+        box.innerHTML = `<p class="loading-note">${t("pred.nosettled")}</p>`;
         return;
     }
     const total = settled.reduce((s, p) => s + (p.points || 0), 0);
     const exact = settled.filter((p) => p.points === 3).length;
     const outcome = settled.filter((p) => p.points === 1).length;
     bar.hidden = false;
-    bar.innerHTML = `<span>⭐ ${total} pts</span><span>🎯 ${exact} exact</span><span>✓ ${outcome} correct outcome</span><span>· ${settled.length} settled</span>`;
+    bar.innerHTML = `<span>${tf("pred.pts", { n: total })}</span><span>${tf("pred.exact", { n: exact })}</span><span>${tf("pred.outcome", { n: outcome })}</span><span>${tf("pred.settledn", { n: settled.length })}</span>`;
     box.innerHTML = settled.map((p) => {
-        const label = p.points === 3 ? "★ Exact!" : p.points === 1 ? "✓ Outcome" : `<span class="miss">✗ Miss</span>`;
+        const label = p.points === 3 ? t("pred.exactlbl") : p.points === 1 ? t("pred.outcomelbl") : `<span class="miss">${t("pred.miss")}</span>`;
         return `<div class="pred-result"><span class="league-tag">${esc(p.code)}</span>`
-            + `<span>${p.hl ? `<img class="pred-logo-mini" src="${esc(p.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<strong>${esc(p.hc)} ${p.rh}–${p.ra} ${esc(p.ac)}</strong>${p.al ? `<img class="pred-logo-mini" src="${esc(p.al)}" alt="" loading="lazy" onerror="this.remove()">` : ""} · you said ${p.ph}–${p.pa} · ${label}</span>`
+            + `<span>${p.hl ? `<img class="pred-logo-mini" src="${esc(p.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<strong>${esc(p.hc)} ${p.rh}–${p.ra} ${esc(p.ac)}</strong>${p.al ? `<img class="pred-logo-mini" src="${esc(p.al)}" alt="" loading="lazy" onerror="this.remove()">` : ""} · ${tf("pred.yousaid", { h: p.ph, a: p.pa })} · ${label}</span>`
             + `<span class="pts">+${p.points}</span></div>`;
     }).join("");
 }
@@ -275,7 +275,7 @@ function simulateDemo() {
 
 async function loadFixtures() {
     const list = document.getElementById("pred-list");
-    list.innerHTML = `<p class="loading-note">Loading upcoming fixtures&hellip;</p>`;
+    list.innerHTML = `<p class="loading-note">${t("pred.loading")}</p>`;
     const results = await Promise.allSettled(PRED_LEAGUES.map((L) =>
         fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${L.slug}/scoreboard?limit=50`).then((r) => {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -335,3 +335,5 @@ async function bootPredictions() {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("DOMContentLoaded", bootPredictions);
 }
+
+window.__rerenderLang = function () { try { renderFixtures(); } catch (e) {} try { renderResults(); } catch (e) {} };

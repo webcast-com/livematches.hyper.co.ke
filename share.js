@@ -21,16 +21,16 @@ function shareFileName(s) {
 }
 
 function shareSectionHTML() {
-    return `<div class="pred-subrow"><h2 class="pred-sub">Share this</h2></div>`
+    return `<div class="pred-subrow"><h2 class="pred-sub">${t("share.title")}</h2></div>`
         + `<canvas id="share-canvas" class="share-canvas" width="1200" height="630"></canvas>`
         + `<div class="share-row" id="share-row">`
-        + `<button class="btn btn-primary btn-sm" data-share="card">📤 Share card</button>`
-        + `<button class="btn btn-login btn-sm" data-share="download">⬇ Download</button>`
+        + `<button class="btn btn-primary btn-sm" data-share="card">${t("share.card")}</button>`
+        + `<button class="btn btn-login btn-sm" data-share="download">${t("share.download")}</button>`
         + `<a class="btn btn-login btn-sm" data-share="whatsapp" target="_blank" rel="noopener">WhatsApp</a>`
         + `<a class="btn btn-login btn-sm" data-share="x" target="_blank" rel="noopener">X</a>`
         + `<a class="btn btn-login btn-sm" data-share="telegram" target="_blank" rel="noopener">Telegram</a>`
         + `<a class="btn btn-login btn-sm" data-share="facebook" target="_blank" rel="noopener">Facebook</a>`
-        + `<button class="btn btn-login btn-sm" data-share="copy">🔗 Copy link</button>`
+        + `<button class="btn btn-login btn-sm" data-share="copy">${t("share.copy")}</button>`
         + `</div>`;
 }
 
@@ -160,14 +160,14 @@ function wireShareButtons(root, meta) {
             btn.disabled = true;
             const r = await shareCard(canvas, meta);
             btn.disabled = false;
-            if (r === "shared") flashShareBtn(btn, "Shared ✓");
-            else if (r === "downloaded") flashShareBtn(btn, "Downloaded ✓");
+            if (r === "shared") flashShareBtn(btn, t("share.shared"));
+            else if (r === "downloaded") flashShareBtn(btn, t("share.downloaded"));
             else if (r === "failed") flashShareBtn(btn, "Failed — try download");
         } else if (kind === "download") {
             const blob = await canvasToBlob(canvas);
-            flashShareBtn(btn, downloadBlob(blob, meta.filename) ? "Downloaded ✓" : "Download failed");
+            flashShareBtn(btn, downloadBlob(blob, meta.filename) ? t("share.downloaded") : t("share.dlfailed"));
         } else if (kind === "copy") {
-            flashShareBtn(btn, (await copyText(meta.url)) ? "Copied ✓" : "Copy failed");
+            flashShareBtn(btn, (await copyText(meta.url)) ? t("share.copied") : t("share.copyfailed"));
         }
     });
 }
