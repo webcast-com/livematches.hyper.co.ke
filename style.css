@@ -220,9 +220,15 @@ a {
     z-index: 110;
     animation: navDrop 0.22s cubic-bezier(0.4,0,0.2,1);
 }
-.dropdown:hover .dropdown-menu,
-.dropdown.open .dropdown-menu,
-.dropdown:focus-within .dropdown-menu {
+/* Only open on hover when the device has a true hover pointer (mouse/stylus);
+   on touchscreens we rely on the JS .open class toggle to avoid a stuck-open menu */
+@media (hover: hover) {
+    .dropdown:hover .dropdown-menu,
+    .dropdown:focus-within .dropdown-menu {
+        display: flex;
+    }
+}
+.dropdown.open .dropdown-menu {
     display: flex;
 }
 .dropdown-menu a {
@@ -1655,6 +1661,38 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     background: rgba(59,130,246,0.12);
     color: #93c5fd;
     border-color: rgba(59,130,246,0.3);
+}
+
+/* Odds capsules — subtle color coding by market so 1X2 / O/U / BTTS are visually distinct */
+.stat-capsule.odds-caps.odds-1x2 {
+    background: rgba(0,242,254,0.10);
+    border-color: rgba(0,242,254,0.28);
+    color: #7dd3fc;
+}
+.stat-capsule.odds-caps.odds-ou {
+    background: rgba(168,85,247,0.10);
+    border-color: rgba(168,85,247,0.28);
+    color: #d8b4fe;
+}
+.stat-capsule.odds-caps.odds-btts {
+    background: rgba(251,146,60,0.10);
+    border-color: rgba(251,146,60,0.28);
+    color: #fdba74;
+}
+[data-theme="light"] .stat-capsule.odds-caps.odds-1x2 {
+    background: rgba(2,132,199,0.10);
+    border-color: rgba(2,132,199,0.25);
+    color: #075985;
+}
+[data-theme="light"] .stat-capsule.odds-caps.odds-ou {
+    background: rgba(126,34,206,0.08);
+    border-color: rgba(126,34,206,0.22);
+    color: #6b21a8;
+}
+[data-theme="light"] .stat-capsule.odds-caps.odds-btts {
+    background: rgba(194,65,12,0.08);
+    border-color: rgba(194,65,12,0.22);
+    color: #9a3412;
 }
 
 .score-live {
@@ -3115,7 +3153,7 @@ a.btn { text-decoration: none; }
     width: 44px;
     padding: 7px 4px;
     text-align: center;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     font-family: var(--font-sans);
     color: var(--text-primary);
@@ -3652,48 +3690,6 @@ body.modal-open {
 }
 
 
-@media (max-width: 1600px) {
-    .dashboard-grid {
-        grid-template-columns: 220px 1.2fr 300px;
-    }
-    .sidebar-news {
-        grid-column: span 3;
-    }
-    .news-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-    }
-}
-
-@media (max-width: 1200px) {
-    .hero-grid {
-        grid-template-columns: 1fr 1.2fr;
-    }
-    .scorers-card {
-        grid-column: span 2;
-        min-height: auto;
-    }
-    .dashboard-grid {
-        grid-template-columns: 220px 1fr;
-    }
-    .standings-stats-section {
-        grid-column: span 2;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    .sidebar-news {
-        grid-column: span 2;
-    }
-    .features-strip {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .footer-top-grid {
-        grid-template-columns: 2fr 1fr 1fr 1.5fr;
-    }
-}
-
 @media (max-width: 992px) {
     .main-header {
         padding: 12px 0;
@@ -3805,8 +3801,7 @@ body.modal-open {
         margin-top: 6px;
         animation: navDrop 0.22s cubic-bezier(0.4,0,0.2,1);
     }
-    .main-nav .dropdown.open .dropdown-menu,
-    .main-nav .dropdown:hover .dropdown-menu {
+    .main-nav .dropdown.open .dropdown-menu {
         display: flex;
     }
     .main-nav .dropdown-menu a {
@@ -4644,6 +4639,29 @@ body.modal-open {
 
 
 /* Respect reduced-motion preferences for decorative animations */
+
+@media (max-width: 768px) {
+    .highlights-strip {
+        margin: 0 -12px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        padding: 12px;
+    }
+    .highlight-card {
+        flex: 0 0 180px;
+    }
+    .highlight-thumb {
+        height: 100px;
+    }
+}
+
+@media (max-width: 560px) {
+    .match-hero-name { font-size: 15px; }
+    .match-hero-score { font-size: 22px; }
+    .match-hero-logo { width: 32px; height: 32px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .phone-mockup-wrapper {
         animation: none;
@@ -4837,6 +4855,8 @@ body.modal-open {
     -webkit-overflow-scrolling: touch;
 }
 .highlights-track::-webkit-scrollbar { display: none; }
+.highlights-track.is-dragging { cursor: grabbing; user-select: none; }
+.highlights-track.is-dragging .highlight-card { pointer-events: none; }
 .highlight-card {
     flex: 0 0 220px;
     background: rgba(15,21,32,0.6);
@@ -4903,21 +4923,6 @@ body.modal-open {
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
-}
-@media (max-width: 768px) {
-    .highlights-strip {
-        margin: 0 -12px;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-        padding: 12px;
-    }
-    .highlight-card {
-        flex: 0 0 180px;
-    }
-    .highlight-thumb {
-        height: 100px;
-    }
 }
 
 /* ==========================================
@@ -5093,11 +5098,6 @@ body.modal-open {
     margin-top: 6px;
     text-align: center;
 }
-@media (max-width: 560px) {
-    .match-hero-name { font-size: 15px; }
-    .match-hero-score { font-size: 22px; }
-    .match-hero-logo { width: 32px; height: 32px; }
-}
 
 /* High-contrast fix for previously low-visibility grey text */
 :root {
@@ -5163,3 +5163,38 @@ body.modal-open {
     letter-spacing: 0.3px;
 }
 
+
+/* Light-theme fixes for glass surfaces that use hard-coded dark colors */
+[data-theme="light"] .main-header {
+    background-color: rgba(241, 245, 249, 0.85);
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+[data-theme="light"] .main-footer {
+    background: rgba(248, 250, 252, 0.95);
+}
+[data-theme="light"] .dropdown-menu,
+[data-theme="light"] .search-results,
+[data-theme="light"] .notification-dropdown,
+[data-theme="light"] .modal-card {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.10);
+}
+[data-theme="light"] .dropdown-menu a:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: var(--text-primary);
+}
+[data-theme="light"] .ticker-strip {
+    background: rgba(255, 255, 255, 0.6);
+}
+[data-theme="light"] .sports-selector {
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+[data-theme="light"] .match-card,
+[data-theme="light"] .card-box,
+[data-theme="light"] .hero-card,
+[data-theme="light"] .feature-card,
+[data-theme="light"] .legal-card,
+[data-theme="light"] .card,
+[data-theme="light"] .highlight-card {
+    background: rgba(255, 255, 255, 0.92);
+}

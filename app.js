@@ -603,7 +603,7 @@ const LEAGUE_NAMES = {
     "soccer/esp.2":           { name: "LaLiga 2",                  code: "LaL2",     sport: "football" },
     "soccer/esp.copa_del_rey":{ name: "Copa del Rey",              code: "CDR",      sport: "football" },
     // Germany
-    "soccer/ger.1":           { name: "Bundesliga",                code: "Bundes",   sport: "football" },
+    "soccer/ger.1":           { name: "Bundesliga",                code: "Bundesliga", sport: "football" },
     "soccer/ger.2":           { name: "2. Bundesliga",             code: "GER2",     sport: "football" },
     "soccer/ger.dfb_pokal":   { name: "DFB-Pokal",                 code: "DFB",      sport: "football" },
     // Italy
@@ -947,18 +947,61 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
         broadcast = comp.geoBroadcasts[0].media.shortName || comp.geoBroadcasts[0].media.displayName || "";
     }
 
-    // Betting odds (ESPN BET) — converted to decimal odds at render time
+    // Betting odds (ESPN BET + other providers) — richer extraction: 1X2, spread,
+    // Over/Under totals, and Both-Teams-to-Score (BTTS) when published.
+    // Iterates all providers so alternate lines (BTTS, O/U) aren't lost when they
+    // live in a separate odds entry from the moneyline.
     let odds = null;
-    const oddsInfo = Array.isArray(comp.odds) ? comp.odds.find(o => o && (o.details || o.overUnder || o.homeTeamOdds)) : null;
-    if (oddsInfo) {
-        odds = {
-            details: oddsInfo.details || "",
-            overUnder: oddsInfo.overUnder != null ? oddsInfo.overUnder : "",
-            provider: (oddsInfo.provider && oddsInfo.provider.name) || "ESPN BET",
-            home: oddsInfo.homeTeamOdds ? oddsInfo.homeTeamOdds.moneyLine : null,
-            draw: oddsInfo.drawOdds ? oddsInfo.drawOdds.moneyLine : null,
-            away: oddsInfo.awayTeamOdds ? oddsInfo.awayTeamOdds.moneyLine : null
+    const rawOdds = Array.isArray(comp.odds) ? comp.odds.filter(o => o) : [];
+    if (rawOdds.length) {
+        const primary = rawOdds.find(o => o.homeTeamOdds || o.drawOdds || o.awayTeamOdds) || rawOdds[0];
+        const pickML = (src, side) => {
+            if (!src || !src[side]) return null;
+            return src[side].moneyLine != null ? src[side].moneyLine
+                 : src[side].odds != null ? src[side].odds : null;
         };
+        odds = {
+            provider: (primary.provider && primary.provider.name) || "ESPN BET",
+            details: primary.details || "",
+            spread: primary.spread != null ? primary.spread : null,
+            overUnder: primary.overUnder != null ? primary.overUnder : null,
+            overOdds: null,  // decimal payout on Over
+            underOdds: null, // decimal payout on Under
+            bttsYes: null,   // decimal payout on "Both teams to score: Yes"
+            bttsNo: null,    // decimal payout on "No"
+            home: pickML(primary, "homeTeamOdds"),
+            draw: pickML(primary, "drawOdds"),
+            away: pickML(primary, "awayTeamOdds"),
+        };
+        // Scan all providers to find O/U totals payouts and BTTS lines. ESPN frequently
+        // emits these as separate odds entries whose `details` strings name the market.
+        for (const o of rawOdds) {
+            const det = (o.details || "").toLowerCase();
+            const homeML = pickML(o, "homeTeamOdds");
+            const awayML = pickML(o, "awayTeamOdds");
+            if (o.overUnder != null && odds.overUnder == null) {
+                odds.overUnder = o.overUnder;
+            }
+            if (/over[/ ]?under|total goals|o\/u/.test(det) || o.overUnder != null) {
+                const h = americanToDecimal(homeML), a = americanToDecimal(awayML);
+                // "Over" is typically published as the home/team1 side, "Under" as away/team2.
+                if (/over/.test(det) || !odds.overOdds) odds.overOdds = odds.overOdds || h || a;
+                if (/under/.test(det)) odds.underOdds = odds.underOdds || a || h;
+                // If the detail string is just "O/U 2.5" with no Over/Under label,
+                // treat home as Over and away as Under (standard ESPN ordering).
+                if (!odds.overOdds && h) odds.overOdds = h;
+                if (!odds.underOdds && a) odds.underOdds = a;
+            }
+            if (/both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
+                // ESPN usually puts "Yes" on the home side and "No" on the away side.
+                odds.bttsYes = odds.bttsYes || americanToDecimal(homeML);
+                odds.bttsNo = odds.bttsNo || americanToDecimal(awayML);
+            }
+            // Backfill missing 1X2 from a later provider if primary didn't carry moneylines
+            if (!odds.home && homeML) odds.home = homeML;
+            if (!odds.draw) odds.draw = pickML(o, "drawOdds");
+            if (!odds.away && awayML) odds.away = awayML;
+        }
     }
 
     // Each team's leading scorer this season (embedded in scoreboard data)
@@ -1261,6 +1304,30 @@ function oddsSummary(odds) {
     return "";
 }
 
+// Build the HTML for all available odds capsules (1X2, O/U, BTTS). Called once per
+// match card footer. Returns "" if no odds data is present — graceful fallback.
+function oddsCapsulesHTML(match) {
+    if (!match || !match.odds) return "";
+    const o = match.odds;
+    const capsules = [];
+    const h = americanToDecimal(o.home), d = americanToDecimal(o.draw), a = americanToDecimal(o.away);
+    if (h && d && a) {
+        capsules.push(`<span class="stat-capsule odds-caps odds-1x2" title="1X2 odds (Home · Draw · Away) via ${o.provider}">🎲 ${h.toFixed(2)} · ${d.toFixed(2)} · ${a.toFixed(2)}</span>`);
+    } else if (o.details) {
+        capsules.push(`<span class="stat-capsule odds-caps" title="Odds via ${o.provider}">🎲 ${o.details}</span>`);
+    }
+    if (o.overUnder != null && o.overUnder !== "") {
+        const over = o.overOdds ? o.overOdds.toFixed(2) : null;
+        const under = o.underOdds ? o.underOdds.toFixed(2) : null;
+        const label = over && under ? `O/U ${o.overUnder}  ↑${over} ↓${under}` : `O/U ${o.overUnder}`;
+        capsules.push(`<span class="stat-capsule odds-caps odds-ou" title="Total goals Over/Under via ${o.provider}">📈 ${label}</span>`);
+    }
+    if (o.bttsYes && o.bttsNo) {
+        capsules.push(`<span class="stat-capsule odds-caps odds-btts" title="Both Teams To Score — Yes/No odds via ${o.provider}">⚔️ BTTS ${o.bttsYes.toFixed(2)} / ${o.bttsNo.toFixed(2)}</span>`);
+    }
+    return capsules.join("");
+}
+
 function pickNewsCategory(article) {
     const cats = Array.isArray(article.categories) ? article.categories : [];
     const league = cats.find(c => c.type === "league" && c.description);
@@ -1378,8 +1445,12 @@ async function loadLiveHighlights(force = false) {
     if (!isApiMode) return null;
     if (!force && liveHighlights && Date.now() - liveHighlightsAt < HIGHLIGHTS_TTL_MS) return liveHighlights;
     try {
-        // Pull video news from top leagues
-        const videoLeagues = ["eng.1", "esp.1", "uefa.champions", "ger.1", "ita.1"];
+        // Pull video news from top leagues across Europe and the Americas (worldwide coverage)
+        const videoLeagues = [
+            "eng.1", "esp.1", "ger.1", "ita.1", "fra.1",
+            "uefa.champions", "uefa.europa",
+            "ned.1", "por.1", "usa.1", "mex.1", "bra.1"
+        ];
         const vids = [];
         await Promise.allSettled(videoLeagues.map(async slug => {
             try {
@@ -2059,9 +2130,9 @@ function renderNews() {
         const card = document.createElement(useLive ? "a" : "div");
         card.className = "news-card" + (isVideo ? " has-video" : "");
         if (useLive) {
-            // If it's a video highlight, open directly on ESPN, otherwise use story page
-            if (isVideo && news.link && news.link.includes("espn.com")) {
-                card.href = news.link;
+            // Videos open their source page (usually ESPN) in a new tab; text news uses in-app story page
+            if (isVideo) {
+                card.href = news.link || "https://www.espn.com/soccer/";
                 card.target = "_blank";
                 card.rel = "noopener";
             } else {
@@ -2102,22 +2173,57 @@ function renderHighlights() {
         a.href = item.link || "https://www.espn.com/soccer/";
         a.target = "_blank";
         a.rel = "noopener";
-        const thumbStyle = item.image ? `background-image: url('${item.image}');` : `background: var(--bg-card-solid);`;
+        const thumbStyle = item.image ? `background-image: url('${item.image.replace(/'/g, "%27")}');` : `background: var(--bg-card-solid);`;
         const leagueLabel = item.league ? (LEAGUE_NAMES['soccer/'+item.league] ? LEAGUE_NAMES['soccer/'+item.league].name : item.league) : item.category;
+        const safeTitle = (item.title || "").replace(/</g, "&lt;");
         a.innerHTML = `
             <div class="highlight-thumb" style="${thumbStyle}">
                 <div class="highlight-play"><span>▶</span></div>
             </div>
             <div class="highlight-meta">
                 <span class="highlight-league">${leagueLabel}</span>
-                <span class="highlight-title">${item.title}</span>
+                <span class="highlight-title">${safeTitle}</span>
                 <span class="news-time">${item.time}</span>
             </div>
         `;
         track.appendChild(a);
     });
+    try { updateHighlightsSEO(liveHighlights); } catch (e) {}
+    initHighlightsDrag();
 }
-    try{ updateHighlightsSEO(liveHighlights); }catch(e){}
+
+// Enable mouse-drag horizontal scrolling on the highlights strip (like the ticker)
+let highlightsDragInited = false;
+function initHighlightsDrag() {
+    if (highlightsDragInited) return;
+    const track = document.getElementById("highlights-track");
+    if (!track) return;
+    highlightsDragInited = true;
+    let isDown = false, startX = 0, scrollLeft = 0, moved = 0;
+    const start = (clientX) => {
+        isDown = true; moved = 0; startX = clientX; scrollLeft = track.scrollLeft;
+        track.classList.add("is-dragging");
+    };
+    const move = (clientX) => {
+        if (!isDown) return;
+        const dx = clientX - startX;
+        moved = Math.max(moved, Math.abs(dx));
+        track.scrollLeft = scrollLeft - dx;
+    };
+    const end = () => {
+        if (!isDown) return;
+        isDown = false;
+        track.classList.remove("is-dragging");
+        if (moved > 6) {
+            track.dataset.suppressClick = "1";
+            setTimeout(() => { delete track.dataset.suppressClick; }, 300);
+        }
+    };
+    track.addEventListener("mousedown", (e) => { start(e.clientX); e.preventDefault(); });
+    window.addEventListener("mousemove", (e) => move(e.clientX));
+    window.addEventListener("mouseup", end);
+    track.addEventListener("click", (e) => { if (track.dataset.suppressClick === "1") { e.preventDefault(); e.stopPropagation(); } }, true);
+}
 
 // Render Matches List
 // --- FIXTURES CALENDAR (ESPN scoreboard ?dates= support) ---
@@ -2716,9 +2822,10 @@ function renderMatches() {
                         <span class="stat-capsule status-capsule ${st.cls}">${st.isLive ? '🔴 LIVE' : st.isHT ? '🟠 HT' : st.isFinished ? '⚫ FT' : '🔵 ' + st.label}</span>
                         ${previewLinkHTML(match)}
                         ${reportLinkHTML(match)}
-                        ${match.odds ? `<span class="stat-capsule" title="Odds ${match.homeCode}/${match.awayCode}/Draw via ${match.odds.provider}">🎲 ${oddsSummary(match.odds)}</span>` : ""}
-                        <span class="stat-capsule">⚽ ${match.homeScore + match.awayScore} Goals</span>
-                        <span class="stat-capsule">📊 ${match.stats.possession}% Poss</span>
+                        ${oddsCapsulesHTML(match)}
+                        ${(st.isLive || st.isHT || st.isFinished) ? `<span class="stat-capsule">⚽ ${(match.homeScore||0) + (match.awayScore||0)} Goals</span>` : ""}
+                        ${(st.isLive || st.isHT) && match.stats.possession && match.stats.possession !== "—" && match.stats.possession !== 0
+                            ? `<span class="stat-capsule" title="Home-team possession">📊 ${match.stats.possession}% Poss</span>` : ""}
                     </div>
                     
                     <button class="btn-star-fav ${match.favorites ? 'favorited' : ''}" data-match-id="${match.id}" aria-label="Favorite">
@@ -3349,6 +3456,11 @@ function initEventHandlers() {
             sportTabs.forEach((t) => t.classList.remove("active"));
             tab.classList.add("active");
             currentSport = tab.getAttribute("data-sport");
+            // Reset league filter when switching sports/tabs so the new sport isn't hidden
+            const wasLeagueFilter = currentLeague !== "all";
+            currentLeague = "all";
+            document.querySelectorAll(".league-row").forEach((r) => r.classList.remove("active"));
+            if (wasLeagueFilter) setFilter("all");
             if (currentSport === "f1") {
                 loadF1Data();
             } else if (isApiMode) {
