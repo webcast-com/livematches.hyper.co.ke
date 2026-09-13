@@ -157,6 +157,10 @@
                     <span class="sport-icon">🌍</span>
                     <span class="sport-name">All Sports</span>
                 </button>
+                <button class="sport-tab" data-sport="worldwide">
+                    <span class="sport-icon">🌐</span>
+                    <span class="sport-name">Worldwide</span>
+                </button>
                 <button class="sport-tab" data-sport="football">
                     <span class="sport-icon">⚽</span>
                     <span class="sport-name">Football</span>
@@ -348,6 +352,15 @@
             </div>
         </section>
 
+        <!-- HIGHLIGHTS STRIP (Live API Mode) -->
+        <section class="highlights-strip" id="highlights-strip" hidden>
+            <div class="highlights-header">
+                <h3>🎥 Latest Highlights</h3>
+                <span class="highlights-subtitle">Video highlights from worldwide leagues</span>
+            </div>
+            <div class="highlights-track" id="highlights-track"></div>
+        </section>
+
         <!-- MAIN LAYOUT GRID -->
         <main class="dashboard-grid">
             
@@ -358,7 +371,7 @@
                         <h3>Popular Leagues</h3>
                         <a href="#" class="view-all-link">View All</a>
                     </div>
-                    <div class="leagues-list">
+                    <div class="leagues-list" id="leagues-list">
                         <div class="league-row" data-league-id="EPL">
                             <div class="league-info">
                                 <span class="league-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
@@ -400,6 +413,48 @@
                                 <span class="league-name">Ligue 1</span>
                             </div>
                             <span class="teams-count">18 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="ERE">
+                            <div class="league-info">
+                                <span class="league-flag">🇳🇱</span>
+                                <span class="league-name">Eredivisie</span>
+                            </div>
+                            <span class="teams-count">18 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="POR">
+                            <div class="league-info">
+                                <span class="league-flag">🇵🇹</span>
+                                <span class="league-name">Primeira Liga</span>
+                            </div>
+                            <span class="teams-count">18 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="MLS">
+                            <div class="league-info">
+                                <span class="league-flag">🇺🇸</span>
+                                <span class="league-name">MLS</span>
+                            </div>
+                            <span class="teams-count">29 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="SAU">
+                            <div class="league-info">
+                                <span class="league-flag">🇸🇦</span>
+                                <span class="league-name">Saudi Pro League</span>
+                            </div>
+                            <span class="teams-count">18 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="BRA">
+                            <div class="league-info">
+                                <span class="league-flag">🇧🇷</span>
+                                <span class="league-name">Brasileiro</span>
+                            </div>
+                            <span class="teams-count">20 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="UEL">
+                            <div class="league-info">
+                                <span class="league-flag">🏆</span>
+                                <span class="league-name">Europa League</span>
+                            </div>
+                            <span class="teams-count">32 Teams</span>
                         </div>
                     </div>
                 </div>
