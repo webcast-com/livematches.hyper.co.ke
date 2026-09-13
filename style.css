@@ -5,14 +5,14 @@
 /* Color Tokens & Reset */
 :root {
     --bg-main: #07090e;
-    --bg-card: rgba(15, 21, 32, 0.75);
+    --bg-card: rgba(15, 21, 32, 0.82);
     --bg-card-solid: #0f1520;
-    --border-color: rgba(255, 255, 255, 0.06);
-    --border-glow: rgba(0, 242, 254, 0.15);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(0, 242, 254, 0.18);
     
     --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #627289;
+    --text-secondary: #d1d9e8;
+    --text-muted: #9fb0c8;
     
     --primary: #00f2fe;
     --primary-glow: rgba(0, 242, 254, 0.3);
@@ -34,17 +34,17 @@
     --scrollbar-thumb-hover: #334155;
 }
 
-/* Light Theme overrides */
+/* Light Theme overrides - high contrast for readability */
 [data-theme="light"] {
     --bg-main: #f1f5f9;
-    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-card: rgba(255, 255, 255, 0.92);
     --bg-card-solid: #ffffff;
-    --border-color: rgba(15, 23, 42, 0.08);
-    --border-glow: rgba(0, 102, 204, 0.08);
+    --border-color: rgba(15, 23, 42, 0.10);
+    --border-glow: rgba(0, 102, 204, 0.10);
     
     --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #64748b;
+    --text-secondary: #334155;
+    --text-muted: #475569;
     
     --primary: #0284c7;
     --primary-glow: rgba(2, 132, 199, 0.15);
@@ -2573,7 +2573,7 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     gap: 3px;
     font-size: 7.5px;
     font-weight: 600;
-    color: #627289;
+    color: #94a3b8;
 }
 
 .ptb-item.active {
@@ -5098,3 +5098,68 @@ body.modal-open {
     .match-hero-score { font-size: 22px; }
     .match-hero-logo { width: 32px; height: 32px; }
 }
+
+/* High-contrast fix for previously low-visibility grey text */
+:root {
+    /* ensure muted is never too dim on dark bg */
+    --text-muted-contrast: #9fb0c8;
+}
+.news-time,
+.teams-count,
+.stat-lbl,
+.news-category-badge,
+.match-card-league,
+.date-header-count,
+.highlights-subtitle,
+.ticker-league,
+.transfer-meta,
+.transfer-src,
+.shop-note,
+.preview-note,
+.legal-updated,
+.loading-note,
+.pred-meta,
+.pred-status,
+.story-meta,
+.story-source,
+.story-rel-card span,
+.hub-sub,
+.report-next,
+.f1-count-lbl,
+.f1-team,
+.f1-note,
+.search-sport-badge,
+.footer-bottom {
+    color: var(--text-muted) !important;
+    opacity: 0.95;
+}
+.search-icon,
+.stat-capsule,
+.stat-label-name,
+.footer-links-col a,
+.brand-desc,
+.footer-download-col p,
+.feature-info p,
+.hero-description,
+.news-title + .news-time,
+.pred-team,
+.transfer-desc {
+    color: var(--text-secondary) !important;
+}
+
+/* Light theme: ensure muted still readable */
+[data-theme="light"] .news-time,
+[data-theme="light"] .teams-count,
+[data-theme="light"] .stat-lbl,
+[data-theme="light"] .match-card-league,
+[data-theme="light"] .date-header-count {
+    color: #475569 !important;
+}
+
+/* Improve contrast for small badges */
+.league-tag,
+.date-header-badge.ft {
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
