@@ -139,6 +139,29 @@ function oddsSummary(odds) {
     if (odds.overUnder) return `O/U ${odds.overUnder}`;
     return "";
 }
+
+// Render 1X2, Over/Under and BTTS capsules — same helper as app.js, kept inline so
+// match.js remains self-contained (it's loaded standalone on match.html).
+function oddsCapsulesHTML(odds, homeCode, awayCode) {
+    if (!odds) return "";
+    const h = americanToDecimal(odds.home), d = americanToDecimal(odds.draw), a = americanToDecimal(odds.away);
+    const parts = [];
+    if (h && d && a) {
+        parts.push(`<span class="stat-capsule odds-caps odds-1x2" title="1X2 (${homeCode||"Home"} · Draw · ${awayCode||"Away"}) via ${odds.provider||"odds"}">🎲 ${h.toFixed(2)} · ${d.toFixed(2)} · ${a.toFixed(2)}</span>`);
+    } else if (odds.details) {
+        parts.push(`<span class="stat-capsule odds-caps">🎲 ${esc(odds.details)}</span>`);
+    }
+    if (odds.overUnder != null && odds.overUnder !== "") {
+        const over = odds.overOdds ? odds.overOdds.toFixed(2) : null;
+        const under = odds.underOdds ? odds.underOdds.toFixed(2) : null;
+        const label = over && under ? `O/U ${odds.overUnder}  ↑${over} ↓${under}` : `O/U ${odds.overUnder}`;
+        parts.push(`<span class="stat-capsule odds-caps odds-ou" title="Total goals Over/Under">📈 ${label}</span>`);
+    }
+    if (odds.bttsYes && odds.bttsNo) {
+        parts.push(`<span class="stat-capsule odds-caps odds-btts" title="Both Teams To Score — Yes/No">⚔️ BTTS ${odds.bttsYes.toFixed(2)} / ${odds.bttsNo.toFixed(2)}</span>`);
+    }
+    return parts.join("");
+}
 function icsDateUTC(d) {
     return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
@@ -514,8 +537,45 @@ async function bootMatch() {
     let broadcast = "";
     if (Array.isArray(comp.broadcasts) && comp.broadcasts[0] && Array.isArray(comp.broadcasts[0].names)) broadcast = comp.broadcasts[0].names.join(", ");
     let odds = null;
-    const oddsInfo = Array.isArray(comp.odds) ? comp.odds.find((o) => o && (o.details || o.homeTeamOdds)) : null;
-    if (oddsInfo) odds = { details: oddsInfo.details || "", overUnder: oddsInfo.overUnder, home: oddsInfo.homeTeamOdds ? oddsInfo.homeTeamOdds.moneyLine : null, draw: oddsInfo.drawOdds ? oddsInfo.drawOdds.moneyLine : null, away: oddsInfo.awayTeamOdds ? oddsInfo.awayTeamOdds.moneyLine : null };
+    const rawOdds = Array.isArray(comp.odds) ? comp.odds.filter((o) => o) : [];
+    if (rawOdds.length) {
+        const primary = rawOdds.find((o) => o.homeTeamOdds || o.drawOdds || o.awayTeamOdds) || rawOdds[0];
+        const pickML = (src, side) => {
+            if (!src || !src[side]) return null;
+            return src[side].moneyLine != null ? src[side].moneyLine
+                 : src[side].odds != null ? src[side].odds : null;
+        };
+        odds = {
+            provider: (primary.provider && primary.provider.name) || "ESPN BET",
+            details: primary.details || "",
+            spread: primary.spread != null ? primary.spread : null,
+            overUnder: primary.overUnder != null ? primary.overUnder : null,
+            overOdds: null, underOdds: null, bttsYes: null, bttsNo: null,
+            home: pickML(primary, "homeTeamOdds"),
+            draw: pickML(primary, "drawOdds"),
+            away: pickML(primary, "awayTeamOdds"),
+        };
+        for (const o of rawOdds) {
+            const det = (o.details || "").toLowerCase();
+            const homeML = pickML(o, "homeTeamOdds");
+            const awayML = pickML(o, "awayTeamOdds");
+            if (o.overUnder != null && odds.overUnder == null) odds.overUnder = o.overUnder;
+            if (/over[/ ]?under|total goals|o\/u/.test(det) || o.overUnder != null) {
+                const h2 = americanToDecimal(homeML), a2 = americanToDecimal(awayML);
+                if (/over/.test(det) || !odds.overOdds) odds.overOdds = odds.overOdds || h2 || a2;
+                if (/under/.test(det)) odds.underOdds = odds.underOdds || a2 || h2;
+                if (!odds.overOdds && h2) odds.overOdds = h2;
+                if (!odds.underOdds && a2) odds.underOdds = a2;
+            }
+            if (/both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
+                odds.bttsYes = odds.bttsYes || americanToDecimal(homeML);
+                odds.bttsNo = odds.bttsNo || americanToDecimal(awayML);
+            }
+            if (!odds.home && homeML) odds.home = homeML;
+            if (!odds.draw) odds.draw = pickML(o, "drawOdds");
+            if (!odds.away && awayML) odds.away = awayML;
+        }
+    }
 
     const isPre = st.state === "pre";
     const isLive = st.state === "in";
@@ -530,7 +590,7 @@ async function bootMatch() {
     const comm = summary ? (Array.isArray(summary.commentary) ? summary.commentary : (Array.isArray(summary.plays) ? summary.plays : [])) : [];
     const lineups = lineupsFromSummary(summary);
 
-    box.innerHTML = `<div class="pred-meta"><span class="league-tag">${esc(leagueName)}</span>${statusPill(ev)}${broadcast ? `<span>📺 ${esc(broadcast)}</span>` : ""}${odds ? `<span class="stat-capsule">🎲 ${esc(oddsSummary(odds))}</span>` : ""}</div>
+    box.innerHTML = `<div class="pred-meta"><span class="league-tag">${esc(leagueName)}</span>${statusPill(ev)}${broadcast ? `<span>📺 ${esc(broadcast)}</span>` : ""}${oddsCapsulesHTML(odds, H.abbreviation, A.abbreviation)}</div>
         <h1 style="margin-top:10px;">${esc(H.name)} vs ${esc(A.name)}</h1>
         <p class="legal-updated">${esc(formatKickoffLong(ev.date))}${venue ? ` · ${esc(venue)}` : ""}${posLine ? ` · ${esc(posLine)}` : ""}</p>
         <div class="match-hero"><div class="match-hero-top">${logoImg(H.logo, "match-hero-logo")}<span class="match-hero-name">${esc(H.name)}</span><span class="match-hero-score">${isPre ? "vs" : `${hs != null ? hs : "–"} – ${as != null ? as : "–"}`}</span><span class="match-hero-name">${esc(A.name)}</span>${logoImg(A.logo, "match-hero-logo")}</div></div>

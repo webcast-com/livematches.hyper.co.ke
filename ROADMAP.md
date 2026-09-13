@@ -60,7 +60,7 @@ independently shippable and revertible.
 | 2.3 | **Form guide (last 5: W/D/L)** on match cards + team hubs | Derived from dated scoreboard fetches, cached | M | Low | Hidden until computed |
 | 2.4 | **Head-to-head compare** — recent meetings + both teams' form | Same dated-scoreboard data as 2.3 | M | Low | "No recent meetings" state |
 | 2.5 | **Win probability bar** where published (US sports) | ESPN summary `winProbability` | S | Very low | Hidden for soccer |
-| 2.6 | **Fuller odds** — parse O/U and BTTS from ESPN odds `details` | Already-fetched `comp.odds` | S | Very low | Current 1X2 capsule |
+| 2.6 ✅ | **Fuller odds** — parse O/U and BTTS from ESPN odds `details` | Already-fetched `comp.odds` | S | Very low | Current 1X2 capsule |
 | 2.7 | **More headlines per league tab** (news follows the standings tab) | Same news endpoint, slug per tab (already proven for `eng.1`) | S | Very low | Keep EPL feed |
 
 > Spike note: verify each endpoint shape in `espn_test.json`-style fixtures
@@ -139,3 +139,4 @@ experience; the backend only adds sync + out-of-band alerts.
 - **2026-09-13 — Share cards + Story of the Week**: share.js renders 1200x630 canvas cards (Web Share API with download fallback, WhatsApp/X/Telegram/Facebook + copy link) on preview/report pages with OG tags; homepage spotlight auto-picks the week's best story (finished-thriller drama scoring, table-backed biggest-upcoming with cached tables, user-tap lock) with tag, reason line and preview/report button.
 
 - **2026-09-13 — PWA installability + Kiswahili toggle (6.1)**: manifest + service worker (31-file precache, offline shell fallback, runtime caches) + install prompt button + generated icons (192/512/apple-touch); i18n.js EN/SW chrome dict (~170 keys) with header SW/EN toggle, locale-aware dates and per-page re-render hooks; narratives/legal prose stay EN in v1.
+- **2026-09-14 — Phase 2.6 Fuller odds**: richer odds extraction across all `comp.odds` providers (not just the first entry) — decimal 1X2 triple, Over/Under line with Over/Under payouts, and Both-Teams-to-Score (Yes/No) markets where ESPN publishes them; three colour-coded stat-capsules (cyan/purple/orange with proper light-theme variants) replace the single text capsule; Goals/Possession capsules now hide on pre-match cards where they were showing "0 Goals" / "—% Poss"; same richer parser ported to match.js for the match-centre header; robust fallback — any missing market simply doesn't render.

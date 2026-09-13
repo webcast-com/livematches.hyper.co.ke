@@ -1,17 +1,18 @@
 /* ScoreHub service worker — offline shell + runtime caching.
    Bump SW_VERSION (and the cache names) to force-update all clients. */
-const SW_VERSION = 'v1';
-const STATIC_CACHE = 'scorehub-static-v1';
-const RUNTIME_CACHE = 'scorehub-runtime-v1';
+const SW_VERSION = 'v2';
+const STATIC_CACHE = 'scorehub-static-v2';
+const RUNTIME_CACHE = 'scorehub-runtime-v2';
 const OFFLINE_URL = 'offline.html';
 
 const PRECACHE = [
   './', 'index.html', 'offline.html', 'manifest.webmanifest',
-  'style.css', 'app.js', 'i18n.js', 'pwa.js', 'share.js',
+  'style.css', 'app.js', 'i18n.js', 'seo.js', 'pwa.js', 'share.js',
+  'match.html', 'match.js',
   'preview.html', 'preview.js', 'report.html', 'report.js',
   'previews.html', 'previews.js', 'standings.html', 'standings.js',
   'transfers.html', 'transfers.js', 'predictions.html', 'predictions.js',
-  'story.html', 'story.js', 'shop.html', 'about.html',
+  'story.html', 'story.js', 'shop.html', 'shop.js', 'about.html',
   'terms.html', 'privacy.html',
   'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'logo.svg'
 ];
