@@ -195,9 +195,15 @@ a {
     border-radius: 2px;
 }
 
-/* Dropdown styling */
+/* Dropdown styling — More button */
 .dropdown {
     position: relative;
+}
+.dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
 }
 .dropdown-menu {
     position: absolute;
@@ -209,23 +215,30 @@ a {
     box-shadow: var(--glass-shadow);
     display: none;
     flex-direction: column;
-    min-width: 150px;
+    min-width: 170px;
     padding: 8px 0;
     z-index: 110;
+    animation: navDrop 0.22s cubic-bezier(0.4,0,0.2,1);
 }
-.dropdown:hover .dropdown-menu {
+.dropdown:hover .dropdown-menu,
+.dropdown.open .dropdown-menu,
+.dropdown:focus-within .dropdown-menu {
     display: flex;
 }
 .dropdown-menu a {
     color: var(--text-secondary);
     text-decoration: none;
-    padding: 8px 16px;
+    padding: 10px 16px;
     font-size: 13px;
     font-weight: 500;
     transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
 }
 .dropdown-menu a:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.06);
     color: var(--text-primary);
 }
 .arrow-down {
@@ -237,6 +250,10 @@ a {
     border-top: 4px solid currentColor;
     border-right: 4px solid transparent;
     border-left: 4px solid transparent;
+    transition: transform 0.22s ease;
+}
+.dropdown.open .arrow-down {
+    transform: rotate(180deg);
 }
 
 .header-right {
@@ -3390,22 +3407,33 @@ body.modal-open {
         height: 18px;
         border-radius: 2px;
     }
-    /* "More" submenu expands inline (no hover on touch) */
+    /* "More" submenu collapsible on mobile — tap to toggle */
     .main-nav .dropdown {
         width: 100%;
     }
     .main-nav .dropdown-menu {
         position: static;
-        display: flex;
-        background: transparent;
-        border: none;
+        display: none;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
         box-shadow: none;
-        padding: 0 6px 8px 16px;
+        padding: 6px;
         min-width: 0;
+        margin-top: 6px;
+        animation: navDrop 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+    .main-nav .dropdown.open .dropdown-menu,
+    .main-nav .dropdown:hover .dropdown-menu {
+        display: flex;
     }
     .main-nav .dropdown-menu a {
-        padding: 10px 14px;
+        padding: 11px 14px;
         font-size: 14px;
+        border-radius: 8px;
+    }
+    .main-nav .dropdown-menu a:hover {
+        background: rgba(255,255,255,0.05);
     }
 
     .hero-grid {

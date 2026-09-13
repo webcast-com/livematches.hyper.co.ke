@@ -2977,6 +2977,11 @@ function initEventHandlers() {
         document.body.classList.remove("nav-open");
         navToggleBtn.setAttribute("aria-expanded", "false");
         navToggleBtn.setAttribute("aria-label", "Open menu");
+        // also close More dropdown
+        const moreDD = document.querySelector(".main-nav .dropdown");
+        const moreTog = document.querySelector(".main-nav .dropdown-toggle");
+        if (moreDD) moreDD.classList.remove("open");
+        if (moreTog) moreTog.setAttribute("aria-expanded", "false");
     };
 
     navToggleBtn.addEventListener("click", (e) => {
@@ -2986,8 +2991,9 @@ function initEventHandlers() {
         navToggleBtn.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
     });
 
-    // Close the drawer after choosing a destination
+    // Close the drawer after choosing a destination (but not when toggling More)
     mainNav.querySelectorAll("a").forEach((link) => {
+        if (link.classList.contains("dropdown-toggle")) return;
         link.addEventListener("click", closeMobileNav);
     });
 
@@ -3158,12 +3164,43 @@ function initEventHandlers() {
         showNotification(sortByLeague ? "Matches sorted by league" : "Matches back to default order", true);
     });
 
-    // "More" drawer links + signup placeholder give feedback instead of dead-ending
-    document.querySelectorAll(".dropdown-menu a").forEach((link) => {
-        link.addEventListener("click", (e) => {
+    // --- More dropdown (header) — click to toggle, works on desktop + mobile ---
+    const moreDropdown = document.querySelector(".main-nav .dropdown");
+    const moreToggle = document.querySelector(".main-nav .dropdown-toggle");
+    const closeMore = () => {
+        if (moreDropdown) moreDropdown.classList.remove("open");
+        if (moreToggle) moreToggle.setAttribute("aria-expanded", "false");
+    };
+    if (moreDropdown && moreToggle) {
+        moreToggle.setAttribute("aria-expanded", "false");
+        moreToggle.setAttribute("aria-haspopup", "true");
+        moreToggle.addEventListener("click", (e) => {
             e.preventDefault();
-            showNotification(`${link.textContent.trim()} hub coming soon in this demo`, true);
+            e.stopPropagation();
+            const willOpen = !moreDropdown.classList.contains("open");
+            // close other popovers
+            document.querySelectorAll(".main-nav .dropdown.open").forEach(d => {
+                if (d !== moreDropdown) d.classList.remove("open");
+            });
+            moreDropdown.classList.toggle("open", willOpen);
+            moreToggle.setAttribute("aria-expanded", String(willOpen));
         });
+        // Clicking a real page link inside More should navigate and close drawer
+        moreDropdown.querySelectorAll(".dropdown-menu a").forEach(link => {
+            link.addEventListener("click", () => {
+                closeMore();
+                closeMobileNav();
+            });
+        });
+    }
+    // Close More when clicking outside header or pressing Escape
+    document.addEventListener("click", (e) => {
+        if (moreDropdown && !e.target.closest(".main-nav .dropdown")) {
+            closeMore();
+        }
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMore();
     });
 
     if (goToSignup) goToSignup.addEventListener("click", (e) => {
