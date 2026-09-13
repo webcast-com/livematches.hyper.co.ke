@@ -986,6 +986,9 @@ async function loadAPIMatches() {
     renderMatches();
     renderTicker();
 
+    storyPick = null;
+    storyLocked = false;
+
     // Deep link wins; otherwise auto-spotlight the first live match (or first overall)
     let deepLinked = false;
     try {
@@ -993,12 +996,23 @@ async function loadAPIMatches() {
         if (deepId && apiMatches.some(m => m.id === deepId)) {
             setSpotlightMatch(deepId);
             deepLinked = true;
+            storyLocked = true;
         }
     } catch (e) {}
     if (!deepLinked) {
         const firstLive = apiMatches.find(m => m.status === "live");
         const firstMatch = firstLive || apiMatches[0];
         if (firstMatch) setSpotlightMatch(firstMatch.id);
+    }
+
+    // Story of the week: a genuine thriller jumps the queue immediately,
+    // otherwise the table-backed pick lands async (see applyStoryOfWeek)
+    if (!deepLinked) {
+        const syncPick = pickStoryOfWeek(apiMatches, {});
+        if (syncPick && syncPick.kind === "report" && syncPick.score >= 8) {
+            storyPick = syncPick;
+            setSpotlightMatch(syncPick.id);
+        }
     }
 
     // Goal alerts for live score changes picked up by this refresh
@@ -1010,6 +1024,7 @@ async function loadAPIMatches() {
         }
     });
     scoreDeltas.clear(); // one animation per change — don't replay on unrelated re-renders
+    applyStoryOfWeek();
 
     // Load standings / news / top scorers from the API (TTL-cached, fire & forget)
     loadLiveExtras();
@@ -1056,6 +1071,7 @@ function setApiMode(enable) {
 
         renderMatches();
         renderTicker();
+        storyPick = null;
         setSpotlightMatch("fb-1");
         handleDeepLinkMatch();
     }
@@ -1619,6 +1635,7 @@ function renderTicker() {
         `;
         
         card.addEventListener("click", () => {
+            storyLocked = true;
             setSpotlightMatch(match.id);
         });
         
@@ -1966,6 +1983,157 @@ function reportLinkHTML(m) {
     return `<a class="stat-capsule report-link" href="report.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match report">📝 Report</a>`;
 }
 
+// --- STORY OF THE WEEK (auto-pick the most interesting match) ---
+function scorerMinute(label) {
+    const m = String(label || "").match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+}
+
+function storyDramaFromScorers(homeScorers, awayScorers) {
+    const all = [];
+    (homeScorers || []).forEach((s) => all.push({ min: scorerMinute(s), team: "H", name: String(s).replace(/^\d+'(\+\d+')?\s*/, "").trim() }));
+    (awayScorers || []).forEach((s) => all.push({ min: scorerMinute(s), team: "A", name: String(s).replace(/^\d+'(\+\d+')?\s*/, "").trim() }));
+    all.sort((a, b) => a.min - b.min);
+    let hs = 0, as = 0;
+    const runs = all.map((g) => { if (g.team === "H") hs++; else as++; return { hs, as }; });
+    const winner = hs > as ? "H" : as > hs ? "A" : null;
+    let trailed = false;
+    if (winner) {
+        let ph = 0, pa = 0;
+        runs.forEach((r) => {
+            const before = ph > pa ? "H" : pa > ph ? "A" : null;
+            if (before && before !== winner) trailed = true;
+            ph = r.hs; pa = r.as;
+        });
+    }
+    const tally = {};
+    all.forEach((g) => { if (g.name) tally[g.name] = (tally[g.name] || 0) + 1; });
+    let brace = null;
+    Object.keys(tally).forEach((k) => { if (tally[k] >= 2 && (!brace || tally[k] > brace.n)) brace = { name: k, n: tally[k] }; });
+    const lastMin = all.length ? all[all.length - 1].min : 0;
+    return { winner, comeback: trailed, brace, lateMin: lastMin >= 85 ? lastMin : null, total: all.length };
+}
+
+function scoreStoryFinished(m) {
+    const hs = Number(m.homeScore) || 0, as = Number(m.awayScore) || 0;
+    const goals = hs + as;
+    const d = storyDramaFromScorers(m.scorers ? m.scorers.home : [], m.scorers ? m.scorers.away : []);
+    let score = goals * 2;
+    const reasons = [];
+    if (goals >= 5) { score += 2; reasons.push(`${goals}-goal thriller`); }
+    if (d.winner == null && goals >= 2) { score += 3; reasons.push("points shared in a thriller"); }
+    else if (d.winner && Math.abs(hs - as) === 1) score += 1;
+    if (d.lateMin) { score += 2; reasons.push(`drama at the death (${d.lateMin}')`); }
+    if (d.comeback) { score += 2; reasons.push("stunning comeback"); }
+    if (d.brace) { score += 1; reasons.push(`${d.brace.name} ${d.brace.n >= 3 ? "hat-trick" : "brace"}`); }
+    if (!reasons.length) reasons.push(`${hs}–${as} ${d.winner ? "win" : "draw"}`);
+    return { score, reason: `${hs}–${as} — ${reasons.join(" · ")}` };
+}
+
+function storyNorm(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function storyOrd(n) {
+    const s = ["th", "st", "nd", "rd"], v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function storyPosOf(m, tables) {
+    const rows = tables && tables[m.leagueId];
+    if (!rows) return null;
+    const find = (name, code) => rows.find((r) => storyNorm(r.team) === storyNorm(name) || (code && storyNorm(r.abbrev) === storyNorm(code))) || null;
+    return { h: find(m.homeTeam, m.homeCode), a: find(m.awayTeam, m.awayCode) };
+}
+
+function pickStoryOfWeek(matches, tables) {
+    const fins = (matches || []).filter((m) => isApiMode && m.sport === "football" && m.espnEventId && m.leagueSlug && m.halftimeScore);
+    const ups = (matches || []).filter((m) => canPreviewMatch(m));
+    let bestFin = null;
+    fins.forEach((m) => {
+        const s = scoreStoryFinished(m);
+        if (!bestFin || s.score > bestFin.score || (s.score === bestFin.score && new Date(m.date) > new Date(bestFin.m.date))) {
+            bestFin = { m, score: s.score, reason: s.reason };
+        }
+    });
+    let bestUp = null;
+    ups.forEach((m) => {
+        const pos = storyPosOf(m, tables || {});
+        const combined = pos && pos.h && pos.a ? pos.h.rank + pos.a.rank : 999;
+        if (!bestUp || combined < bestUp.combined || (combined === bestUp.combined && new Date(m.date) < new Date(bestUp.m.date))) {
+            bestUp = { m, combined, pos };
+        }
+    });
+    if (bestFin && bestFin.score >= 8) {
+        return { id: bestFin.m.id, kind: "report", reason: bestFin.reason, score: bestFin.score };
+    }
+    if (bestUp && bestUp.combined < 999) {
+        const h = bestUp.pos.h, a = bestUp.pos.a;
+        return { id: bestUp.m.id, kind: "preview", reason: `${storyOrd(h.rank)} vs ${storyOrd(a.rank)} — ${h.team} host ${a.team}`, score: 99 - bestUp.combined };
+    }
+    if (bestFin) return { id: bestFin.m.id, kind: "report", reason: bestFin.reason, score: bestFin.score };
+    if (bestUp) return { id: bestUp.m.id, kind: "preview", reason: `Upcoming: ${bestUp.m.homeTeam} vs ${bestUp.m.awayTeam}`, score: 0 };
+    return null;
+}
+
+let storyPick = null;
+let storyLocked = false;
+const STORY_TABLE_TTL_MS = 30 * 60 * 1000;
+
+async function ensureStoryTables() {
+    try {
+        const raw = sessionStorage.getItem("scorehub-story-tables-v1");
+        if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached && cached.at && Date.now() - cached.at < STORY_TABLE_TTL_MS && cached.tables) return cached.tables;
+        }
+    } catch (e) {}
+    const codes = Object.keys(STANDINGS_TAB_SLUGS);
+    const results = await Promise.all(codes.map((c) => loadLiveStandings(c).catch(() => null)));
+    const tables = {};
+    codes.forEach((c, i) => { if (results[i] && results[i].length) tables[c] = results[i]; });
+    try { sessionStorage.setItem("scorehub-story-tables-v1", JSON.stringify({ at: Date.now(), tables })); } catch (e) {}
+    return tables;
+}
+
+async function applyStoryOfWeek() {
+    if (!isApiMode || storyLocked) return;
+    const tables = await ensureStoryTables();
+    if (storyLocked || !isApiMode) return;
+    const pick = pickStoryOfWeek(apiMatches, tables);
+    if (!pick || !apiMatches.some((m) => m.id === pick.id)) return;
+    storyPick = pick;
+    if (pick.id === spotlightMatchId) { updateStoryTag(); return; }
+    setSpotlightMatch(pick.id);
+}
+
+function updateStoryTag() {
+    const tag = document.getElementById("story-tag");
+    const reason = document.getElementById("story-reason");
+    const btn = document.getElementById("spotlight-story-btn");
+    const activeMatches = isApiMode ? apiMatches : MOCK_MATCHES;
+    const match = activeMatches.find((m) => m.id === spotlightMatchId);
+    const isStory = !!(storyPick && match && match.id === storyPick.id);
+    if (tag) tag.hidden = !isStory;
+    if (reason) {
+        reason.hidden = !isStory;
+        if (isStory) reason.textContent = storyPick.reason;
+    }
+    if (btn) {
+        if (match && canPreviewMatch(match)) {
+            btn.hidden = false;
+            btn.innerHTML = "<span>📰 Preview</span>";
+            btn.href = `preview.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
+        } else if (match && canReportMatch(match)) {
+            btn.hidden = false;
+            btn.innerHTML = "<span>📝 Report</span>";
+            btn.href = `report.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
+        } else {
+            btn.hidden = true;
+        }
+    }
+}
+
 function renderMatches() {
     // Formula 1 renders its own view inside the scores card
     const scoresSection = document.querySelector(".live-scores-section");
@@ -2065,6 +2233,7 @@ function renderMatches() {
         // Click to spotlight card (excluding favoriting star click)
         card.addEventListener("click", (e) => {
             if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link")) return;
+            storyLocked = true;
             setSpotlightMatch(match.id);
         });
         
@@ -2146,6 +2315,8 @@ function setSpotlightMatch(id) {
 
     // Fill the stats card with real boxscore numbers when in API mode (debounced + cached)
     if (isApiMode) scheduleSummaryFetch(match);
+
+    updateStoryTag();
 }
 
 // Render Stats Bars
