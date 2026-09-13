@@ -44,6 +44,20 @@ function articleTeams(a) {
         .slice(0, 3);
 }
 
+function articleTeamLogos(a) {
+    return ((a && a.categories) || [])
+        .filter((c) => c.type === "team" && c.team && c.team.id)
+        .map((c) => ({
+            abbr: c.team.abbreviation || c.description || "",
+            id: c.team.id
+        }))
+        .slice(0, 3);
+}
+
+function teamLogoURL(id) {
+    return `https://a.espncdn.com/i/teamlogos/soccer/500/${id}.png`;
+}
+
 function articleURL(a) {
     return (a && a.links && a.links.web && a.links.web.href) || "https://www.espn.com/football/";
 }
@@ -67,6 +81,14 @@ function formatPublished(iso) {
 let transferArticles = [];
 let transferFilter = "All";
 
+function transferLogosHTML(a) {
+    const clubs = articleTeamLogos(a);
+    if (!clubs.length) return "";
+    return `<span class="transfer-clubs">` + clubs.map((c) =>
+        `<img src="${teamLogoURL(c.id)}" alt="${escapeHtml(c.abbr)}" title="${escapeHtml(c.abbr)}" loading="lazy" onerror="this.remove()">`
+    ).join("") + `</span>`;
+}
+
 function transferCardHTML(a) {
     const img = articleImage(a);
     const teams = articleTeams(a).join(" · ");
@@ -74,7 +96,7 @@ function transferCardHTML(a) {
     return `<article class="transfer-card">`
         + (img ? `<img class="transfer-thumb" src="${escapeHtml(img)}" alt="" loading="lazy" onerror="this.remove()">` : "")
         + `<div class="transfer-body">`
-        + `<div class="transfer-meta"><span class="league-tag">${articleLeague(a)}</span>`
+        + `<div class="transfer-meta"><span class="league-tag">${articleLeague(a)}</span>${transferLogosHTML(a)}`
         + (teams ? `<span>${escapeHtml(teams)}</span>` : "")
         + `<span>${escapeHtml(formatPublished(a.published))}</span></div>`
         + `<h3><a href="${url}" target="_blank" rel="noopener">${escapeHtml(a.headline || "Untitled")}</a></h3>`

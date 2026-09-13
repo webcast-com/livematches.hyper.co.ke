@@ -2842,6 +2842,34 @@ a.shop-alt:hover { color: var(--primary); }
     .card { padding: 16px; }
 }
 
+/* Team logos on Predictions / Transfers / Shop (img removes itself on failure) */
+.pred-logo {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    vertical-align: -4px;
+}
+.pred-team .pred-logo { margin-right: 6px; }
+.pred-team.right .pred-logo { margin: 0 0 0 6px; }
+.pred-logo-mini {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    vertical-align: -3px;
+    margin: 0 3px;
+}
+.transfer-clubs { display: inline-flex; align-items: center; gap: 4px; }
+.transfer-clubs img { width: 20px; height: 20px; object-fit: contain; }
+.shop-badge { position: relative; }
+img.shop-logo {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 76%;
+    height: 76%;
+    object-fit: contain;
+}
+
 /* Fixtures date strip */
 .date-strip {
     display: flex;

@@ -32,6 +32,13 @@ function shiftYmd(ymd, delta) {
     return ymdOf(d);
 }
 
+function predTeamLogo(team) {
+    if (!team) return "";
+    if (Array.isArray(team.logos) && team.logos[0] && team.logos[0].href) return team.logos[0].href;
+    if (typeof team.logo === "string" && team.logo) return team.logo;
+    return "";
+}
+
 function parseFixture(ev, L) {
     const comp = (ev.competitions && ev.competitions[0]) || {};
     const cs = comp.competitors || [];
@@ -49,6 +56,7 @@ function parseFixture(ev, L) {
         completed: !!st.completed,
         home: nm(h, "Home"), hc: cd(h, "HOM"),
         away: nm(a, "Away"), ac: cd(a, "AWY"),
+        hl: predTeamLogo(h.team), al: predTeamLogo(a.team),
         hs: num(h.score), as: num(a.score)
     };
 }
@@ -95,6 +103,7 @@ function demoFixtures() {
         state: "pre", completed: false,
         home: DEMO_TEAMS[p[0]][0], hc: DEMO_TEAMS[p[0]][1],
         away: DEMO_TEAMS[p[1]][0], ac: DEMO_TEAMS[p[1]][1],
+        hl: "", al: "",
         hs: null, as: null
     }));
 }
@@ -123,12 +132,12 @@ function fixtureCardHTML(f) {
         : (saved.ph != null && saved.pa != null ? `<span class="saved">✓ Saved</span>` : "Tap a score to predict");
     return `<div class="pred-card" data-id="${esc(f.id)}">`
         + `<div class="pred-meta"><span class="league-tag">${esc(f.code)}</span><span>${esc(formatKickoff(f.date))}</span></div>`
-        + `<div class="pred-teams"><span class="pred-team">${esc(f.home)}</span>`
+        + `<div class="pred-teams"><span class="pred-team">${f.hl ? `<img class="pred-logo" src="${esc(f.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${esc(f.home)}</span>`
         + `<span class="pred-inputs">`
         + `<input class="pred-score" type="number" min="0" max="20" inputmode="numeric" data-id="${esc(f.id)}" data-side="ph" value="${ph}" ${locked ? "disabled" : ""} aria-label="${esc(f.home)} score">`
         + `<em>–</em>`
         + `<input class="pred-score" type="number" min="0" max="20" inputmode="numeric" data-id="${esc(f.id)}" data-side="pa" value="${pa}" ${locked ? "disabled" : ""} aria-label="${esc(f.away)} score">`
-        + `</span><span class="pred-team right">${esc(f.away)}</span></div>`
+        + `</span><span class="pred-team right">${esc(f.away)}${f.al ? `<img class="pred-logo" src="${esc(f.al)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span></div>`
         + `<div class="pred-status">${status}</div></div>`;
 }
 
@@ -159,6 +168,7 @@ function onPredChange(e) {
     predStore[f.id] = {
         league: f.league, code: f.code, leagueName: f.leagueName, date: f.date,
         home: f.home, hc: f.hc, away: f.away, ac: f.ac,
+        hl: f.hl || "", al: f.al || "",
         ph, pa, settled: false, rh: null, ra: null, points: 0
     };
     saveStoreData(predStore);
@@ -231,7 +241,7 @@ function renderResults() {
     box.innerHTML = settled.map((p) => {
         const label = p.points === 3 ? "★ Exact!" : p.points === 1 ? "✓ Outcome" : `<span class="miss">✗ Miss</span>`;
         return `<div class="pred-result"><span class="league-tag">${esc(p.code)}</span>`
-            + `<span><strong>${esc(p.hc)} ${p.rh}–${p.ra} ${esc(p.ac)}</strong> · you said ${p.ph}–${p.pa} · ${label}</span>`
+            + `<span>${p.hl ? `<img class="pred-logo-mini" src="${esc(p.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<strong>${esc(p.hc)} ${p.rh}–${p.ra} ${esc(p.ac)}</strong>${p.al ? `<img class="pred-logo-mini" src="${esc(p.al)}" alt="" loading="lazy" onerror="this.remove()">` : ""} · you said ${p.ph}–${p.pa} · ${label}</span>`
             + `<span class="pts">+${p.points}</span></div>`;
     }).join("");
 }
