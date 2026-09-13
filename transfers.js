@@ -94,14 +94,14 @@ function transferCardHTML(a) {
     const teams = articleTeams(a).join(" · ");
     const url = escapeHtml(articleURL(a));
     return `<article class="transfer-card">`
-        + (img ? `<img class="transfer-thumb" src="${escapeHtml(img)}" alt="" loading="lazy" onerror="this.remove()">` : "")
+        + (img ? `<a class="transfer-thumb-link" href="story.html" data-story="${a.id}"><img class="transfer-thumb" src="${escapeHtml(img)}" alt="" loading="lazy" onerror="this.remove()"></a>` : "")
         + `<div class="transfer-body">`
         + `<div class="transfer-meta"><span class="league-tag">${articleLeague(a)}</span>${transferLogosHTML(a)}`
         + (teams ? `<span>${escapeHtml(teams)}</span>` : "")
         + `<span>${escapeHtml(formatPublished(a.published))}</span></div>`
-        + `<h3><a href="${url}" target="_blank" rel="noopener">${escapeHtml(a.headline || "Untitled")}</a></h3>`
+        + `<h3><a href="story.html" data-story="${a.id}">${escapeHtml(a.headline || "Untitled")}</a></h3>`
         + ((a.description && a.description !== a.headline) ? `<p class="transfer-desc">${escapeHtml(a.description)}</p>` : "")
-        + `<a class="transfer-read" href="${url}" target="_blank" rel="noopener">Read on ESPN ↗</a>`
+        + `<span class="transfer-readrow"><a class="transfer-read" href="story.html" data-story="${a.id}">Continue reading &rarr;</a><span class="transfer-src-inline">Source: <a href="${url}" target="_blank" rel="noopener">ESPN</a></span></span>`
         + `</div></article>`;
 }
 
@@ -157,6 +157,13 @@ function bootTransfers() {
             transferFilter = btn.dataset.league || "All";
             renderTransfers();
         });
+    });
+    document.getElementById("transfer-list").addEventListener("click", (e) => {
+        const link = e.target.closest("a[data-story]");
+        if (!link) return;
+        const art = transferArticles.find((x) => String(x.id) === link.dataset.story);
+        if (!art) return;
+        try { sessionStorage.setItem("scorehub-story", JSON.stringify(art)); } catch (err) {}
     });
     const retry = document.getElementById("transfer-retry");
     if (retry) retry.addEventListener("click", loadTransfers);

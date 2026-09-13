@@ -1052,7 +1052,7 @@ function setApiMode(enable) {
         renderStandings();
         renderNews();
         renderScorers();
-        updateFullTableLink(null);
+        updateFullTableLink(currentStandingLeague);
 
         renderMatches();
         renderTicker();
@@ -1163,6 +1163,7 @@ async function loadLiveNews() {
     });
     return data.articles.slice(0, 5).map(a => ({
         id: a.id,
+        raw: a,
         title: a.headline || a.description || "Untitled",
         category: pickNewsCategory(a),
         time: timeAgoString(a.published),
@@ -1261,19 +1262,13 @@ function loadLiveExtras(force = false) {
     }
 }
 
-// Point the "View Full Table" link at ESPN when live standings are shown
-function updateFullTableLink(slug) {
+// Point the "View Full Table" link at our on-site standings page
+function updateFullTableLink(leagueKey) {
     const link = document.querySelector(".view-full-table-row .view-all-link");
     if (!link) return;
-    if (slug) {
-        link.href = `https://www.espn.com/soccer/table/_/league/${slug}`;
-        link.target = "_blank";
-        link.rel = "noopener";
-    } else {
-        link.href = "#";
-        link.removeAttribute("target");
-        link.removeAttribute("rel");
-    }
+    link.href = `standings.html?league=${leagueKey || "EPL"}`;
+    link.removeAttribute("target");
+    link.removeAttribute("rel");
 }
 
 // Fetch the full match summary (boxscore, lineups, commentary) for one event
@@ -1638,7 +1633,7 @@ function renderStandings() {
     const list = (live && live.length) ? live : MOCK_STANDINGS[currentStandingLeague];
     if (!list) return;
 
-    updateFullTableLink((live && live.length) ? STANDINGS_TAB_SLUGS[currentStandingLeague] : null);
+    updateFullTableLink(currentStandingLeague);
 
     list.slice(0, 6).forEach((row) => {
         const tr = document.createElement("tr");
@@ -1712,9 +1707,10 @@ function renderNews() {
         const card = document.createElement(useLive ? "a" : "div");
         card.className = "news-card";
         if (useLive) {
-            card.href = news.link || "#";
-            card.target = "_blank";
-            card.rel = "noopener";
+            card.href = "story.html";
+            card.addEventListener("click", () => {
+                try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+            });
         }
         const thumbStyle = news.image
             ? `background-image: url('${news.image}');`

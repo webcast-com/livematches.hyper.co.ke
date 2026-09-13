@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfer Centre — ScoreHub</title>
+    <title>Standings — ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
@@ -16,26 +16,23 @@
         </div>
 
         <main class="card legal-card">
-            <h1>Transfer Centre</h1>
-            <p class="legal-updated">Live transfer headlines, deals and rumours from across Europe.</p>
-            <div class="window-strip">🪟 Summer window: closed 1 Sept 2026 &middot; Winter window opens 1 Jan 2027. Free agents can still sign outside the window.</div>
-            <div class="chip-row" id="transfer-chips">
-                <button class="standings-tab active" data-league="All">All</button>
-                <button class="standings-tab" data-league="EPL">Premier League</button>
+            <h1>Standings</h1>
+            <p class="legal-updated">Complete tables — every team, updated live on matchdays. Data: ESPN.</p>
+            <div class="chip-row" id="standings-chips">
+                <button class="standings-tab active" data-league="EPL">Premier League</button>
                 <button class="standings-tab" data-league="LaLiga">La Liga</button>
                 <button class="standings-tab" data-league="SerieA">Serie A</button>
                 <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
                 <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
                 <button class="standings-tab" data-league="UCL">Champions League</button>
             </div>
-            <div id="transfer-list" class="transfer-list">
-                <p class="loading-note">Loading transfer news&hellip;</p>
+            <div id="standings-table">
+                <p class="loading-note">Loading table&hellip;</p>
             </div>
-            <div id="transfer-error" class="window-strip" hidden>
-                Couldn't load live transfer news. Check your connection and try again.
-                <button id="transfer-retry" class="btn btn-primary btn-sm" style="margin-left:8px;">Retry</button>
+            <div id="standings-error" class="window-strip" hidden>
+                Couldn't load this table. Check your connection and try again.
+                <button id="standings-retry" class="btn btn-primary btn-sm" style="margin-left:8px;">Retry</button>
             </div>
-            <p class="transfer-src">Headlines &amp; images: ESPN. Stories open here on ScoreHub.</p>
         </main>
 
         <footer class="legal-footer">
@@ -50,6 +47,6 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="transfers.js"></script>
+    <script src="standings.js"></script>
 </body>
 </html>
