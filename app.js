@@ -311,6 +311,27 @@ const MOCK_STANDINGS = {
         { rank: 3, team: "Bologna", logo: "BOL", played: 37, gd: 22, pts: 68 },
         { rank: 4, team: "Juventus", logo: "JUV", played: 37, gd: 21, pts: 68 },
         { rank: 5, team: "Atalanta", logo: "ATA", played: 37, gd: 28, pts: 66 }
+    ],
+    UCL: [
+        { rank: 1, team: "Liverpool", logo: "LIV", played: 8, gd: 12, pts: 21 },
+        { rank: 2, team: "Barcelona", logo: "BAR", played: 8, gd: 15, pts: 19 },
+        { rank: 3, team: "Arsenal", logo: "ARS", played: 8, gd: 13, pts: 19 },
+        { rank: 4, team: "Inter Milan", logo: "INT", played: 8, gd: 11, pts: 19 },
+        { rank: 5, team: "Atletico Madrid", logo: "ATM", played: 8, gd: 8, pts: 18 }
+    ],
+    Bundesliga: [
+        { rank: 1, team: "Bayern Munich", logo: "FCB", played: 34, gd: 67, pts: 82 },
+        { rank: 2, team: "Leverkusen", logo: "LEV", played: 34, gd: 38, pts: 69 },
+        { rank: 3, team: "Frankfurt", logo: "SGE", played: 34, gd: 22, pts: 60 },
+        { rank: 4, team: "Dortmund", logo: "BVB", played: 34, gd: 18, pts: 57 },
+        { rank: 5, team: "Freiburg", logo: "SCF", played: 34, gd: -4, pts: 55 }
+    ],
+    Ligue1: [
+        { rank: 1, team: "Paris Saint-Germain", logo: "PSG", played: 34, gd: 57, pts: 84 },
+        { rank: 2, team: "Marseille", logo: "OM", played: 34, gd: 27, pts: 65 },
+        { rank: 3, team: "Monaco", logo: "ASM", played: 34, gd: 25, pts: 61 },
+        { rank: 4, team: "Nice", logo: "NICE", played: 34, gd: 20, pts: 60 },
+        { rank: 5, team: "Lille", logo: "LIL", played: 34, gd: 19, pts: 60 }
     ]
 };
 
@@ -353,9 +374,46 @@ const MOCK_SCORERS = [
     { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15 }
 ];
 
+// Same row shape (`goals` holds the assist count) so the renderer is shared
+const MOCK_ASSISTS = [
+    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13 },
+    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12 },
+    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11 },
+    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10 },
+    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10 }
+];
+
 // --- APP STATE ---
+// --- Persistent preferences (theme + favorites), guarded for private mode ---
+const store = {
+    get(key, fallback) {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw === null ? fallback : JSON.parse(raw);
+        } catch { return fallback; }
+    },
+    set(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); }
+        catch { /* storage unavailable — stay in-memory */ }
+    }
+};
+const FAVS_KEY = "scorehub-favs-v1";
+const THEME_KEY = "scorehub-theme";
+const favoriteIds = new Set(store.get(FAVS_KEY, []));
+function persistFavorites() { store.set(FAVS_KEY, [...favoriteIds]); }
+// Re-apply saved stars to the simulation dataset (API matches: after each fetch)
+MOCK_MATCHES.forEach(m => { m.favorites = favoriteIds.has(m.id); });
+
 let currentSport = "all";
 let currentFilter = "all";
+let currentLeague = "all";
+let sortByLeague = false;
+let leadersCategory = "goals";
+let selectedDate = null;   // YYYYMMDD string, or null for the default (today) feed
+// --- Formula 1 (Jolpica Ergast API) ---
+let f1Data = null;           // { season, drivers, last }
+let f1DataAt = 0;
+let f1Loading = false;
 let currentStandingLeague = "EPL";
 let spotlightMatchId = "fb-1";
 let searchOpen = false;
@@ -371,16 +429,22 @@ let liveNewsAt = 0;
 let liveScorers = null;        // parsed golden-boot rows for current tab league
 let liveScorersAt = 0;
 let liveScorersLeague = null;  // which league liveScorers belongs to
+let liveScorersCat = "goals";    // which category ("goals" | "assists")
 let espnSeasonYear = null;     // current season year captured from scoreboard responses
 let usingLiveCommentary = false; // real commentary feed active in Watch Live modal
 const summaryCache = new Map();   // espnEventId → { data, ts }
 let summaryFetchTimer = null;
+let mcSummaryData = null;    // last match-summary payload for the open Match Centre
+let mcSummaryMatchId = null;
 
 // Standings tab → ESPN league slug (also drives the Top Scorers league)
 const STANDINGS_TAB_SLUGS = {
     EPL: "eng.1",
     LaLiga: "esp.1",
-    SerieA: "ita.1"
+    SerieA: "ita.1",
+    UCL: "uefa.champions",
+    Bundesliga: "ger.1",
+    Ligue1: "fra.1"
 };
 
 // --- DOM ELEMENTS ---
@@ -417,6 +481,8 @@ const closeLoginModal = document.getElementById("close-login-modal");
 const loginForm = document.getElementById("login-form");
 const watchLiveBtn = document.getElementById("watch-live-btn");
 const watchLiveModal = document.getElementById("watch-live-modal");
+const shareMatchBtn = document.getElementById("share-match-btn");
+const addCalendarBtn = document.getElementById("add-calendar-btn");
 const closeWatchModal = document.getElementById("close-watch-modal");
 const searchInput = document.getElementById("search-input");
 const searchResults = document.getElementById("search-results");
@@ -424,9 +490,19 @@ const notificationBtn = document.getElementById("notification-btn");
 const notificationDropdown = document.getElementById("notification-dropdown");
 const navHome = document.getElementById("nav-home");
 const navLive = document.getElementById("nav-live");
+const navFixtures = document.getElementById("nav-fixtures");
+const navLeagues = document.getElementById("nav-leagues");
+const navNews = document.getElementById("nav-news");
+const navTeams = document.getElementById("nav-teams");
+const navStats = document.getElementById("nav-stats");
 const navToggleBtn = document.getElementById("nav-toggle-btn");
 const mainNav = document.querySelector(".main-nav");
 const heroBtnLive = document.getElementById("hero-btn-live");
+const heroBtnFixtures = document.getElementById("hero-btn-fixtures");
+const favsToggleTopBtn = document.getElementById("favs-toggle-top-btn");
+const viewAllMatchesBtn = document.getElementById("view-all-matches-btn");
+const filterOptionsBtn = document.getElementById("filter-options-toggle");
+const goToSignup = document.getElementById("go-to-signup");
 
 // API controls
 const apiModeBtn = document.getElementById("api-mode-btn");
@@ -625,7 +701,30 @@ async function fetchESPNPath(path, opts = {}) {
 
 // Fetch ESPN scoreboard for a specific endpoint slug
 async function fetchESPNLeague(slug) {
-    return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard`);
+    const qs = selectedDate ? `?dates=${selectedDate}` : "";
+    return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard${qs}`);
+}
+
+// Best-effort club logo URL from an ESPN team object (scoreboard shapes vary)
+function teamLogoOf(team) {
+    if (!team) return "";
+    if (Array.isArray(team.logos) && team.logos[0] && team.logos[0].href) return team.logos[0].href;
+    if (typeof team.logo === "string" && team.logo) return team.logo;
+    return "";
+}
+
+// Generated badge with the real logo overlaid (img removes itself on failure)
+function teamBadgeHTML(code, logo, px) {
+    const size = px || 20;
+    return `<span class="team-logo-wrap" style="width:${size}px;height:${size}px;">`
+        + `<span class="player-avatar-mini" style="font-size:8px;width:100%;height:100%;">${code}</span>`
+        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "")
+        + `</span>`;
+}
+
+function spotlightLogoHTML(code, color, logo) {
+    return generateTeamSVG(code, color)
+        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "");
 }
 
 // Convert ESPN event JSON → internal match object
@@ -653,6 +752,8 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
     const awayColor = (away.team && away.team.color ? "#" + away.team.color : null)
         || TEAM_COLORS[awayTeam]
         || "#ef4444";
+    const homeLogo = teamLogoOf(home.team);
+    const awayLogo = teamLogoOf(away.team);
 
     // Match status
     const statusType = event.status && event.status.type ? event.status.type : {};
@@ -677,7 +778,7 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
         // pre / scheduled
         matchStatus = "today";
         const d = new Date(event.date);
-        matchTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        matchTime = d.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" });
         halftimeScore = "";
     }
 
@@ -746,15 +847,18 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
         id: `api-${event.id}`,
         espnEventId: event.id,
         leagueSlug,
+        date: event.date || null,
         sport: leagueInfo.sport,
         league: leagueInfo.name,
         leagueId: leagueInfo.code,
         homeTeam,
         homeCode,
         homeColor,
+        homeLogo,
         awayTeam,
         awayCode,
         awayColor,
+        awayLogo,
         homeScore,
         awayScore,
         halftimeScore: halftimeScore || `${homeScore}-${awayScore}`,
@@ -799,6 +903,7 @@ function showSkeletons(count = 4) {
 
 // Fetch and load all matches for the selected sport from the ESPN API
 async function loadAPIMatches() {
+    if (currentSport === "f1") { loadF1Data(); return; }
     if (apiLoading) return;
     apiLoading = true;
     showSkeletons(5);
@@ -829,7 +934,7 @@ async function loadAPIMatches() {
         apiLoading = false;
         console.info("ESPN fetch failed on all transports. Falling back to simulation.");
         setApiMode(false);
-        showNotification("Live data unreachable (network/CDN block). Switched to Simulation Mode.");
+        showNotification(t("notif.apifail"));
         return;
     }
 
@@ -839,6 +944,7 @@ async function loadAPIMatches() {
         const keepUpdatedEl = document.getElementById("api-last-updated");
         if (keepUpdatedEl) keepUpdatedEl.textContent = "Update failed — showing last data, retrying…";
         console.warn("ESPN refresh failed; keeping previous match data.");
+        showNetBanner(t("net.failed"), true);
         return;
     }
 
@@ -858,6 +964,7 @@ async function loadAPIMatches() {
     });
 
     apiMatches = fetched;
+    apiMatches.forEach(m => { m.favorites = favoriteIds.has(m.id); });
     apiLoading = false;
 
     // Update live match counter badge
@@ -868,19 +975,45 @@ async function loadAPIMatches() {
     if (statNum) statNum.textContent = liveCount || apiMatches.length;
 
     // Update status bar timestamp (includes active transport for transparency)
+    hideNetBanner(); // fresh data — clear any stale warning
     const lastUpdatedEl = document.getElementById("api-last-updated");
     if (lastUpdatedEl) {
         const now = new Date();
-        lastUpdatedEl.textContent = `Updated ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · ${apiMatches.length} events · via ${espnTransportName()}`;
+                const dayLabel = selectedDate ? ` · ${selectedDate.slice(6, 8)}/${selectedDate.slice(4, 6)}` : "";
+        lastUpdatedEl.textContent = tf("upd.line", { time: now.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" }), n: apiMatches.length, day: dayLabel, tp: espnTransportName() });
     }
 
     renderMatches();
     renderTicker();
 
-    // Auto-spotlight the first live match, or first match overall
-    const firstLive = apiMatches.find(m => m.status === "live");
-    const firstMatch = firstLive || apiMatches[0];
-    if (firstMatch) setSpotlightMatch(firstMatch.id);
+    storyPick = null;
+    storyLocked = false;
+
+    // Deep link wins; otherwise auto-spotlight the first live match (or first overall)
+    let deepLinked = false;
+    try {
+        const deepId = new URLSearchParams(window.location.search).get("match");
+        if (deepId && apiMatches.some(m => m.id === deepId)) {
+            setSpotlightMatch(deepId);
+            deepLinked = true;
+            storyLocked = true;
+        }
+    } catch (e) {}
+    if (!deepLinked) {
+        const firstLive = apiMatches.find(m => m.status === "live");
+        const firstMatch = firstLive || apiMatches[0];
+        if (firstMatch) setSpotlightMatch(firstMatch.id);
+    }
+
+    // Story of the week: a genuine thriller jumps the queue immediately,
+    // otherwise the table-backed pick lands async (see applyStoryOfWeek)
+    if (!deepLinked) {
+        const syncPick = pickStoryOfWeek(apiMatches, {});
+        if (syncPick && syncPick.kind === "report" && syncPick.score >= 8) {
+            storyPick = syncPick;
+            setSpotlightMatch(syncPick.id);
+        }
+    }
 
     // Goal alerts for live score changes picked up by this refresh
     scoreDeltas.forEach((delta, id) => {
@@ -891,6 +1024,7 @@ async function loadAPIMatches() {
         }
     });
     scoreDeltas.clear(); // one animation per change — don't replay on unrelated re-renders
+    applyStoryOfWeek();
 
     // Load standings / news / top scorers from the API (TTL-cached, fire & forget)
     loadLiveExtras();
@@ -903,7 +1037,7 @@ function setApiMode(enable) {
     const lastUpdatedEl = document.getElementById("api-last-updated");
 
     if (enable) {
-        apiModeText.textContent = "Live API Mode";
+        refreshApiModeText();
         apiModeIndicator.className = "api-indicator-dot pulsing-green";
         apiModeBtn.style.borderColor = "rgba(16,185,129,0.4)";
         apiModeBtn.style.color = "var(--accent)";
@@ -915,7 +1049,7 @@ function setApiMode(enable) {
     } else {
         isApiMode = false;
         apiMatches = [];
-        apiModeText.textContent = "Simulation Mode";
+        refreshApiModeText();
         apiModeIndicator.className = "api-indicator-dot pulsing-orange";
         apiModeBtn.style.borderColor = "";
         apiModeBtn.style.color = "";
@@ -933,11 +1067,13 @@ function setApiMode(enable) {
         renderStandings();
         renderNews();
         renderScorers();
-        updateFullTableLink(null);
+        updateFullTableLink(currentStandingLeague);
 
         renderMatches();
         renderTicker();
+        storyPick = null;
         setSpotlightMatch("fb-1");
+        handleDeepLinkMatch();
     }
 }
 
@@ -955,13 +1091,14 @@ function initials(name) {
 }
 
 function timeAgoString(iso) {
-    const t = Date.parse(iso);
-    if (isNaN(t)) return "";
-    const mins = Math.max(1, Math.round((Date.now() - t) / 60000));
-    if (mins < 60) return `${mins}m ago`;
+    const ts = Date.parse(iso);
+    if (isNaN(ts)) return "";
+    const sw = (typeof LANG !== "undefined" && LANG === "sw");
+    const mins = Math.max(1, Math.round((Date.now() - ts) / 60000));
+    if (mins < 60) return sw ? `${mins} dak zilizopita` : `${mins}m ago`;
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.round(hours / 24)}d ago`;
+    if (hours < 24) return sw ? `${hours} saa zilizopita` : `${hours}h ago`;
+    return sw ? `${Math.round(hours / 24)} siku zilizopita` : `${Math.round(hours / 24)}d ago`;
 }
 
 // American moneyline (e.g. -135 / +150) → decimal odds (1.74 / 2.50)
@@ -1043,6 +1180,7 @@ async function loadLiveNews() {
     });
     return data.articles.slice(0, 5).map(a => ({
         id: a.id,
+        raw: a,
         title: a.headline || a.description || "Untitled",
         category: pickNewsCategory(a),
         time: timeAgoString(a.published),
@@ -1051,8 +1189,9 @@ async function loadLiveNews() {
     }));
 }
 
-// Golden boot via the core API leaders endpoint (player/team names come as $refs)
-async function loadLiveScorers(leagueKey) {
+// Golden boot (or assist leaders) via the core API leaders endpoint
+// (player/team names come as $refs)
+async function loadLiveScorers(leagueKey, category = "goals") {
     const slug = STANDINGS_TAB_SLUGS[leagueKey];
     if (!slug) return null;
     const year = espnSeasonYear || new Date().getFullYear();
@@ -1061,7 +1200,10 @@ async function loadLiveScorers(leagueKey) {
         host: "sports.core.api.espn.com",
         validate: d => !!(d && Array.isArray(d.categories))
     });
-    const goalsCat = data.categories.find(c => c.name === "goalsLeaders" || c.displayName === "Goals");
+    const wantAssists = category === "assists";
+    const goalsCat = data.categories.find(c => wantAssists
+        ? (c.name === "assistsLeaders" || c.displayName === "Assists")
+        : (c.name === "goalsLeaders" || c.displayName === "Goals"));
     if (!goalsCat || !Array.isArray(goalsCat.leaders) || !goalsCat.leaders.length) return null;
 
     const top = goalsCat.leaders.slice(0, 5);
@@ -1114,12 +1256,13 @@ function loadLiveExtras(force = false) {
         }).catch(err => console.warn("Standings fetch failed:", err.message));
     }
 
-    if (slug && (force || liveScorersLeague !== leagueKey || !liveScorers || Date.now() - liveScorersAt > LIVE_EXTRAS_TTL_MS)) {
-        loadLiveScorers(leagueKey).then(rows => {
+    if (slug && (force || liveScorersLeague !== leagueKey || liveScorersCat !== leadersCategory || !liveScorers || Date.now() - liveScorersAt > LIVE_EXTRAS_TTL_MS)) {
+        loadLiveScorers(leagueKey, leadersCategory).then(rows => {
             if (rows && rows.length) {
                 liveScorers = rows;
                 liveScorersAt = Date.now();
                 liveScorersLeague = leagueKey;
+                liveScorersCat = leadersCategory;
                 if (isApiMode) renderScorers();
             }
         }).catch(err => console.warn("Scorers fetch failed (using fallback):", err.message));
@@ -1136,19 +1279,13 @@ function loadLiveExtras(force = false) {
     }
 }
 
-// Point the "View Full Table" link at ESPN when live standings are shown
-function updateFullTableLink(slug) {
+// Point the "View Full Table" link at our on-site standings page
+function updateFullTableLink(leagueKey) {
     const link = document.querySelector(".view-full-table-row .view-all-link");
     if (!link) return;
-    if (slug) {
-        link.href = `https://www.espn.com/soccer/table/_/league/${slug}`;
-        link.target = "_blank";
-        link.rel = "noopener";
-    } else {
-        link.href = "#";
-        link.removeAttribute("target");
-        link.removeAttribute("rel");
-    }
+    link.href = `standings.html?league=${leagueKey || "EPL"}`;
+    link.removeAttribute("target");
+    link.removeAttribute("rel");
 }
 
 // Fetch the full match summary (boxscore, lineups, commentary) for one event
@@ -1210,8 +1347,8 @@ function renderLiveCommentary(match, data) {
 
     if (!comm.length) {
         commList.innerHTML = `<p><strong>[${match.time}]</strong> ${match.status === "live"
-            ? "Live commentary will appear here once the feed updates…"
-            : "Play-by-play commentary is available for this fixture on ESPN."}</p>`;
+            ? t("mc.livefeed")
+            : t("mc.espn")}</p>`;
         return;
     }
 
@@ -1221,6 +1358,132 @@ function renderLiveCommentary(match, data) {
         const text = c.text || (c.play && c.play.text) || "";
         return `<p><strong>[${min}]</strong> ${text}</p>`;
     }).join("");
+}
+
+// Render the key-events timeline (goals / cards / subs) for the Match Centre
+function classifyTimelineEvent(c) {
+    const typeObj = c.play && c.play.type ? c.play.type : null;
+    const typeStr = ((typeObj && typeof typeObj === "object" ? (typeObj.type || typeObj.text || "") : (typeObj || "")) + "").toLowerCase();
+    const text = ((c.text || "") + " " + (c.play && c.play.text ? c.play.text : "")).toLowerCase();
+    const hay = typeStr + " " + text;
+    if (c.scoringPlay || /(\bgoal\b|penalty scored|scores|own goal)/.test(hay)) return { cls: "ev-goal", icon: "\u26BD" };
+    if (/(red card|sent off|second yellow)/.test(hay)) return { cls: "ev-card-r", icon: "\u{1F7E5}" };
+    if (/(yellow card|booked|caution)/.test(hay)) return { cls: "ev-card-y", icon: "\u{1F7E8}" };
+    if (/(substitut|replaces|replaced by|comes on for)/.test(hay)) return { cls: "ev-sub", icon: "\u{1F504}" };
+    return null;
+}
+
+function timelineMinuteValue(min) {
+    const m = String(min || "").match(/\d+/);
+    return m ? parseInt(m[0], 10) : -1;
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+}
+
+function renderTimeline(match, data) {
+    const list = document.getElementById("timeline-list");
+    if (!list) return;
+    const items = [];
+
+    const comm = (data && (Array.isArray(data.commentary) ? data.commentary : (Array.isArray(data.plays) ? data.plays : []))) || [];
+    comm.forEach(c => {
+        const kind = classifyTimelineEvent(c);
+        if (!kind) return;
+        const min = (c.time && c.time.displayValue) ? c.time.displayValue : "";
+        const text = c.text || (c.play && c.play.text) || "";
+        if (!text) return;
+        items.push({ min, order: timelineMinuteValue(min), cls: kind.cls, icon: kind.icon, text });
+    });
+
+    // Simulation fallback: build goal events from the scorer lists
+    if (!items.length && match && match.scorers) {
+        ["home", "away"].forEach(side => {
+            (match.scorers[side] || []).forEach(s => {
+                const m = String(s).match(/(\d+)'?/);
+                items.push({
+                    min: m ? m[1] + "'" : "",
+                    order: m ? parseInt(m[1], 10) : -1,
+                    cls: "ev-goal", icon: "\u26BD",
+                    text: `${String(s).replace(/^\d+'?(\+\d+)?\s*/, "")} (${side === "home" ? match.homeTeam : match.awayTeam})`
+                });
+            });
+        });
+    }
+
+    if (!items.length) {
+        list.innerHTML = `<div class="timeline-empty">${t("mc.noevents")}</div>`;
+        return;
+    }
+    items.sort((a, b) => b.order - a.order); // latest first, like commentary
+    list.innerHTML = items.map(e => `
+        <div class="timeline-item ${e.cls}">
+            <span class="timeline-min">${escHtml(e.min)}</span>
+            <span class="timeline-text">${e.icon} ${escHtml(e.text)}</span>
+        </div>`).join("");
+}
+
+// Render probable lineups / used players for the Match Centre (defensive: shapes vary)
+function extractLineupPlayers(data, side) {
+    if (!data) return [];
+    // Path 1: dedicated lineups block (present for some soccer summaries)
+    const lu = Array.isArray(data.lineups) ? data.lineups.find(t => (t.homeAway || t.homeaway || "").toLowerCase() === side) : null;
+    const luAthletes = lu && (lu.athletes || lu.players || lu.roster);
+    if (Array.isArray(luAthletes) && luAthletes.length) {
+        return luAthletes.slice(0, 18).map(a => ({
+            name: a.displayName || a.name || a.shortName || "?",
+            pos: (a.position && (a.position.abbreviation || a.position.name)) || ""
+        }));
+    }
+    // Path 2: boxscore player stats (used players with stats)
+    const teams = data.boxscore && Array.isArray(data.boxscore.players) ? data.boxscore.players : [];
+    const node = teams.find(t => (t.homeAway || "").toLowerCase() === side) || teams[side === "home" ? 0 : 1];
+    const stats = node && Array.isArray(node.statistics) ? node.statistics : [];
+    const athletes = [];
+    stats.forEach(group => {
+        (group.athletes || []).forEach(a => {
+            athletes.push({
+                name: (a.athlete && (a.athlete.displayName || a.athlete.shortName)) || "?",
+                pos: (a.athlete && a.athlete.position && a.athlete.position.abbreviation) || ""
+            });
+        });
+    });
+    const seen = new Set();
+    return athletes.filter(p => {
+        if (p.name === "?" || seen.has(p.name)) return false;
+        seen.add(p.name);
+        return true;
+    }).slice(0, 18);
+}
+
+function renderLineups(match, data) {
+    const grid = document.getElementById("lineups-grid");
+    if (!grid || !match) return;
+    const home = extractLineupPlayers(data, "home");
+    const away = extractLineupPlayers(data, "away");
+    if (!home.length && !away.length) {
+        grid.innerHTML = `<div class="timeline-empty" style="grid-column: 1 / -1;">${t("mc.nolineups")}</div>`;
+        return;
+    }
+    const col = (title, players) => `
+        <div class="lineup-col">
+            <h5>${escHtml(title)}</h5>
+            ${players.map(p => `<div class="lineup-player"><span>${escHtml(p.name)}</span><span class="lineup-pos">${escHtml(p.pos)}</span></div>`).join("") || `<div class="timeline-empty">${t("mc.unavail")}</div>`}
+        </div>`;
+    grid.innerHTML = col(match.homeTeam, home) + col(match.awayTeam, away);
+}
+
+function resetMatchCentreTabs() {
+    document.querySelectorAll(".mc-tab").forEach(t => {
+        const active = t.getAttribute("data-mc-tab") === "commentary";
+        t.classList.toggle("active", active);
+        t.setAttribute("aria-selected", String(active));
+    });
+    ["commentary", "timeline", "lineups"].forEach(n => {
+        const pane = document.getElementById(`mc-pane-${n}`);
+        if (pane) pane.hidden = n !== "commentary";
+    });
 }
 
 // Plot real shot positions (from commentary play data) on the tactical pitch
@@ -1273,8 +1536,12 @@ async function refreshLiveMatchCentre() {
     if (!match || !match.espnEventId) return;
     try {
         const data = await ensureMatchSummary(match, true);
+        mcSummaryData = data;
+        mcSummaryMatchId = match.id;
         usingLiveCommentary = true;
         renderLiveCommentary(match, data);
+        renderTimeline(match, data);
+        renderLineups(match, data);
         renderPitchShots(match, data);
         if (applySummaryStats(match, data)) renderStatsBars(match);
     } catch (err) {
@@ -1369,6 +1636,7 @@ function renderTicker() {
         `;
         
         card.addEventListener("click", () => {
+            storyLocked = true;
             setSpotlightMatch(match.id);
         });
         
@@ -1383,7 +1651,7 @@ function renderStandings() {
     const list = (live && live.length) ? live : MOCK_STANDINGS[currentStandingLeague];
     if (!list) return;
 
-    updateFullTableLink((live && live.length) ? STANDINGS_TAB_SLUGS[currentStandingLeague] : null);
+    updateFullTableLink(currentStandingLeague);
 
     list.slice(0, 6).forEach((row) => {
         const tr = document.createElement("tr");
@@ -1416,16 +1684,21 @@ function renderStandings() {
     });
 }
 
-// Render Top Scorers (ESPN golden boot in Live API mode, mock data otherwise)
+// Render Top Scorers / Top Assists (ESPN leaders in Live API mode, mock data otherwise)
 function renderScorers() {
     const listEl = document.getElementById("scorers-list");
     if (!listEl) return;
 
+    const titleEl = document.querySelector(".scorers-card .card-header-row h3");
+    if (titleEl) titleEl.textContent = leadersCategory === "assists" ? "Top Assists" : "Top Scorers";
+
+    const mockRows = leadersCategory === "assists" ? MOCK_ASSISTS : MOCK_SCORERS;
     let rows = null;
     if (isApiMode) {
-        rows = (liveScorers && liveScorers.length) ? liveScorers : scorersFromMatches();
+        const liveOk = liveScorers && liveScorers.length && liveScorersCat === leadersCategory;
+        rows = liveOk ? liveScorers : (leadersCategory === "goals" ? scorersFromMatches() : mockRows);
     }
-    if (!rows || !rows.length) rows = MOCK_SCORERS;
+    if (!rows || !rows.length) rows = mockRows;
 
     listEl.innerHTML = rows.map(r => `
         <div class="scorer-row">
@@ -1452,9 +1725,10 @@ function renderNews() {
         const card = document.createElement(useLive ? "a" : "div");
         card.className = "news-card";
         if (useLive) {
-            card.href = news.link || "#";
-            card.target = "_blank";
-            card.rel = "noopener";
+            card.href = "story.html";
+            card.addEventListener("click", () => {
+                try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+            });
         }
         const thumbStyle = news.image
             ? `background-image: url('${news.image}');`
@@ -1472,7 +1746,402 @@ function renderNews() {
 }
 
 // Render Matches List
+// --- FIXTURES CALENDAR (ESPN scoreboard ?dates= support) ---
+const DATE_STRIP_OFFSETS = [-2, -1, 0, 1, 2, 3, 4, 5];
+
+function toYYYYMMDD(d) {
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
+function renderDateStrip() {
+    const strip = document.getElementById("date-strip");
+    if (!strip) return;
+    const today = new Date();
+    strip.innerHTML = "";
+    DATE_STRIP_OFFSETS.forEach(offset => {
+        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+        const ymd = toYYYYMMDD(d);
+        const btn = document.createElement("button");
+        btn.className = "date-pill" + ((offset === 0 && !selectedDate) || selectedDate === ymd ? " active" : "");
+        const dow = offset === 0 ? t("date.today") : d.toLocaleDateString(appLocale(), { weekday: "short" });
+        const dayNum = d.getDate();
+        const mon = d.toLocaleDateString(appLocale(), { month: "short" });
+        btn.innerHTML = `<span class="date-pill-dow">${dow}</span><span class="date-pill-day">${dayNum} ${mon}</span>`;
+        btn.setAttribute("aria-label", d.toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" }));
+        btn.addEventListener("click", () => {
+            if (!isApiMode) {
+                showNotification(t("notif.dateneed"), true);
+                return;
+            }
+            selectedDate = offset === 0 ? null : ymd;
+            renderDateStrip();
+            loadAPIMatches();
+        });
+        strip.appendChild(btn);
+    });
+}
+
+// --- FORMULA 1 (Jolpica Ergast API: no key, CORS-enabled) ---
+const F1_API = "https://api.jolpi.ca/ergast/f1";
+const F1_TTL_MS = 10 * 60 * 1000;
+
+const F1_NATIONALITY_FLAGS = {
+    "British": "gb", "Dutch": "nl", "Spanish": "es", "French": "fr", "German": "de",
+    "Italian": "it", "Australian": "au", "Japanese": "jp", "American": "us", "Canadian": "ca",
+    "Mexican": "mx", "Brazilian": "br", "Austrian": "at", "Finnish": "fi", "Danish": "dk",
+    "Swedish": "se", "Monegasque": "mc", "Thai": "th", "Chinese": "cn", "Argentine": "ar",
+    "New Zealander": "nz", "Swiss": "ch", "Belgian": "be", "Portuguese": "pt", "Indian": "in"
+};
+
+async function fetchF1(path) {
+    const resp = await fetchWithTimeout(`${F1_API}${path}`, ESPN_FETCH_TIMEOUT_MS);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (!data || !data.MRData) throw new Error("bad F1 payload");
+    return data.MRData;
+}
+
+function f1RaceDateTime(race) {
+    if (!race || !race.date) return null;
+    const d = new Date(race.time ? `${race.date}T${race.time}` : `${race.date}T12:00:00Z`);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+function f1CountdownParts(target) {
+    const ms = Math.max(0, target.getTime() - Date.now());
+    return {
+        days: Math.floor(ms / 86400000),
+        hours: Math.floor(ms / 3600000) % 24,
+        mins: Math.floor(ms / 60000) % 60
+    };
+}
+
+function f1DriverName(d) {
+    if (!d) return t("f1.unknown");
+    return [d.givenName, d.familyName].filter(Boolean).join(" ") || t("f1.unknown");
+}
+
+async function loadF1Data(force = false) {
+    if (f1Loading) return;
+    if (!force && f1Data && Date.now() - f1DataAt < F1_TTL_MS) {
+        if (currentSport === "f1") renderF1();
+        return;
+    }
+    f1Loading = true;
+    if (currentSport === "f1") showSkeletons(3);
+    try {
+        const results = await Promise.all([
+            fetchF1("/current.json"),
+            fetchF1("/current/driverStandings.json"),
+            fetchF1("/current/last/results.json").catch(() => null) // null when no race completed yet
+        ]);
+        f1Data = { season: results[0], drivers: results[1], last: results[2] };
+        f1DataAt = Date.now();
+    } catch (err) {
+        console.warn("F1 fetch failed:", err.message);
+    } finally {
+        f1Loading = false;
+        if (currentSport === "f1") renderF1();
+    }
+}
+
+function f1FlagImg(nationality) {
+    const code = F1_NATIONALITY_FLAGS[nationality];
+    if (!code) return "";
+    return `<img class="f1-flag" src="https://flagcdn.com/w40/${code}.png" alt="" loading="lazy" onerror="this.remove()">`;
+}
+
+function renderF1() {
+    matchesContainer.innerHTML = "";
+    const section = document.querySelector(".live-scores-section");
+    if (section) section.classList.add("f1-mode");
+    const titleEl = document.querySelector(".live-scores-section .scores-header h3");
+    if (titleEl) titleEl.textContent = "Formula 1";
+
+    if (!isApiMode && !f1Data) {
+        matchesContainer.innerHTML = `
+            <div class="f1-note">${t("f1.demo")}</div>
+            <button class="f1-retry-btn" id="f1-enable-live">Switch to Live API Mode</button>`;
+        document.getElementById("f1-enable-live").addEventListener("click", () => setApiMode(true));
+        return;
+    }
+    if (!f1Data) {
+        matchesContainer.innerHTML = `
+            <div class="f1-note">${t("f1.unavail")}</div>
+            <button class="f1-retry-btn" id="f1-retry">Retry</button>`;
+        document.getElementById("f1-retry").addEventListener("click", () => loadF1Data(true));
+        return;
+    }
+
+    const seasonTable = f1Data.season && f1Data.season.RaceTable;
+    const races = (seasonTable && seasonTable.Races) || [];
+    const now = Date.now();
+    const upcoming = races.map(r => ({ race: r, at: f1RaceDateTime(r) }))
+        .filter(x => x.at && x.at.getTime() > now - 3 * 3600000);
+    const next = upcoming[0];
+
+    if (next) {
+        const cd = f1CountdownParts(next.at);
+        const when = next.at.toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" }) + " · " +
+            next.at.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" });
+        matchesContainer.innerHTML += `
+            <div class="f1-hero">
+                <div class="f1-kicker">${tf("f1.next", { n: escHtml(next.race.round || "") })}</div>
+                <div class="f1-race-name">${escHtml(next.race.raceName || "Grand Prix")}</div>
+                <div class="f1-circuit">${escHtml((next.race.Circuit && next.race.Circuit.circuitName) || "")} · ${escHtml(when)}</div>
+                <div class="f1-countdown">
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.days}</span><span class="f1-count-lbl">${t("f1.days")}</span></div>
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.hours}</span><span class="f1-count-lbl">${t("f1.hrs")}</span></div>
+                    <div class="f1-count-box"><span class="f1-count-num">${cd.mins}</span><span class="f1-count-lbl">${t("f1.min")}</span></div>
+                </div>
+            </div>`;
+    }
+
+    const lastTable = f1Data.last && f1Data.last.RaceTable;
+    const lastRaces = (lastTable && lastTable.Races) || [];
+    if (lastRaces.length && lastRaces[0].Results) {
+        const lr = lastRaces[0];
+        let html = `<div class="f1-section-title">${tf("f1.last", { n: escHtml(lr.raceName || "") })}</div>`;
+        lr.Results.slice(0, 5).forEach(r => {
+            html += `<div class="f1-row"><span class="f1-pos">P${escHtml(r.position)}</span>`
+                + f1FlagImg(r.Driver && r.Driver.nationality)
+                + `<span class="f1-driver">${escHtml(f1DriverName(r.Driver))}</span>`
+                + `<span class="f1-team">${escHtml(r.Constructor ? r.Constructor.name : "")}</span>`
+                + `<span class="f1-pts">${escHtml(r.points)} pts</span></div>`;
+        });
+        matchesContainer.innerHTML += html;
+    }
+
+    const stTable = f1Data.drivers && f1Data.drivers.StandingsTable;
+    const lists = (stTable && stTable.StandingsLists) || [];
+    if (lists.length && lists[0].DriverStandings) {
+        let html = `<div class="f1-section-title">${t("f1.drivers")}</div>`;
+        lists[0].DriverStandings.slice(0, 8).forEach(s => {
+            html += `<div class="f1-row"><span class="f1-pos">${escHtml(s.position)}</span>`
+                + f1FlagImg(s.Driver && s.Driver.nationality)
+                + `<span class="f1-driver">${escHtml(f1DriverName(s.Driver))}</span>`
+                + `<span class="f1-team">${escHtml(s.Constructors && s.Constructors[0] ? s.Constructors[0].name : "")}</span>`
+                + `<span class="f1-pts">${escHtml(s.points)}</span></div>`;
+        });
+        matchesContainer.innerHTML += html;
+        const upd = new Date(f1DataAt);
+        matchesContainer.innerHTML += `<div class="f1-note">${tf("f1.updated", { time: upd.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" }) })}</div>`;
+    }
+}
+
+// --- LEAGUE FLAG IMAGES (progressive enhancement; emoji stays as fallback) ---
+const LEAGUE_FLAG_CODES = {
+    EPL: "gb-eng",
+    UCL: "eu",
+    LaLiga: "es",
+    SerieA: "it",
+    Bundesliga: "de",
+    Ligue1: "fr"
+};
+
+function enhanceLeagueFlags() {
+    document.querySelectorAll(".league-row").forEach(row => {
+        const code = LEAGUE_FLAG_CODES[row.getAttribute("data-league-id")];
+        const flagEl = row.querySelector(".league-flag");
+        if (!code || !flagEl || flagEl.querySelector("img")) return;
+        const emoji = flagEl.textContent;
+        const img = document.createElement("img");
+        img.src = `https://flagcdn.com/w40/${code}.png`;
+        img.alt = "";
+        img.loading = "lazy";
+        img.className = "league-flag-img";
+        img.onerror = () => { flagEl.textContent = emoji; };
+        flagEl.textContent = "";
+        flagEl.appendChild(img);
+    });
+}
+
+function matchYmd(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
+function canPreviewMatch(m) {
+    return !!(isApiMode && m && m.sport === "football" && m.espnEventId && m.leagueSlug && m.date
+        && matchYmd(m.date) && new Date(m.date).getTime() > Date.now());
+}
+
+function previewLinkHTML(m) {
+    if (!canPreviewMatch(m)) return "";
+    return `<a class="stat-capsule preview-link" href="preview.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match preview">📰 Preview</a>`;
+}
+
+function canReportMatch(m) {
+    return !!(isApiMode && m && m.sport === "football" && m.espnEventId && m.leagueSlug && m.date
+        && matchYmd(m.date) && m.halftimeScore);
+}
+
+function reportLinkHTML(m) {
+    if (!canReportMatch(m)) return "";
+    return `<a class="stat-capsule report-link" href="report.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match report">📝 Report</a>`;
+}
+
+// --- STORY OF THE WEEK (auto-pick the most interesting match) ---
+function scorerMinute(label) {
+    const m = String(label || "").match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+}
+
+function storyDramaFromScorers(homeScorers, awayScorers) {
+    const all = [];
+    (homeScorers || []).forEach((s) => all.push({ min: scorerMinute(s), team: "H", name: String(s).replace(/^\d+'(\+\d+')?\s*/, "").trim() }));
+    (awayScorers || []).forEach((s) => all.push({ min: scorerMinute(s), team: "A", name: String(s).replace(/^\d+'(\+\d+')?\s*/, "").trim() }));
+    all.sort((a, b) => a.min - b.min);
+    let hs = 0, as = 0;
+    const runs = all.map((g) => { if (g.team === "H") hs++; else as++; return { hs, as }; });
+    const winner = hs > as ? "H" : as > hs ? "A" : null;
+    let trailed = false;
+    if (winner) {
+        let ph = 0, pa = 0;
+        runs.forEach((r) => {
+            const before = ph > pa ? "H" : pa > ph ? "A" : null;
+            if (before && before !== winner) trailed = true;
+            ph = r.hs; pa = r.as;
+        });
+    }
+    const tally = {};
+    all.forEach((g) => { if (g.name) tally[g.name] = (tally[g.name] || 0) + 1; });
+    let brace = null;
+    Object.keys(tally).forEach((k) => { if (tally[k] >= 2 && (!brace || tally[k] > brace.n)) brace = { name: k, n: tally[k] }; });
+    const lastMin = all.length ? all[all.length - 1].min : 0;
+    return { winner, comeback: trailed, brace, lateMin: lastMin >= 85 ? lastMin : null, total: all.length };
+}
+
+function scoreStoryFinished(m) {
+    const hs = Number(m.homeScore) || 0, as = Number(m.awayScore) || 0;
+    const goals = hs + as;
+    const d = storyDramaFromScorers(m.scorers ? m.scorers.home : [], m.scorers ? m.scorers.away : []);
+    let score = goals * 2;
+    const reasons = [];
+    if (goals >= 5) { score += 2; reasons.push(`${tf("story.goalsthriller", { n: goals })}`); }
+    if (d.winner == null && goals >= 2) { score += 3; reasons.push(t("story.shared")); }
+    else if (d.winner && Math.abs(hs - as) === 1) score += 1;
+    if (d.lateMin) { score += 2; reasons.push(tf("story.death", { m: d.lateMin })); }
+    if (d.comeback) { score += 2; reasons.push(t("story.comeback")); }
+    if (d.brace) { score += 1; reasons.push(`${d.brace.name} ${d.brace.n >= 3 ? t("story.hattrick") : t("story.braceword")}`); }
+    if (!reasons.length) reasons.push(`${hs}–${as} ${d.winner ? t("story.winword") : t("story.drawword")}`);
+    return { score, reason: `${hs}–${as} — ${reasons.join(" · ")}` };
+}
+
+function storyNorm(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function storyOrd(n) {
+    const s = ["th", "st", "nd", "rd"], v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function storyPosOf(m, tables) {
+    const rows = tables && tables[m.leagueId];
+    if (!rows) return null;
+    const find = (name, code) => rows.find((r) => storyNorm(r.team) === storyNorm(name) || (code && storyNorm(r.abbrev) === storyNorm(code))) || null;
+    return { h: find(m.homeTeam, m.homeCode), a: find(m.awayTeam, m.awayCode) };
+}
+
+function pickStoryOfWeek(matches, tables) {
+    const fins = (matches || []).filter((m) => isApiMode && m.sport === "football" && m.espnEventId && m.leagueSlug && m.halftimeScore);
+    const ups = (matches || []).filter((m) => canPreviewMatch(m));
+    let bestFin = null;
+    fins.forEach((m) => {
+        const s = scoreStoryFinished(m);
+        if (!bestFin || s.score > bestFin.score || (s.score === bestFin.score && new Date(m.date) > new Date(bestFin.m.date))) {
+            bestFin = { m, score: s.score, reason: s.reason };
+        }
+    });
+    let bestUp = null;
+    ups.forEach((m) => {
+        const pos = storyPosOf(m, tables || {});
+        const combined = pos && pos.h && pos.a ? pos.h.rank + pos.a.rank : 999;
+        if (!bestUp || combined < bestUp.combined || (combined === bestUp.combined && new Date(m.date) < new Date(bestUp.m.date))) {
+            bestUp = { m, combined, pos };
+        }
+    });
+    if (bestFin && bestFin.score >= 8) {
+        return { id: bestFin.m.id, kind: "report", reason: bestFin.reason, score: bestFin.score };
+    }
+    if (bestUp && bestUp.combined < 999) {
+        const h = bestUp.pos.h, a = bestUp.pos.a;
+        return { id: bestUp.m.id, kind: "preview", reason: tf("story.vs", { a: storyOrd(h.rank), b: storyOrd(a.rank), h: h.team, t: a.team }), score: 99 - bestUp.combined };
+    }
+    if (bestFin) return { id: bestFin.m.id, kind: "report", reason: bestFin.reason, score: bestFin.score };
+    if (bestUp) return { id: bestUp.m.id, kind: "preview", reason: tf("story.upcoming", { h: bestUp.m.homeTeam, a: bestUp.m.awayTeam }), score: 0 };
+    return null;
+}
+
+let storyPick = null;
+let storyLocked = false;
+const STORY_TABLE_TTL_MS = 30 * 60 * 1000;
+
+async function ensureStoryTables() {
+    try {
+        const raw = sessionStorage.getItem("scorehub-story-tables-v1");
+        if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached && cached.at && Date.now() - cached.at < STORY_TABLE_TTL_MS && cached.tables) return cached.tables;
+        }
+    } catch (e) {}
+    const codes = Object.keys(STANDINGS_TAB_SLUGS);
+    const results = await Promise.all(codes.map((c) => loadLiveStandings(c).catch(() => null)));
+    const tables = {};
+    codes.forEach((c, i) => { if (results[i] && results[i].length) tables[c] = results[i]; });
+    try { sessionStorage.setItem("scorehub-story-tables-v1", JSON.stringify({ at: Date.now(), tables })); } catch (e) {}
+    return tables;
+}
+
+async function applyStoryOfWeek() {
+    if (!isApiMode || storyLocked) return;
+    const tables = await ensureStoryTables();
+    if (storyLocked || !isApiMode) return;
+    const pick = pickStoryOfWeek(apiMatches, tables);
+    if (!pick || !apiMatches.some((m) => m.id === pick.id)) return;
+    storyPick = pick;
+    if (pick.id === spotlightMatchId) { updateStoryTag(); return; }
+    setSpotlightMatch(pick.id);
+}
+
+function updateStoryTag() {
+    const tag = document.getElementById("story-tag");
+    const reason = document.getElementById("story-reason");
+    const btn = document.getElementById("spotlight-story-btn");
+    const activeMatches = isApiMode ? apiMatches : MOCK_MATCHES;
+    const match = activeMatches.find((m) => m.id === spotlightMatchId);
+    const isStory = !!(storyPick && match && match.id === storyPick.id);
+    if (tag) tag.hidden = !isStory;
+    if (reason) {
+        reason.hidden = !isStory;
+        if (isStory) reason.textContent = storyPick.reason;
+    }
+    if (btn) {
+        if (match && canPreviewMatch(match)) {
+            btn.hidden = false;
+            btn.innerHTML = "<span>" + t("story.previewbtn") + "</span>";
+            btn.href = `preview.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
+        } else if (match && canReportMatch(match)) {
+            btn.hidden = false;
+            btn.innerHTML = "<span>" + t("story.reportbtn") + "</span>";
+            btn.href = `report.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
+        } else {
+            btn.hidden = true;
+        }
+    }
+}
+
 function renderMatches() {
+    // Formula 1 renders its own view inside the scores card
+    const scoresSection = document.querySelector(".live-scores-section");
+    if (currentSport === "f1") { renderF1(); return; }
+    if (scoresSection) scoresSection.classList.remove("f1-mode");
+    const scoresTitle = document.querySelector(".live-scores-section .scores-header h3");
+    if (scoresTitle) scoresTitle.textContent = t("scores.live");
     matchesContainer.innerHTML = "";
     
     const activeMatches = isApiMode ? apiMatches : MOCK_MATCHES;
@@ -1481,6 +2150,9 @@ function renderMatches() {
     let filtered = activeMatches.filter((m) => {
         // Sport selector
         if (currentSport !== "all" && m.sport !== currentSport) return false;
+
+        // League sidebar selector
+        if (currentLeague !== "all" && m.leagueId !== currentLeague) return false;
         
         // Tab filters
         if (currentFilter === "live" && m.status !== "live") return false;
@@ -1490,11 +2162,16 @@ function renderMatches() {
         
         return true;
     });
-    
+
+    // Optional league ordering (toggled by the sliders button)
+    if (sortByLeague) {
+        filtered.sort((a, b) => (a.league || "").localeCompare(b.league || ""));
+    }
+
     if (filtered.length === 0) {
         matchesContainer.innerHTML = `
             <div class="no-matches" style="text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 13px;">
-                No matches found matching the criteria.
+                ${t("scores.none")}
             </div>
         `;
         return;
@@ -1522,7 +2199,7 @@ function renderMatches() {
             <div class="match-card-scoreboard">
                 <div class="match-card-team-info">
                     <span class="match-team-name">${match.homeTeam}</span>
-                    <div class="player-avatar-mini" style="font-size: 8px; width: 20px; height: 20px;">${match.homeCode}</div>
+                    ${teamBadgeHTML(match.homeCode, match.homeLogo, 20)}
                 </div>
                 
                 <div class="match-card-scores">
@@ -1532,13 +2209,15 @@ function renderMatches() {
                 </div>
                 
                 <div class="match-card-team-info away">
-                    <div class="player-avatar-mini" style="font-size: 8px; width: 20px; height: 20px; margin-right: 10px;">${match.awayCode}</div>
+                    ${teamBadgeHTML(match.awayCode, match.awayLogo, 20)}
                     <span class="match-team-name">${match.awayTeam}</span>
                 </div>
             </div>
             
             <div class="match-card-footer">
                 <div class="match-stat-capsules">
+                    ${previewLinkHTML(match)}
+                    ${reportLinkHTML(match)}
                     ${match.odds ? `<span class="stat-capsule" title="Odds ${match.homeCode}/${match.awayCode}/Draw via ${match.odds.provider}">🎲 ${oddsSummary(match.odds)}</span>` : ""}
                     <span class="stat-capsule">⚽ ${match.homeScore + match.awayScore} Goals</span>
                     <span class="stat-capsule">📊 ${match.stats.possession}% Poss</span>
@@ -1554,7 +2233,8 @@ function renderMatches() {
         
         // Click to spotlight card (excluding favoriting star click)
         card.addEventListener("click", (e) => {
-            if (e.target.closest(".btn-star-fav")) return;
+            if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link")) return;
+            storyLocked = true;
             setSpotlightMatch(match.id);
         });
         
@@ -1562,11 +2242,14 @@ function renderMatches() {
         const favBtn = card.querySelector(".btn-star-fav");
         favBtn.addEventListener("click", () => {
             match.favorites = !match.favorites;
+            if (match.favorites) favoriteIds.add(match.id);
+            else favoriteIds.delete(match.id);
+            persistFavorites();
             favBtn.classList.toggle("favorited");
             renderMatches();
             // Show alert/notify if favorited
             if (match.favorites) {
-                showNotification(`Added ${match.homeTeam} vs ${match.awayTeam} to Favorites`);
+                showNotification(tf("fav.added", { h: match.homeTeam, a: match.awayTeam }));
             }
         });
         
@@ -1601,9 +2284,9 @@ function setSpotlightMatch(id) {
     setScoreSmooth(spotlightAwayScore, match.awayScore);
     spotlightHalftimeScore.innerText = match.halftimeScore;
     
-    // SVG Logos
-    spotlightHomeLogoContainer.innerHTML = generateTeamSVG(match.homeCode, match.homeColor);
-    spotlightAwayLogoContainer.innerHTML = generateTeamSVG(match.awayCode, match.awayColor);
+    // Club logos (generated shield underneath as fallback)
+    spotlightHomeLogoContainer.innerHTML = spotlightLogoHTML(match.homeCode, match.homeColor, match.homeLogo);
+    spotlightAwayLogoContainer.innerHTML = spotlightLogoHTML(match.awayCode, match.awayColor, match.awayLogo);
     
     // Set scorers list
     spotlightHomeScorers.innerHTML = "";
@@ -1633,6 +2316,8 @@ function setSpotlightMatch(id) {
 
     // Fill the stats card with real boxscore numbers when in API mode (debounced + cached)
     if (isApiMode) scheduleSummaryFetch(match);
+
+    updateStoryTag();
 }
 
 // Render Stats Bars
@@ -1640,12 +2325,12 @@ function renderStatsBars(match) {
     statsBarsList.innerHTML = "";
     
     const statsConfig = [
-        { key: "possession", label: "Possession", suffix: "%" },
-        { key: "shots", label: "Shots", suffix: "" },
-        { key: "shotsOnTarget", label: "Shots on Target", suffix: "" },
-        { key: "corners", label: "Corners", suffix: "" },
-        { key: "fouls", label: "Fouls", suffix: "" },
-        { key: "yellowCards", label: "Yellow Cards", suffix: "" }
+        { key: "possession", label: t("stats.possession"), suffix: "%" },
+        { key: "shots", label: t("stats.shots"), suffix: "" },
+        { key: "shotsOnTarget", label: t("stats.sot"), suffix: "" },
+        { key: "corners", label: t("stats.corners"), suffix: "" },
+        { key: "fouls", label: t("stats.fouls"), suffix: "" },
+        { key: "yellowCards", label: t("stats.yellow"), suffix: "" }
     ];
     
     statsConfig.forEach((stat) => {
@@ -1702,6 +2387,27 @@ function renderStatsBars(match) {
     });
 }
 
+// --- NETWORK / STALE-DATA BANNER ---
+function refreshApiModeText() {
+    if (typeof apiModeText !== "undefined" && apiModeText) {
+        apiModeText.textContent = t(isApiMode ? "api.live" : "api.sim");
+    }
+}
+
+function showNetBanner(text, showRetry) {
+    const banner = document.getElementById("net-banner");
+    const label = document.getElementById("net-banner-text");
+    const retry = document.getElementById("net-banner-retry");
+    if (!banner || !label) return;
+    label.textContent = text;
+    if (retry) retry.hidden = !showRetry;
+    banner.hidden = false;
+}
+function hideNetBanner() {
+    const banner = document.getElementById("net-banner");
+    if (banner) banner.hidden = true;
+}
+
 // Show live notification — adds to dropdown list AND shows a toast overlay
 function showNotification(message, isToast = false) {
     const badge = document.querySelector(".notification-badge");
@@ -1735,6 +2441,83 @@ function showNotification(message, isToast = false) {
     }
 }
 
+// --- SHARE + CALENDAR (spotlight match) ---
+function spotlightMatch() {
+    return (isApiMode ? apiMatches : MOCK_MATCHES).find(m => m.id === spotlightMatchId) || null;
+}
+
+function matchShareUrl(match) {
+    const url = new URL(window.location.href.split("#")[0]);
+    url.searchParams.set("match", match.id);
+    return url.toString();
+}
+
+async function shareSpotlightMatch() {
+    const match = spotlightMatch();
+    if (!match) return;
+    const shareData = {
+        title: `ScoreHub — ${match.homeTeam} vs ${match.awayTeam}`,
+        text: `${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam} (${match.league})`,
+        url: matchShareUrl(match)
+    };
+    if (navigator.share) {
+        try { await navigator.share(shareData); } catch (e) { /* user cancelled */ }
+        return;
+    }
+    try {
+        await navigator.clipboard.writeText(shareData.url);
+        showNotification(t("notif.copied"), true);
+    } catch (e) {
+        showNotification(shareData.url, true);
+    }
+}
+
+function icsDateUTC(d) {
+    return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+function downloadSpotlightICS() {
+    const match = spotlightMatch();
+    if (!match) return;
+    if (!match.date) {
+        showNotification(t("notif.kickoffsim"), true);
+        return;
+    }
+    const start = new Date(match.date);
+    if (isNaN(start.getTime())) {
+        showNotification(t("notif.kickoffna"), true);
+        return;
+    }
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ScoreHub//Match//EN", "BEGIN:VEVENT",
+        `UID:${match.id}@scorehub`, `DTSTAMP:${icsDateUTC(new Date())}`,
+        `DTSTART:${icsDateUTC(start)}`, `DTEND:${icsDateUTC(end)}`,
+        `SUMMARY:${match.homeTeam} vs ${match.awayTeam} (${match.league})`,
+        `DESCRIPTION:Follow live on ScoreHub - ${matchShareUrl(match)}`,
+        "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    const blob = new Blob([ics], { type: "text/calendar" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${match.homeCode}-vs-${match.awayCode}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    showNotification(t("notif.ics"), true);
+}
+
+// Deep link: ?match=<id> spotlights + scrolls to that match (runs after data loads)
+function handleDeepLinkMatch() {
+    let id = null;
+    try { id = new URLSearchParams(window.location.search).get("match"); } catch (e) { return; }
+    if (!id) return;
+    const pool = (isApiMode ? apiMatches : MOCK_MATCHES);
+    if (pool.some(m => m.id === id)) {
+        setSpotlightMatch(id);
+        const el = document.getElementById("match-spotlight");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
 // --- EVENT SIMULATION LOOP ---
 // Every 4 seconds, increment time on matches. Every 16 seconds, trigger an event (goals, shots, cards)
 let gameSeconds = 72;
@@ -1742,6 +2525,8 @@ let gameSeconds = 72;
 function simulationLoop() {
     // Only run in simulation mode
     if (isApiMode) return;
+    // Don't rebuild lists mid-interaction (drawer / modal open)
+    if (document.body.classList.contains("nav-open") || document.querySelector(".modal-overlay.active")) return;
 
     // 1. Increment Time
     MOCK_MATCHES.forEach((match) => {
@@ -1907,11 +2692,32 @@ function runPitchTrackerAnimation() {
 // --- LISTENERS AND HANDLERS ---
 
 function initEventHandlers() {
+    // --- Shared helpers (nav / modals / scrolling) ---
+    const openModal = (modal) => {
+        modal.classList.add("active");
+        document.body.classList.add("modal-open");
+    };
+    const closeModal = (modal) => {
+        modal.classList.remove("active");
+        if (!document.querySelector(".modal-overlay.active")) {
+            document.body.classList.remove("modal-open");
+        }
+    };
+    const scrollToEl = (selector) => {
+        const el = document.querySelector(selector);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    const setActiveNav = (link) => {
+        document.querySelectorAll(".main-nav .nav-link").forEach(a => a.classList.remove("active"));
+        if (link) link.classList.add("active");
+    };
+
     // Theme Toggle
     themeToggleBtn.addEventListener("click", () => {
         const currentTheme = document.documentElement.getAttribute("data-theme");
         const newTheme = currentTheme === "light" ? "dark" : "light";
         document.documentElement.setAttribute("data-theme", newTheme);
+        store.set(THEME_KEY, newTheme);
         
         // Swap icons
         const moon = document.querySelector(".moon-icon");
@@ -1927,20 +2733,40 @@ function initEventHandlers() {
     
     // Modals toggle
     loginBtn.addEventListener("click", () => {
-        loginModal.classList.add("active");
+        openModal(loginModal);
     });
     closeLoginModal.addEventListener("click", () => {
-        loginModal.classList.remove("active");
+        closeModal(loginModal);
     });
     loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
         loginBtn.innerText = "Logged In";
-        loginModal.classList.remove("active");
-        showNotification("Successfully logged in as administrator!");
+        closeModal(loginModal);
+        showNotification(t("notif.login"));
+    });
+
+    // Close modals by tapping the backdrop or pressing Escape (expected mobile UX)
+    [loginModal, watchLiveModal].forEach(modal => {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                closeModal(modal);
+                if (modal === watchLiveModal) usingLiveCommentary = false;
+            }
+        });
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            [loginModal, watchLiveModal].forEach(modal => {
+                if (modal.classList.contains("active")) {
+                    closeModal(modal);
+                    if (modal === watchLiveModal) usingLiveCommentary = false;
+                }
+            });
+        }
     });
     
     watchLiveBtn.addEventListener("click", async () => {
-        watchLiveModal.classList.add("active");
+        openModal(watchLiveModal);
         const commList = document.getElementById("commentary-list");
         commList.innerHTML = `<p><strong>[Live]</strong> Connecting to match feed...</p>`;
 
@@ -1957,27 +2783,61 @@ function initEventHandlers() {
             broadcastEl.textContent = (match && match.broadcast) ? `📺 ${match.broadcast}` : "📺 No broadcast info";
         }
 
+        resetMatchCentreTabs();
+        mcSummaryData = null;
+        mcSummaryMatchId = match ? match.id : null;
+
         if (match && isApiMode && match.espnEventId) {
             try {
                 const data = await ensureMatchSummary(match, true);
+                mcSummaryData = data;
                 usingLiveCommentary = true;
                 renderLiveCommentary(match, data);
+                renderTimeline(match, data);
+                renderLineups(match, data);
                 renderPitchShots(match, data);
                 if (applySummaryStats(match, data)) renderStatsBars(match);
             } catch (err) {
                 usingLiveCommentary = false;
                 commList.innerHTML = `<p><strong>[${match.time}]</strong> Live commentary feed unavailable — showing simulated broadcast.</p>`;
+                renderTimeline(match, null);
+                renderLineups(match, null);
             }
         } else {
             usingLiveCommentary = false;
             commList.innerHTML = `<p><strong>[Live]</strong> Connected to stream. Fetching tactical match feed...</p>`;
+            renderTimeline(match, null);
+            renderLineups(match, null);
         }
     });
     closeWatchModal.addEventListener("click", () => {
-        watchLiveModal.classList.remove("active");
+        closeModal(watchLiveModal);
         usingLiveCommentary = false;
     });
     
+    // Match Centre tabs (Commentary / Timeline / Lineups)
+    const mcTabs = document.querySelectorAll(".mc-tab");
+    mcTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            mcTabs.forEach((t) => {
+                t.classList.remove("active");
+                t.setAttribute("aria-selected", "false");
+            });
+            tab.classList.add("active");
+            tab.setAttribute("aria-selected", "true");
+            const name = tab.getAttribute("data-mc-tab");
+            ["commentary", "timeline", "lineups"].forEach(n => {
+                const pane = document.getElementById(`mc-pane-${n}`);
+                if (pane) pane.hidden = n !== name;
+            });
+            // Re-render the newly shown pane from cached data (cheap, keeps it fresh)
+            const current = (isApiMode ? apiMatches : MOCK_MATCHES).find(m => m.id === spotlightMatchId);
+            if (!current) return;
+            if (name === "timeline") renderTimeline(current, mcSummaryData);
+            if (name === "lineups") renderLineups(current, mcSummaryData);
+        });
+    });
+
     // Play/Pause stream simulation
     const playPauseBtn = document.getElementById("play-pause-btn");
     playPauseBtn.addEventListener("click", () => {
@@ -1992,7 +2852,9 @@ function initEventHandlers() {
             sportTabs.forEach((t) => t.classList.remove("active"));
             tab.classList.add("active");
             currentSport = tab.getAttribute("data-sport");
-            if (isApiMode) {
+            if (currentSport === "f1") {
+                loadF1Data();
+            } else if (isApiMode) {
                 // Re-fetch API data for the newly selected sport
                 loadAPIMatches();
             } else {
@@ -2025,6 +2887,22 @@ function initEventHandlers() {
         });
     });
     
+    // Goals / Assists leaders toggle
+    const leadersBtns = document.querySelectorAll(".segmented-btn");
+    leadersBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            leadersBtns.forEach((b) => {
+                b.classList.remove("active");
+                b.setAttribute("aria-selected", "false");
+            });
+            btn.classList.add("active");
+            btn.setAttribute("aria-selected", "true");
+            leadersCategory = btn.getAttribute("data-leaders-cat") || "goals";
+            renderScorers();
+            if (isApiMode) loadLiveExtras();
+        });
+    });
+
     // Search filter input logic
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase().trim();
@@ -2033,16 +2911,17 @@ function initEventHandlers() {
             return;
         }
         
-        const matches = MOCK_MATCHES.filter((m) => {
-            return m.homeTeam.toLowerCase().includes(query) || 
-                   m.awayTeam.toLowerCase().includes(query) || 
+        const searchable = (isApiMode && apiMatches.length) ? apiMatches : MOCK_MATCHES;
+        const matches = searchable.filter((m) => {
+            return m.homeTeam.toLowerCase().includes(query) ||
+                   m.awayTeam.toLowerCase().includes(query) ||
                    m.league.toLowerCase().includes(query);
         });
         
         searchResults.innerHTML = "";
         
         if (matches.length === 0) {
-            searchResults.innerHTML = `<div style="padding: 10px 16px; font-size: 12px; color: var(--text-muted);">No results found</div>`;
+            searchResults.innerHTML = `<div style="padding: 10px 16px; font-size: 12px; color: var(--text-muted);">${t("search.none")}</div>`;
         } else {
             matches.forEach((m) => {
                 const item = document.createElement("div");
@@ -2050,14 +2929,16 @@ function initEventHandlers() {
                 item.innerHTML = `
                     <div>
                         <div class="item-title">${m.homeTeam} vs ${m.awayTeam}</div>
-                        <div class="item-desc">${m.league}</div>
+                        <div class="item-desc">${m.league} \u00b7 ${m.time}</div>
                     </div>
-                    <div class="item-desc">${m.time}</div>
+                    <span class="search-sport-badge">${m.sport}</span>
                 `;
                 item.addEventListener("click", () => {
                     setSpotlightMatch(m.id);
                     searchInput.value = "";
                     searchResults.style.display = "none";
+                    searchInput.blur();
+                    scrollToEl("#match-spotlight");
                 });
                 searchResults.appendChild(item);
             });
@@ -2117,47 +2998,197 @@ function initEventHandlers() {
         if (e.key === "Escape") closeMobileNav();
     });
 
-    // Reset drawer state when resizing up to desktop
+    // Reset drawer state when resizing up to desktop + keep search hint in sync
+    const syncSearchPlaceholder = () => {
+        searchInput.placeholder = window.innerWidth <= 480
+            ? "Search teams, matches..."
+            : "Search teams, matches, leagues...";
+    };
     window.addEventListener("resize", () => {
         if (window.innerWidth > 992) closeMobileNav();
+        syncSearchPlaceholder();
     });
 
     // Compact search placeholder on very small screens
-    if (window.matchMedia("(max-width: 480px)").matches) {
-        searchInput.placeholder = "Search teams, matches...";
+    syncSearchPlaceholder();
+
+    // Offline / online connectivity banner
+    const netRetryBtn = document.getElementById("net-banner-retry");
+    if (netRetryBtn) netRetryBtn.addEventListener("click", () => {
+        hideNetBanner();
+        if (isApiMode && !apiLoading) loadAPIMatches();
+    });
+    window.addEventListener("offline", () => {
+        showNetBanner(t("net.offline"), false);
+    });
+    window.addEventListener("online", () => {
+        hideNetBanner();
+        showNotification(t("net.back"), true);
+        if (isApiMode && !apiLoading) loadAPIMatches();
+    });
+    if (!navigator.onLine) {
+        showNetBanner(t("net.offline"), false);
     }
-    
-    // Quick link binds
+
+    // Shared match-filter setter (keeps the filter pills in sync)
+    const setFilter = (name) => {
+        currentFilter = name;
+        filterTabs.forEach((t) => t.classList.toggle("active", t.getAttribute("data-filter") === name));
+        renderMatches();
+    };
+
+    // Popular Leagues → filter the match list by league (tap again to clear)
+    const leagueRows = document.querySelectorAll(".league-row");
+    leagueRows.forEach((row) => {
+        row.addEventListener("click", () => {
+            const id = row.getAttribute("data-league-id");
+            const wasActive = row.classList.contains("active");
+            leagueRows.forEach((r) => r.classList.remove("active"));
+            currentLeague = wasActive ? "all" : id;
+            if (!wasActive) row.classList.add("active");
+            renderMatches();
+            if (window.innerWidth <= 992) scrollToEl(".live-scores-section");
+        });
+    });
+
+    // Quick link binds (these also power the mobile drawer destinations)
     navHome.addEventListener("click", (e) => {
         e.preventDefault();
         currentSport = "all";
-        currentFilter = "all";
+        currentLeague = "all";
+        selectedDate = null;
+        renderDateStrip();
         sportTabs.forEach((t) => t.classList.remove("active"));
         sportTabs[0].classList.add("active");
-        filterTabs.forEach((t) => t.classList.remove("active"));
-        filterTabs[0].classList.add("active");
-        renderMatches();
+        leagueRows.forEach((r) => r.classList.remove("active"));
+        setFilter("all");
+        setActiveNav(navHome);
+        window.scrollTo({ top: 0, behavior: "smooth" });
     });
-    
+
     navLive.addEventListener("click", (e) => {
         e.preventDefault();
-        currentFilter = "live";
-        filterTabs.forEach((t) => t.classList.remove("active"));
-        document.querySelector("[data-filter='live']").classList.add("active");
-        renderMatches();
+        setFilter("live");
+        setActiveNav(navLive);
+        scrollToEl(".live-scores-section");
     });
-    
+
     heroBtnLive.addEventListener("click", () => {
-        currentFilter = "live";
-        filterTabs.forEach((t) => t.classList.remove("active"));
-        document.querySelector("[data-filter='live']").classList.add("active");
-        renderMatches();
+        setFilter("live");
+        setActiveNav(navLive);
+        scrollToEl(".live-scores-section");
     });
+
+    heroBtnFixtures.addEventListener("click", () => {
+        setFilter("today");
+        setActiveNav(navFixtures);
+        scrollToEl(".live-scores-section");
+    });
+
+    if (navFixtures) navFixtures.addEventListener("click", (e) => {
+        e.preventDefault();
+        setFilter("today");
+        setActiveNav(navFixtures);
+        scrollToEl(".live-scores-section");
+    });
+
+    if (navLeagues) navLeagues.addEventListener("click", (e) => {
+        e.preventDefault();
+        setActiveNav(navLeagues);
+        scrollToEl(".sidebar-leagues");
+    });
+
+    if (navNews) navNews.addEventListener("click", (e) => {
+        e.preventDefault();
+        setActiveNav(navNews);
+        scrollToEl(".sidebar-news");
+    });
+
+    if (navTeams) navTeams.addEventListener("click", (e) => {
+        e.preventDefault();
+        setActiveNav(navTeams);
+        scrollToEl(".standings-card");
+    });
+
+    if (navStats) navStats.addEventListener("click", (e) => {
+        e.preventDefault();
+        setActiveNav(navStats);
+        scrollToEl(".stats-comparison-card");
+    });
+
+    // Spotlight Share / Add-to-calendar buttons
+    if (shareMatchBtn) shareMatchBtn.addEventListener("click", shareSpotlightMatch);
+    if (addCalendarBtn) addCalendarBtn.addEventListener("click", downloadSpotlightICS);
+
+    // Header star → jump to favorited matches
+    if (favsToggleTopBtn) favsToggleTopBtn.addEventListener("click", () => {
+        setFilter("favorites");
+        scrollToEl(".live-scores-section");
+    });
+
+    // "View All" resets the match filters instead of being a dead link
+    if (viewAllMatchesBtn) viewAllMatchesBtn.addEventListener("click", () => {
+        setFilter("all");
+    });
+
+    // Sliders button toggles league-sorted vs default ordering
+    if (filterOptionsBtn) filterOptionsBtn.addEventListener("click", () => {
+        sortByLeague = !sortByLeague;
+        filterOptionsBtn.classList.toggle("active-sort", sortByLeague);
+        filterOptionsBtn.title = sortByLeague ? "Sorted by league (tap to restore)" : "Sort matches";
+        renderMatches();
+        showNotification(sortByLeague ? "Matches sorted by league" : "Matches back to default order", true);
+    });
+
+    // "More" drawer links + signup placeholder give feedback instead of dead-ending
+    document.querySelectorAll(".dropdown-menu a").forEach((link) => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            showNotification(`${link.textContent.trim()} hub coming soon in this demo`, true);
+        });
+    });
+
+    if (goToSignup) goToSignup.addEventListener("click", (e) => {
+        e.preventDefault();
+        showNotification("Sign-up is disabled in this demo — log in with any email", true);
+    });
+
+    // Footer deep links (index.html#live, #fixtures, #news, #teams, #leagues, #league-EPL…)
+    const handleHashRoute = () => {
+        const hash = (window.location.hash || "").replace("#", "");
+        if (!hash) return;
+        if (hash === "live") { setFilter("live"); setActiveNav(navLive); scrollToEl(".live-scores-section"); }
+        else if (hash === "fixtures") { setFilter("today"); setActiveNav(navFixtures); scrollToEl(".live-scores-section"); }
+        else if (hash === "news") { setActiveNav(navNews); scrollToEl(".sidebar-news"); }
+        else if (hash === "teams") { setActiveNav(navTeams); scrollToEl(".standings-card"); }
+        else if (hash === "leagues") { setActiveNav(navLeagues); scrollToEl(".sidebar-leagues"); }
+        else if (hash.indexOf("league-") === 0) {
+            const row = document.querySelector(`.league-row[data-league-id="${hash.slice(7)}"]`);
+            if (row) row.click();
+            else scrollToEl(".sidebar-leagues");
+        }
+    };
+    window.addEventListener("hashchange", handleHashRoute);
+    handleHashRoute();
+}
+
+// Apply the persisted theme (if any) before first render
+function applyStoredTheme() {
+    const saved = store.get(THEME_KEY, null);
+    if (saved !== "light" && saved !== "dark") return;
+    document.documentElement.setAttribute("data-theme", saved);
+    const moon = document.querySelector(".moon-icon");
+    const sun = document.querySelector(".sun-icon");
+    if (moon) moon.classList.toggle("hidden", saved === "light");
+    if (sun) sun.classList.toggle("hidden", saved !== "light");
 }
 
 // --- INITIALIZATION --- 
 function init() {
+    applyStoredTheme();
     initEventHandlers();
+    renderDateStrip();
+    enhanceLeagueFlags();
     
     // Initial Render
     renderTicker();
@@ -2178,7 +3209,8 @@ function init() {
     // Auto-refresh ESPN API data every 60 seconds when in API mode
     setInterval(() => {
         if (isApiMode && !apiLoading) {
-            loadAPIMatches();
+            if (currentSport === "f1") loadF1Data();
+            else loadAPIMatches();
             loadLiveExtras(); // TTL-cached internally, refreshes every ~5 min
             refreshLiveMatchCentre(); // updates the open Watch Live modal
         }
@@ -2190,3 +3222,14 @@ function init() {
 
 // Start everything when DOM is ready
 document.addEventListener("DOMContentLoaded", init);
+
+window.__rerenderLang = function () {
+    try { refreshApiModeText(); } catch (e) {}
+    try { renderDateStrip(); } catch (e) {}
+    try { renderMatches(); } catch (e) {}
+    try { renderTicker(); } catch (e) {}
+    try { renderStandings(); } catch (e) {}
+    try { renderNews(); } catch (e) {}
+    try { renderScorers(); } catch (e) {}
+    try { updateStoryTag(); } catch (e) {}
+};

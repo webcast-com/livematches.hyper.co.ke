@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07090e">
+    <title>Offline — ScoreHub</title>
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #07090e; color: #e8edf3;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 24px; text-align: center;
+        }
+        .card {
+            background: #0e141d; border: 1px solid #1c2735; border-radius: 16px;
+            padding: 40px 32px; max-width: 420px; width: 100%;
+        }
+        .card img { width: 84px; height: 84px; border-radius: 20px; margin-bottom: 16px; }
+        h1 { font-size: 22px; margin-bottom: 8px; }
+        h1 .sw { display: block; font-size: 15px; font-weight: 400; color: #8b98a9; margin-top: 4px; }
+        p { color: #8b98a9; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+        .btn {
+            display: inline-block; background: #00f2fe; color: #04121a; font-weight: 700;
+            border: none; border-radius: 10px; padding: 12px 28px; font-size: 15px;
+            cursor: pointer; text-decoration: none; margin: 4px;
+        }
+        .btn.ghost { background: transparent; color: #00f2fe; border: 1px solid #1c2735; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img src="icon-192.png" alt="ScoreHub" width="84" height="84">
+        <h1>You're offline<span class="sw">Hakuna muunganisho wa intaneti</span></h1>
+        <p>Live scores need a connection — but your installed app and saved pages are still here. Reconnect and retry.</p>
+        <button class="btn" onclick="location.reload()">Retry · Jaribu tena</button>
+        <a class="btn ghost" href="index.html">Home · Nyumbani</a>
+    </div>
+</body>
+</html>

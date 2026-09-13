@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#07090e">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="description" content="ScoreHub - real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://livematches.hyper.co.ke/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ScoreHub">
+    <meta property="og:title" content="ScoreHub - Every Score. Every Moment.">
+    <meta property="og:description" content="Real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
+    <meta property="og:url" content="https://livematches.hyper.co.ke/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ScoreHub - Every Score. Every Moment.">
+    <meta name="twitter:description" content="Real-time live scores, fixtures, standings and stats across football, basketball, tennis and more.">
     <title>ScoreHub - Every Score. Every Moment.</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,11 +61,13 @@
                         <li><a href="#" class="nav-link" id="nav-teams">Teams</a></li>
                         <li><a href="#" class="nav-link" id="nav-stats">Stats</a></li>
                         <li class="dropdown">
-                            <a href="#" class="nav-link dropdown-toggle">More <span class="arrow-down"></span></a>
+                            <a href="#" class="nav-link dropdown-toggle"><span data-i18n="nav.more">More</span> <span class="arrow-down"></span></a>
                             <ul class="dropdown-menu">
-                                <li><a href="#">Transfers</a></li>
-                                <li><a href="#">Predictions</a></li>
-                                <li><a href="#">Shop</a></li>
+                                <li><a href="transfers.html">Transfers</a></li>
+                                <li><a href="predictions.html">Predictions</a></li>
+                                <li><a href="shop.html">Shop</a></li>
+                                <li><a href="standings.html">Standings</a></li>
+                                <li><a href="previews.html">Previews</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -63,27 +79,35 @@
                     <span class="search-icon">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </span>
-                    <input type="text" id="search-input" placeholder="Search teams, matches, leagues...">
+                    <input type="text" id="search-input" placeholder="Search teams, matches, leagues..." data-i18n-ph="search.ph">
                     <div class="search-results" id="search-results"></div>
                 </div>
                 
                 <div class="api-toggle-container">
-                    <button class="api-mode-btn" id="api-mode-btn" title="Toggle Live API / Simulated Mode">
+                    <button class="api-mode-btn" id="api-mode-btn" title="Toggle Live API / Simulated Mode" data-i18n-title="api.buttontitle">
                         <span class="api-indicator-dot pulsing-orange" id="api-mode-indicator"></span>
                         <span id="api-mode-text">Simulation Mode</span>
                     </button>
                 </div>
 
-                <button class="icon-btn theme-toggle" id="theme-toggle-btn" title="Toggle Theme">
+                <button class="icon-btn theme-toggle" id="theme-toggle-btn" title="Toggle Theme" data-i18n-title="theme.title">
                     <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                     <svg class="sun-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                 </button>
+
+                <button class="icon-btn" id="install-btn" title="Install ScoreHub app" data-i18n-title="pwa.install" hidden>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+
+                <button class="icon-btn lang-toggle" id="lang-toggle" title="Switch to Kiswahili" data-i18n-title="lang.toggle">
+                    <span id="lang-toggle-text">SW</span>
+                </button>
                 
-                <button class="icon-btn notification-btn" id="notification-btn" title="Notifications">
+                <button class="icon-btn notification-btn" id="notification-btn" title="Notifications" data-i18n-title="notif.title">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     <span class="notification-badge"></span>
                     <div class="notification-dropdown" id="notification-dropdown">
-                        <div class="dropdown-header">Notifications</div>
+                        <div class="dropdown-header" data-i18n="notif.title">Notifications</div>
                         <div class="dropdown-body" id="notification-list">
                             <div class="notification-item unread">
                                 <div class="item-title">GOAL! Arsenal 2 - 1 Chelsea</div>
@@ -97,20 +121,27 @@
                     </div>
                 </button>
                 
-                <button class="icon-btn favs-toggle-btn" id="favs-toggle-top-btn" title="View Favorites">
+                <button class="icon-btn favs-toggle-btn" id="favs-toggle-top-btn" title="View Favorites" data-i18n-title="favs.title">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                 </button>
                 
-                <button class="btn btn-login" id="login-btn">Login</button>
+                <button class="btn btn-login" id="login-btn" data-i18n="auth.login">Login</button>
 
                 <!-- Mobile nav toggle (hamburger) -->
-                <button class="icon-btn nav-toggle-btn" id="nav-toggle-btn" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+                <button class="icon-btn nav-toggle-btn" id="nav-toggle-btn" aria-label="Open menu" data-i18n-aria="nav.openmenu" aria-expanded="false" aria-controls="main-nav">
                     <span class="nav-toggle-bar"></span>
                     <span class="nav-toggle-bar"></span>
                     <span class="nav-toggle-bar"></span>
                 </button>
             </div>
         </header>
+
+        <!-- NETWORK / STALE-DATA BANNER (offline or failed-refresh states) -->
+        <div class="net-banner" id="net-banner" hidden>
+            <span class="net-banner-dot"></span>
+            <span class="net-banner-text" id="net-banner-text"></span>
+            <button class="net-banner-retry" id="net-banner-retry" hidden>Retry</button>
+        </div>
 
         <!-- API STATUS BAR (shown when Live API mode is active) -->
         <div class="api-status-bar" id="api-status-bar">
@@ -170,6 +201,10 @@
                     <span class="sport-icon">🥊</span>
                     <span class="sport-name">MMA</span>
                 </button>
+                <button class="sport-tab" data-sport="f1">
+                    <span class="sport-icon">🏎️</span>
+                    <span class="sport-name">Formula 1</span>
+                </button>
             </div>
         </section>
 
@@ -220,6 +255,7 @@
             <div class="hero-card spotlight-card" id="match-spotlight">
                 <div class="spotlight-header">
                     <span class="spotlight-league" id="spotlight-league">UEFA Champions League</span>
+                    <span class="story-tag" id="story-tag" data-i18n="story.tag" hidden>⭐ Story of the Week</span>
                     <div class="live-status-pill">
                         <span class="live-dot-pulse"></span>
                         <span class="live-text">LIVE</span>
@@ -262,6 +298,7 @@
                     </div>
                 </div>
                 
+                <div class="story-reason" id="story-reason" hidden></div>
                 <div class="spotlight-details">
                     <div class="scorers home-scorers" id="spotlight-home-scorers">
                         <div class="scorer-item">⚽ 12' Martin Ødegaard</div>
@@ -275,7 +312,16 @@
                 <div class="spotlight-actions">
                     <button class="btn btn-watch-live btn-icon" id="watch-live-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                        Watch Live
+                        <span data-i18n="action.watch">Watch Live</span>
+                    </button>
+                    <a class="btn btn-ghost-icon" id="spotlight-story-btn" hidden><span>📰 Preview</span></a>
+                    <button class="btn btn-ghost-icon" id="share-match-btn" title="Share this match" data-i18n-title="sh.title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        <span>Share</span>
+                    </button>
+                    <button class="btn btn-ghost-icon" id="add-calendar-btn" title="Add to calendar (.ics)" data-i18n-title="cal.title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span>.ICS</span>
                     </button>
                 </div>
             </div>
@@ -284,7 +330,10 @@
             <div class="hero-card scorers-card">
                 <div class="card-header-row">
                     <h3>Top Scorers</h3>
-                    <a href="#" class="view-all-link">View All</a>
+                    <div class="segmented" role="tablist" aria-label="Leaders category">
+                        <button class="segmented-btn active" data-leaders-cat="goals" role="tab" aria-selected="true">Goals</button>
+                        <button class="segmented-btn" data-leaders-cat="assists" role="tab" aria-selected="false">Assists</button>
+                    </div>
                 </div>
                 <!-- Rows populated by JS: ESPN golden boot in Live API mode, mock data otherwise -->
                 <div class="scorers-list" id="scorers-list"></div>
@@ -310,7 +359,7 @@
                         <a href="#" class="view-all-link">View All</a>
                     </div>
                     <div class="leagues-list">
-                        <div class="league-row active" data-league-id="EPL">
+                        <div class="league-row" data-league-id="EPL">
                             <div class="league-info">
                                 <span class="league-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
                                 <span class="league-name">Premier League</span>
@@ -378,6 +427,7 @@
                         </div>
                     </div>
                     
+                    <div class="date-strip" id="date-strip" aria-label="Match dates"></div>
                     <div class="matches-list" id="matches-container">
                         <!-- Matches injected here dynamically by JS -->
                     </div>
@@ -398,6 +448,9 @@
                             <button class="standings-tab active" data-standing-league="EPL">EPL</button>
                             <button class="standings-tab" data-standing-league="LaLiga">La Liga</button>
                             <button class="standings-tab" data-standing-league="SerieA">Serie A</button>
+                            <button class="standings-tab" data-standing-league="UCL">UCL</button>
+                            <button class="standings-tab" data-standing-league="Bundesliga">Bundesliga</button>
+                            <button class="standings-tab" data-standing-league="Ligue1">Ligue 1</button>
                         </div>
                     </div>
                     
@@ -553,33 +606,35 @@
                 <div class="footer-links-col">
                     <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">Live Scores</a></li>
-                        <li><a href="#">Fixtures</a></li>
-                        <li><a href="#">News</a></li>
-                        <li><a href="#">Teams</a></li>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#live">Live Scores</a></li>
+                        <li><a href="index.html#fixtures">Fixtures</a></li>
+                        <li><a href="index.html#news">News</a></li>
+                        <li><a href="index.html#teams">Teams</a></li>
+                        <li><a href="standings.html">Standings</a></li>
+                        <li><a href="previews.html">Previews</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-links-col">
                     <h4>Leagues</h4>
                     <ul>
-                        <li><a href="#">Premier League</a></li>
-                        <li><a href="#">La Liga</a></li>
-                        <li><a href="#">Serie A</a></li>
-                        <li><a href="#">Champions League</a></li>
-                        <li><a href="#">Bundesliga</a></li>
+                        <li><a href="index.html#league-EPL">Premier League</a></li>
+                        <li><a href="index.html#league-LaLiga">La Liga</a></li>
+                        <li><a href="index.html#league-SerieA">Serie A</a></li>
+                        <li><a href="index.html#league-UCL">Champions League</a></li>
+                        <li><a href="index.html#league-Bundesliga">Bundesliga</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-links-col">
                     <h4>Support</h4>
                     <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Use</a></li>
-                        <li><a href="#">FAQ</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="about.html#contact">Contact Us</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms of Use</a></li>
+                        <li><a href="about.html#faq">FAQ</a></li>
                     </ul>
                 </div>
                 
@@ -703,7 +758,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2026 ScoreHub. All Rights Reserved.</p>
+                <p>&copy; 2026 ScoreHub. All Rights Reserved. &middot; Sports data: ESPN, Jolpica F1.</p>
                 <p>Made with <span class="heart-icon">&hearts;</span> for sports fans</p>
             </div>
         </footer>
@@ -744,13 +799,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="chat-ticker-container">
+                    <div class="match-centre-tabs" role="tablist" aria-label="Match centre views">
+                        <button class="mc-tab active" data-mc-tab="commentary" role="tab" aria-selected="true">Commentary</button>
+                        <button class="mc-tab" data-mc-tab="timeline" role="tab" aria-selected="false">Timeline</button>
+                        <button class="mc-tab" data-mc-tab="lineups" role="tab" aria-selected="false">Lineups</button>
+                    </div>
+                    <div class="chat-ticker-container mc-pane" id="mc-pane-commentary">
                         <h4>Live Commentary</h4>
                         <div class="commentary-list" id="commentary-list">
                             <p><strong>[72']</strong> Arsenal keeps possession in the middle third.</p>
                             <p><strong>[70']</strong> Substitution Chelsea: Mudryk replaces Sterling.</p>
                             <p><strong>[68']</strong> Yellow Card: Cole Palmer (Chelsea) for a tactical foul.</p>
                         </div>
+                    </div>
+                    <div class="chat-ticker-container mc-pane" id="mc-pane-timeline" hidden>
+                        <h4>Key Events</h4>
+                        <div class="timeline-list" id="timeline-list"></div>
+                    </div>
+                    <div class="chat-ticker-container mc-pane" id="mc-pane-lineups" hidden>
+                        <h4>Lineups</h4>
+                        <div class="lineups-grid" id="lineups-grid"></div>
                     </div>
                 </div>
             </div>
@@ -785,5 +853,7 @@
 
     <!-- Script Entry -->
     <script src="app.js"></script>
+    <script src="i18n.js"></script>
+    <script src="pwa.js"></script>
 </body>
 </html>

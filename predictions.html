@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <title>Predictions — ScoreHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
+</head>
+<body>
+    <div class="app-container legal-page">
+        <div class="legal-header">
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
+        </div>
+
+        <main class="card legal-card">
+            <h1>Predictions</h1>
+            <p class="legal-updated">Pick scores on upcoming fixtures. Exact score = 3 pts &middot; correct outcome = 1 pt. Picks lock at kickoff and settle automatically. <a href="previews.html" style="color:var(--primary);">Browse all previews &rarr;</a></p>
+            <div class="pred-scorebar" id="pred-scorebar" hidden></div>
+            <div class="pred-demo window-strip" id="pred-demo" hidden>
+                <span>⚽ No upcoming fixtures found — showing demo matches so you can try it out.</span>
+                <button id="pred-simulate" class="btn btn-primary btn-sm">Simulate results</button>
+            </div>
+            <div class="chip-row" id="pred-chips">
+                <button class="standings-tab active" data-league="All">All</button>
+                <button class="standings-tab" data-league="EPL">Premier League</button>
+                <button class="standings-tab" data-league="LaLiga">La Liga</button>
+                <button class="standings-tab" data-league="SerieA">Serie A</button>
+                <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
+                <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
+                <button class="standings-tab" data-league="UCL">Champions League</button>
+            </div>
+            <div id="pred-list" class="pred-list">
+                <p class="loading-note">Loading upcoming fixtures&hellip;</p>
+            </div>
+            <div class="pred-subrow">
+                <h2 class="pred-sub">Your results</h2>
+                <button id="pred-clear" class="link-btn">Reset all</button>
+            </div>
+            <div id="pred-results" class="pred-results">
+                <p class="loading-note">No settled predictions yet — come back after kickoff.</p>
+            </div>
+        </main>
+
+        <footer class="legal-footer">
+            <a href="index.html">Home</a>
+            <a href="transfers.html">Transfers</a>
+            <a href="predictions.html">Predictions</a>
+            <a href="shop.html">Shop</a>
+            <a href="standings.html">Standings</a>
+            <a href="previews.html">Previews</a>
+            <a href="about.html">About</a>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Use</a>
+            <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
+        </footer>
+    </div>
+    <script src="predictions.js"></script>
+    <script src="i18n.js"></script>
+    <script src="pwa.js"></script>
+</body>
+</html>

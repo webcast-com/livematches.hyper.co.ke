@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <title>Standings — ScoreHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
+</head>
+<body>
+    <div class="app-container legal-page">
+        <div class="legal-header">
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
+        </div>
+
+        <main class="card legal-card">
+            <h1>Standings</h1>
+            <p class="legal-updated">Complete tables — every team, updated live on matchdays. Data: ESPN.</p>
+            <div class="chip-row" id="standings-chips">
+                <button class="standings-tab active" data-league="EPL">Premier League</button>
+                <button class="standings-tab" data-league="LaLiga">La Liga</button>
+                <button class="standings-tab" data-league="SerieA">Serie A</button>
+                <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
+                <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
+                <button class="standings-tab" data-league="UCL">Champions League</button>
+            </div>
+            <div id="standings-table">
+                <p class="loading-note">Loading table&hellip;</p>
+            </div>
+            <div id="standings-error" class="window-strip" hidden>
+                Couldn't load this table. Check your connection and try again.
+                <button id="standings-retry" class="btn btn-primary btn-sm" style="margin-left:8px;">Retry</button>
+            </div>
+        </main>
+
+        <footer class="legal-footer">
+            <a href="index.html">Home</a>
+            <a href="transfers.html">Transfers</a>
+            <a href="predictions.html">Predictions</a>
+            <a href="shop.html">Shop</a>
+            <a href="standings.html">Standings</a>
+            <a href="previews.html">Previews</a>
+            <a href="about.html">About</a>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Use</a>
+            <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
+        </footer>
+    </div>
+    <script src="standings.js"></script>
+    <script src="i18n.js"></script>
+    <script src="pwa.js"></script>
+</body>
+</html>
