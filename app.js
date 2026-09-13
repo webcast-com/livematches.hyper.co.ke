@@ -1106,6 +1106,7 @@ async function loadAPIMatches() {
 
     // Update live match counter badge
     const liveCount = apiMatches.filter(m => m.status === "live").length;
+    try{ updateHomeSEO(window._lastMatches || []); }catch(e){}
     const badge = document.getElementById("live-match-count-badge");
     const statNum = document.getElementById("stat-live-matches");
     if (badge) badge.textContent = `${liveCount || apiMatches.length} Matches (API)`;
@@ -1193,7 +1194,8 @@ function setApiMode(enable) {
         if (statusBar) statusBar.classList.remove("visible");
 
         // Restore simulation counters
-        const badge = document.getElementById("live-match-count-badge");
+        try{ updateHomeSEO(window._lastMatches || []); }catch(e){}
+    const badge = document.getElementById("live-match-count-badge");
         const statNum = document.getElementById("stat-live-matches");
         if (badge) badge.textContent = "54 Matches Live Now";
         if (statNum) statNum.textContent = "54";
@@ -2115,6 +2117,7 @@ function renderHighlights() {
         track.appendChild(a);
     });
 }
+    try{ updateHighlightsSEO(liveHighlights); }catch(e){}
 
 // Render Matches List
 // --- FIXTURES CALENDAR (ESPN scoreboard ?dates= support) ---
@@ -2631,6 +2634,8 @@ function renderMatches() {
         if (!groups.has(key)) groups.set(key, { fmt: fmt || { key: "today", label: "Today", short: "Today" }, matches: [] });
         groups.get(key).matches.push(m);
     });
+    try{ window._lastMatches = matches; }catch(e){}
+    try{ updateHomeSEO(matches); }catch(e){}
 
     const sortedGroupKeys = [...groups.keys()].sort((a,b) => {
         if (a === "today") return -1;
@@ -3759,6 +3764,40 @@ function init() {
 
 // Start everything when DOM is ready
 document.addEventListener("DOMContentLoaded", init);
+
+
+function updateHomeSEO(matches) {
+    try {
+        if (!window.SEO || !matches || !matches.length) return;
+        const items = matches.slice(0, 10).map((m,i) => ({
+            name: (m.home && m.home.name ? m.home.name : 'Home') + ' vs ' + (m.away && m.away.name ? m.away.name : 'Away'),
+            url: 'https://livematches.hyper.co.ke/match.html?league=' + encodeURIComponent(m.league||'eng.1') + '&id=' + encodeURIComponent(m.id||'') + '&date=' + encodeURIComponent(m.dateYmd||'')
+        }));
+        SEO.itemList(items, 'Live Football Matches Today');
+        SEO.breadcrumb([
+            { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+            { name: 'Live Scores', url: 'https://livematches.hyper.co.ke/#live' }
+        ]);
+    } catch(e) {}
+}
+
+function updateHighlightsSEO(highlights) {
+    try {
+        if (!window.SEO || !highlights || !highlights.length) return;
+        // Set VideoObject for first highlight as example
+        const first = highlights[0];
+        if (first && first.video) {
+            SEO.videoObject({
+                name: first.title || 'Football Highlight',
+                description: first.description || 'Watch latest football highlights',
+                thumbnailUrl: first.thumb || first.image || 'https://livematches.hyper.co.ke/icon-512.png',
+                uploadDate: first.date || new Date().toISOString(),
+                contentUrl: first.video,
+                embedUrl: first.video
+            });
+        }
+    } catch(e) {}
+}
 
 window.__rerenderLang = function () {
     try { refreshApiModeText(); } catch (e) {}

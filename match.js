@@ -422,7 +422,36 @@ async function bootMatch() {
     const hs = hc.score != null ? parseInt(hc.score, 10) : null;
     const as = ac.score != null ? parseInt(ac.score, 10) : null;
     const st = (ev.status && ev.status.type) || {};
-    try { document.title = `${H.name} ${hs != null ? hs + "–" + as + " " : "vs "}${A.name} — ScoreHub`; } catch (e) {}
+    try { 
+        const seoTitle = `${H.name} ${hs != null ? hs + "–" + as + " " : "vs "}${A.name} Live Score - ${leagueName} | ScoreHub`;
+        document.title = seoTitle;
+        if (window.SEO) {
+            const isLive = st.state === "in";
+            SEO.setTitle(seoTitle);
+            SEO.setDescription(`${H.name} vs ${A.name} live score ${hs != null ? hs + '-' + as : ''} in ${leagueName}. Kickoff ${formatKickoffLong(ev.date)}${venue ? ' at ' + venue : ''}. Stats, commentary, timeline, lineups.`);
+            SEO.setCanonical(window.location.href.split('#')[0]);
+            SEO.setImage(H.logo || A.logo || '');
+            SEO.setKeywords([H.name, A.name, leagueName, 'live score', 'stats', 'lineups', 'ScoreHub']);
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: leagueName, url: `https://livematches.hyper.co.ke/standings.html?league=${league}` },
+                { name: `${H.name} vs ${A.name}`, url: window.location.href.split('#')[0] }
+            ]);
+            SEO.sportsEvent({
+                name: `${H.name} vs ${A.name}`,
+                description: `${H.name} vs ${A.name} in ${leagueName}`,
+                startDate: ev.date,
+                venue: venue,
+                league: leagueName,
+                homeTeam: H.name,
+                awayTeam: A.name,
+                homeLogo: H.logo,
+                awayLogo: A.logo,
+                sport: 'Soccer',
+                eventStatus: isLive ? 'https://schema.org/EventLive' : st.completed ? 'https://schema.org/EventCompleted' : 'https://schema.org/EventScheduled'
+            });
+        }
+    } catch (e) {}
 
     // Parallel fetches: summary + table
     let summary = null, table = [];

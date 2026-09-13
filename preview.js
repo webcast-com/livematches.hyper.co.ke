@@ -503,7 +503,44 @@ async function bootPreview() {
         venue, venueShort: venueFull || "home",
         home: h, away: a, oddsFav
     });
-    try { document.title = `${H.name} vs ${A.name} preview — ScoreHub`; } catch (e) {}
+    try { 
+        const seoTitle = `${H.name} vs ${A.name} Preview - ${leagueName} Prediction & Form | ScoreHub`;
+        document.title = seoTitle;
+        if (window.SEO) {
+            SEO.setTitle(seoTitle);
+            SEO.setDescription(`${pv.standfirst} ${pv.paragraphs[0] ? pv.paragraphs[0].slice(0,120) : ''} Kickoff ${formatKickoffLong(ev.date)} at ${venue || 'TBD'}. Form, stats and prediction.`);
+            SEO.setCanonical(window.location.href.split('#')[0]);
+            SEO.setImage(H.logo || A.logo || '');
+            SEO.setKeywords([H.name, A.name, leagueName, 'preview', 'prediction', 'form', 'ScoreHub']);
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: 'Previews', url: 'https://livematches.hyper.co.ke/previews.html' },
+                { name: `${H.name} vs ${A.name}`, url: window.location.href.split('#')[0] }
+            ]);
+            SEO.sportsEvent({
+                name: `${H.name} vs ${A.name}`,
+                description: pv.standfirst,
+                startDate: ev.date,
+                venue: venue,
+                league: leagueName,
+                homeTeam: H.name,
+                awayTeam: A.name,
+                homeLogo: H.logo,
+                awayLogo: A.logo,
+                sport: 'Soccer',
+                eventStatus: 'https://schema.org/EventScheduled'
+            });
+            SEO.newsArticle({
+                type: 'NewsArticle',
+                headline: pv.headline,
+                description: pv.standfirst,
+                image: H.logo || A.logo,
+                datePublished: new Date().toISOString(),
+                author: 'ScoreHub',
+                url: window.location.href.split('#')[0]
+            });
+        }
+    } catch (e) {}
     box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span> <span class="league-tag">${t("preview.tag")}</span>`
         + `<h1 style="margin-top:10px;">${esc(pv.headline)}</h1>`
         + `<p class="legal-updated">${esc(formatKickoffLong(ev.date))} · ${esc(countdownText(ev.date, Date.now()))}${venue ? ` · ${esc(venue)}` : ""}</p>`

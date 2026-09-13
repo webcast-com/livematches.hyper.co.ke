@@ -175,6 +175,23 @@ async function fetchHubTable(slug) {
 }
 
 async function bootHub() {
+    try {
+        if (window.SEO) {
+            SEO.setTitle('Match Previews & Reports - Premier League, LaLiga, UCL | ScoreHub');
+            SEO.setDescription('All match previews and reports: big matches, form, predictions and full-time results across Premier League, LaLiga, Serie A, Bundesliga, Champions League.');
+            SEO.setCanonical('https://livematches.hyper.co.ke/previews.html');
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: 'Previews & Reports', url: 'https://livematches.hyper.co.ke/previews.html' }
+            ]);
+            SEO.itemList([
+                { name: 'Premier League Previews', url: 'https://livematches.hyper.co.ke/preview.html?league=eng.1' },
+                { name: 'LaLiga Previews', url: 'https://livematches.hyper.co.ke/preview.html?league=esp.1' },
+                { name: 'Champions League Previews', url: 'https://livematches.hyper.co.ke/preview.html?league=uefa.champions' }
+            ], 'Football Previews');
+        }
+    } catch(e){}
+
     const bigBox = document.getElementById("hub-big");
     const repBox = document.getElementById("hub-reports");
     const allBox = document.getElementById("hub-all");
