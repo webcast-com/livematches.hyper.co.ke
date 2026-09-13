@@ -741,6 +741,10 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     color: var(--text-secondary);
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .live-status-pill {
@@ -751,6 +755,7 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     border: 1px solid rgba(239, 68, 68, 0.15);
     padding: 3px 8px;
     border-radius: 12px;
+    flex-shrink: 0;
 }
 
 .live-status-pill .live-text {
@@ -805,6 +810,7 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    min-width: 0;
 }
 
 .score-block {
@@ -891,6 +897,8 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
     margin-bottom: 16px;
 }
 
@@ -1278,6 +1286,10 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
 
 .match-card-league {
     font-weight: 600;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .match-card-time {
@@ -1285,6 +1297,8 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     align-items: center;
     gap: 6px;
     font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .match-card-time.live {
@@ -1307,6 +1321,9 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
 .match-card-team-info.away {
     justify-content: flex-end;
 }
+.match-card-team-info .player-avatar-mini {
+    flex-shrink: 0;
+}
 
 .match-team-logo-small {
     width: 22px;
@@ -1319,6 +1336,7 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .match-card-scores {
@@ -1496,6 +1514,13 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+}
+.table-team-cell > span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .table-team-logo {
@@ -2520,6 +2545,9 @@ a.news-card:hover .news-title {
     font-weight: 700;
     margin-bottom: 8px;
 }
+.commentary-list p {
+    overflow-wrap: anywhere;
+}
 
 .commentary-list {
     max-height: 100px;
@@ -2726,7 +2754,7 @@ a.news-card:hover .news-title {
     min-width: 34px;
     flex-shrink: 0;
 }
-.timeline-text { flex: 1; }
+.timeline-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .timeline-empty {
     font-size: 12px;
     color: var(--text-muted);
@@ -2759,6 +2787,12 @@ a.news-card:hover .news-title {
     font-size: 11.5px;
     padding: 4px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+.lineup-player span:first-child {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .lineup-pos {
     color: var(--text-muted);
@@ -3029,6 +3063,9 @@ body.modal-open {
     }
     .league-row .teams-count {
         display: none;
+    }
+    .league-row .league-name {
+        white-space: nowrap;
     }
     .standings-stats-section {
         grid-column: span 1;
@@ -3390,6 +3427,23 @@ body.modal-open {
     .match-team-name {
         font-size: 11.5px;
     }
+    .match-card-scoreboard {
+        gap: 8px;
+    }
+    /* F1 rows: driver + points only on very small screens */
+    .f1-team {
+        display: none;
+    }
+    .f1-row {
+        gap: 8px;
+        padding: 8px;
+    }
+    .f1-hero {
+        padding: 14px;
+    }
+    .f1-race-name {
+        font-size: 16px;
+    }
 }
 
 /* Respect reduced-motion preferences for decorative animations */
@@ -3612,7 +3666,7 @@ body.modal-open {
     flex-shrink: 0;
     animation: pulse-orange 2s infinite;
 }
-.net-banner-text { flex: 1; }
+.net-banner-text { flex: 1; min-width: 0; }
 .net-banner-retry {
     background: transparent;
     border: 1px solid currentColor;
