@@ -1956,6 +1956,16 @@ function previewLinkHTML(m) {
     return `<a class="stat-capsule preview-link" href="preview.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match preview">📰 Preview</a>`;
 }
 
+function canReportMatch(m) {
+    return !!(isApiMode && m && m.sport === "football" && m.espnEventId && m.leagueSlug && m.date
+        && matchYmd(m.date) && m.halftimeScore);
+}
+
+function reportLinkHTML(m) {
+    if (!canReportMatch(m)) return "";
+    return `<a class="stat-capsule report-link" href="report.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match report">📝 Report</a>`;
+}
+
 function renderMatches() {
     // Formula 1 renders its own view inside the scores card
     const scoresSection = document.querySelector(".live-scores-section");
@@ -2038,6 +2048,7 @@ function renderMatches() {
             <div class="match-card-footer">
                 <div class="match-stat-capsules">
                     ${previewLinkHTML(match)}
+                    ${reportLinkHTML(match)}
                     ${match.odds ? `<span class="stat-capsule" title="Odds ${match.homeCode}/${match.awayCode}/Draw via ${match.odds.provider}">🎲 ${oddsSummary(match.odds)}</span>` : ""}
                     <span class="stat-capsule">⚽ ${match.homeScore + match.awayScore} Goals</span>
                     <span class="stat-capsule">📊 ${match.stats.possession}% Poss</span>
@@ -2053,7 +2064,7 @@ function renderMatches() {
         
         // Click to spotlight card (excluding favoriting star click)
         card.addEventListener("click", (e) => {
-            if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link")) return;
+            if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link")) return;
             setSpotlightMatch(match.id);
         });
         

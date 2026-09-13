@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Standings — ScoreHub</title>
+    <title>Match Report — ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
@@ -15,24 +15,8 @@
             <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
         </div>
 
-        <main class="card legal-card">
-            <h1>Standings</h1>
-            <p class="legal-updated">Complete tables — every team, updated live on matchdays. Data: ESPN.</p>
-            <div class="chip-row" id="standings-chips">
-                <button class="standings-tab active" data-league="EPL">Premier League</button>
-                <button class="standings-tab" data-league="LaLiga">La Liga</button>
-                <button class="standings-tab" data-league="SerieA">Serie A</button>
-                <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
-                <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
-                <button class="standings-tab" data-league="UCL">Champions League</button>
-            </div>
-            <div id="standings-table">
-                <p class="loading-note">Loading table&hellip;</p>
-            </div>
-            <div id="standings-error" class="window-strip" hidden>
-                Couldn't load this table. Check your connection and try again.
-                <button id="standings-retry" class="btn btn-primary btn-sm" style="margin-left:8px;">Retry</button>
-            </div>
+        <main class="card legal-card" id="report-body">
+            <p class="loading-note">Writing up the match&hellip;</p>
         </main>
 
         <footer class="legal-footer">
@@ -48,6 +32,6 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="standings.js"></script>
+    <script src="report.js"></script>
 </body>
 </html>
