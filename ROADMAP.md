@@ -131,3 +131,4 @@ experience; the backend only adds sync + out-of-band alerts.
 - **2026-09-12 — PR-C "Time travel + new sport"**: 1.4 fixtures calendar (?dates=), 3.1 Formula 1 tab (Jolpica API), 3.4 flag CDN with emoji fallback.
 - **2026-09-13 — Mobile hardening pass**: flex ellipsis/overflow fixes header-to-footer (match cards, spotlight, standings, timeline, lineups, F1 rows).
 - **2026-09-13 — Team logos + legal/support pages**: real ESPN club logos overlaid on generated badges (match cards + spotlight, onerror fallback), footer Support/Leagues/Quick-Links wired to terms/privacy/about + index hash routes, brand logo.svg + favicon, data credit.
+- **2026-09-13 — More-menu real pages**: Transfer Centre (live ESPN news, keyword-filtered + league chips), Predictions game (upcoming fixtures, localStorage picks, auto-settle scoring, demo mode), Shop kit finder (14 official stores + Jumia Kenya, search/filter); header dropdown wired, `.card` surface added (also styles legal pages).

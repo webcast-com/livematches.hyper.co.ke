@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop — ScoreHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
+</head>
+<body>
+    <div class="app-container legal-page">
+        <div class="legal-header">
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
+        </div>
+
+        <main class="card legal-card">
+            <h1>Kit Finder</h1>
+            <p class="legal-updated">Official club stores and trusted retailers, one tap away. ScoreHub doesn't sell anything — you buy direct.</p>
+            <input class="shop-search" id="shop-search" type="search" placeholder="Search clubs… (e.g. Arsenal)" aria-label="Search clubs">
+            <div class="chip-row" id="shop-chips">
+                <button class="standings-tab active" data-league="All">All</button>
+                <button class="standings-tab" data-league="EPL">Premier League</button>
+                <button class="standings-tab" data-league="LaLiga">La Liga</button>
+                <button class="standings-tab" data-league="SerieA">Serie A</button>
+                <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
+                <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
+            </div>
+            <div class="shop-grid" id="shop-grid">
+                <div class="shop-card" data-league="EPL" data-name="arsenal gunners">
+                    <div class="player-avatar-mini shop-badge">ARS</div>
+                    <div class="shop-info"><strong>Arsenal</strong><span class="league-tag">Premier League</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://arsenaldirect.arsenal.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=arsenal+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="EPL" data-name="chelsea blues">
+                    <div class="player-avatar-mini shop-badge">CHE</div>
+                    <div class="shop-info"><strong>Chelsea</strong><span class="league-tag">Premier League</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://www.chelseamegastore.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=chelsea+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="EPL" data-name="liverpool reds">
+                    <div class="player-avatar-mini shop-badge">LIV</div>
+                    <div class="shop-info"><strong>Liverpool</strong><span class="league-tag">Premier League</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://store.liverpoolfc.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=liverpool+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="EPL" data-name="man city manchester city citizens">
+                    <div class="player-avatar-mini shop-badge">MCI</div>
+                    <div class="shop-info"><strong>Man City</strong><span class="league-tag">Premier League</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://shop.mancity.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=manchester+city+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="EPL" data-name="man united manchester united red devils">
+                    <div class="player-avatar-mini shop-badge">MUN</div>
+                    <div class="shop-info"><strong>Man United</strong><span class="league-tag">Premier League</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://store.manutd.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=manchester+united+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="EPL" data-name="tottenham spurs">
+                    <div class="player-avatar-mini shop-badge">TOT</div>
+                    <div class="shop-info"><strong>Tottenham</strong><span class="league-tag">Premier League</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://shop.tottenhamhotspur.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=tottenham+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="LaLiga" data-name="real madrid madridistas los blancos">
+                    <div class="player-avatar-mini shop-badge">RMA</div>
+                    <div class="shop-info"><strong>Real Madrid</strong><span class="league-tag">La Liga</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://shop.realmadrid.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=real+madrid+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="LaLiga" data-name="barcelona barca blaugrana">
+                    <div class="player-avatar-mini shop-badge">BAR</div>
+                    <div class="shop-info"><strong>Barcelona</strong><span class="league-tag">La Liga</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://store.fcbarcelona.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=barcelona+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="SerieA" data-name="juventus juve bianconeri">
+                    <div class="player-avatar-mini shop-badge">JUV</div>
+                    <div class="shop-info"><strong>Juventus</strong><span class="league-tag">Serie A</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://store.juventus.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=juventus+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="SerieA" data-name="milan ac milan rossoneri">
+                    <div class="player-avatar-mini shop-badge">MIL</div>
+                    <div class="shop-info"><strong>AC Milan</strong><span class="league-tag">Serie A</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://store.acmilan.com" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=milan+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="SerieA" data-name="inter internazionale nerazzurri">
+                    <div class="player-avatar-mini shop-badge">INT</div>
+                    <div class="shop-info"><strong>Inter</strong><span class="league-tag">Serie A</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://store.inter.it" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=inter+milan+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="Bundesliga" data-name="bayern munich bavarians">
+                    <div class="player-avatar-mini shop-badge">BAY</div>
+                    <div class="shop-info"><strong>Bayern Munich</strong><span class="league-tag">Bundesliga</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://fcbayern.com/shop/en" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=bayern+munich+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="Bundesliga" data-name="dortmund bvb borussia black yellow">
+                    <div class="player-avatar-mini shop-badge">BVB</div>
+                    <div class="shop-info"><strong>Dortmund</strong><span class="league-tag">Bundesliga</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://shop.bvb.de" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=dortmund+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card" data-league="Ligue1" data-name="psg paris saint-germain parisiens">
+                    <div class="player-avatar-mini shop-badge">PSG</div>
+                    <div class="shop-info"><strong>PSG</strong><span class="league-tag">Ligue 1</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://store.psg.fr" target="_blank" rel="noopener">Official store ↗</a>
+                        <a class="shop-alt" href="https://www.jumia.co.ke/catalog/?q=psg+jersey" target="_blank" rel="noopener">Jumia Kenya ↗</a>
+                    </div>
+                </div>
+                <div class="shop-card shop-wide" data-league="All" data-name="kenya jumia football mpesa m-pesa jersey jerseys boots ball">
+                    <div class="player-avatar-mini shop-badge">KE</div>
+                    <div class="shop-info"><strong>Jumia Kenya — football</strong><span class="league-tag">Kenya · M-Pesa friendly</span></div>
+                    <div class="shop-links">
+                        <a class="btn btn-primary btn-sm" href="https://www.jumia.co.ke/catalog/?q=football+jersey" target="_blank" rel="noopener">Shop football ↗</a>
+                    </div>
+                </div>
+            </div>
+            <p class="shop-note">Prices, shipping and availability vary by retailer — always check the store before ordering. ScoreHub is not affiliated with any club or retailer and earns nothing from these links. Spot a dead link? <a href="https://github.com/webcast-com/livematches.hyper.co.ke" target="_blank" rel="noopener">Tell us on GitHub</a>.</p>
+        </main>
+
+        <footer class="legal-footer">
+            <a href="index.html">Home</a>
+            <a href="transfers.html">Transfers</a>
+            <a href="predictions.html">Predictions</a>
+            <a href="shop.html">Shop</a>
+            <a href="about.html">About</a>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Use</a>
+            <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
+        </footer>
+    </div>
+    <script>
+    (function () {
+        var grid = document.getElementById("shop-grid");
+        var search = document.getElementById("shop-search");
+        var filter = "All";
+        function apply() {
+            var q = (search.value || "").toLowerCase().trim();
+            grid.querySelectorAll(".shop-card").forEach(function (card) {
+                var league = card.dataset.league || "";
+                var name = card.dataset.name || "";
+                var okLeague = filter === "All" || league === "All" || league === filter;
+                var okQuery = !q || name.indexOf(q) !== -1;
+                card.style.display = okLeague && okQuery ? "" : "none";
+            });
+        }
+        document.querySelectorAll("#shop-chips .standings-tab").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                document.querySelectorAll("#shop-chips .standings-tab").forEach(function (b) { b.classList.remove("active"); });
+                btn.classList.add("active");
+                filter = btn.dataset.league || "All";
+                apply();
+            });
+        });
+        search.addEventListener("input", apply);
+    })();
+    </script>
+</body>
+</html>
