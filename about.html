@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About — ScoreHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
+</head>
+<body>
+    <div class="app-container legal-page">
+        <div class="legal-header">
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
+        </div>
+
+        <main class="card legal-card">
+            <h1>About ScoreHub</h1>
+            <p class="legal-updated">Your front row seat to every match.</p>
+            <div class="legal-content">
+                <p>ScoreHub is a lightweight live-scores web app: football matches, standings, match timelines, F1 schedules — fast, free, and with no account required. It is a fan-built project and is not affiliated with any league, club or broadcaster.</p>
+
+                <h2>Features</h2>
+                <ul>
+                    <li>Live scores and fixtures across Europe's top leagues, with a match spotlight view.</li>
+                    <li>Standings, match timelines, lineups and league browsing.</li>
+                    <li>Formula 1 countdowns, results and standings.</li>
+                    <li>Simulation Mode for exploring the interface when no matches are live.</li>
+                    <li>Dark/light themes and favorites that stay in your own browser.</li>
+                </ul>
+
+                <h2>Data sources</h2>
+                <p>Scores and fixtures come from <a href="https://www.espn.com/" target="_blank" rel="noopener">ESPN</a>, Formula 1 data from <a href="https://jolpi.ca/" target="_blank" rel="noopener">Jolpica</a>, and league flags from <a href="https://flagcdn.com/" target="_blank" rel="noopener">Flagcdn</a>. Team names and crests belong to their respective owners and are shown for identification only.</p>
+
+                <h2 id="faq">FAQ</h2>
+                <h2>Where does the data come from?</h2>
+                <p>Your browser fetches scores directly from ESPN's public scoreboard endpoints and F1 data from Jolpica. See <a href="privacy.html">Privacy Policy</a> for details.</p>
+                <h2>What is Simulation Mode?</h2>
+                <p>A built-in demo mode that generates realistic-looking matches so you can explore timelines, lineups and standings even when nothing is live. Toggle it from the API/Simulation switch on the homepage.</p>
+                <h2>Do I need an account?</h2>
+                <p>No. Everything works without signing in. The login form on the homepage is a demo placeholder.</p>
+                <h2>Why is a match missing or delayed?</h2>
+                <p>Coverage depends on the upstream providers. Lower-profile matches may lack lineups, events or live updates — and all scores can lag the real action by a minute or two.</p>
+                <h2>Is there a mobile app?</h2>
+                <p>Not yet — but the site is designed mobile-first and works in any modern phone browser.</p>
+
+                <h2 id="contact">Contact Us</h2>
+                <p>Found a bug, want a league added, or have feedback? Open an issue on our public GitHub repository: <a href="https://github.com/webcast-com/livematches.hyper.co.ke" target="_blank" rel="noopener">webcast-com/livematches.hyper.co.ke</a>. Please don't include sensitive personal information in public reports.</p>
+            </div>
+        </main>
+
+        <footer class="legal-footer">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Use</a>
+            <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
+        </footer>
+    </div>
+</body>
+</html>

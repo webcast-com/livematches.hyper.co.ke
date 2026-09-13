@@ -2610,6 +2610,61 @@ a.news-card:hover .news-title {
 }
 .mc-pane[hidden] { display: none; }
 
+/* Real team logos overlaid on the generated badges (img removes itself if it fails) */
+.team-logo-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+.team-logo-wrap .player-avatar-mini { width: 100%; height: 100%; }
+img.team-logo-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.team-logo-shield { position: relative; }
+
+/* Legal / support pages */
+.legal-page { max-width: 880px; }
+.legal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.legal-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.legal-brand img { width: 34px; height: 34px; }
+.legal-brand span {
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.legal-card { margin-top: 20px; }
+.legal-card h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+.legal-updated { font-size: 12px; color: var(--text-muted); margin: 6px 0 18px; }
+.legal-content { display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; }
+.legal-content h2 { font-size: 15px; color: var(--text-primary); margin-top: 8px; }
+.legal-content h2:target { color: var(--primary); }
+.legal-content ul { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.legal-content a { color: var(--primary); }
+.legal-footer {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    padding: 26px 0 30px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.legal-footer a { color: var(--text-secondary); text-decoration: none; }
+.legal-footer a:hover { color: var(--primary); }
+@media (max-width: 480px) {
+    .legal-card h1 { font-size: 22px; }
+}
+
 /* Fixtures date strip */
 .date-strip {
     display: flex;

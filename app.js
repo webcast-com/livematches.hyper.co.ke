@@ -705,6 +705,28 @@ async function fetchESPNLeague(slug) {
     return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard${qs}`);
 }
 
+// Best-effort club logo URL from an ESPN team object (scoreboard shapes vary)
+function teamLogoOf(team) {
+    if (!team) return "";
+    if (Array.isArray(team.logos) && team.logos[0] && team.logos[0].href) return team.logos[0].href;
+    if (typeof team.logo === "string" && team.logo) return team.logo;
+    return "";
+}
+
+// Generated badge with the real logo overlaid (img removes itself on failure)
+function teamBadgeHTML(code, logo, px) {
+    const size = px || 20;
+    return `<span class="team-logo-wrap" style="width:${size}px;height:${size}px;">`
+        + `<span class="player-avatar-mini" style="font-size:8px;width:100%;height:100%;">${code}</span>`
+        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "")
+        + `</span>`;
+}
+
+function spotlightLogoHTML(code, color, logo) {
+    return generateTeamSVG(code, color)
+        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "");
+}
+
 // Convert ESPN event JSON → internal match object
 function parseESPNEvent(event, leagueInfo, leagueSlug) {
     const comp = event.competitions[0];
@@ -730,6 +752,8 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
     const awayColor = (away.team && away.team.color ? "#" + away.team.color : null)
         || TEAM_COLORS[awayTeam]
         || "#ef4444";
+    const homeLogo = teamLogoOf(home.team);
+    const awayLogo = teamLogoOf(away.team);
 
     // Match status
     const statusType = event.status && event.status.type ? event.status.type : {};
@@ -830,9 +854,11 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
         homeTeam,
         homeCode,
         homeColor,
+        homeLogo,
         awayTeam,
         awayCode,
         awayColor,
+        awayLogo,
         homeScore,
         awayScore,
         halftimeScore: halftimeScore || `${homeScore}-${awayScore}`,
@@ -1981,7 +2007,7 @@ function renderMatches() {
             <div class="match-card-scoreboard">
                 <div class="match-card-team-info">
                     <span class="match-team-name">${match.homeTeam}</span>
-                    <div class="player-avatar-mini" style="font-size: 8px; width: 20px; height: 20px;">${match.homeCode}</div>
+                    ${teamBadgeHTML(match.homeCode, match.homeLogo, 20)}
                 </div>
                 
                 <div class="match-card-scores">
@@ -1991,7 +2017,7 @@ function renderMatches() {
                 </div>
                 
                 <div class="match-card-team-info away">
-                    <div class="player-avatar-mini" style="font-size: 8px; width: 20px; height: 20px;">${match.awayCode}</div>
+                    ${teamBadgeHTML(match.awayCode, match.awayLogo, 20)}
                     <span class="match-team-name">${match.awayTeam}</span>
                 </div>
             </div>
@@ -2063,9 +2089,9 @@ function setSpotlightMatch(id) {
     setScoreSmooth(spotlightAwayScore, match.awayScore);
     spotlightHalftimeScore.innerText = match.halftimeScore;
     
-    // SVG Logos
-    spotlightHomeLogoContainer.innerHTML = generateTeamSVG(match.homeCode, match.homeColor);
-    spotlightAwayLogoContainer.innerHTML = generateTeamSVG(match.awayCode, match.awayColor);
+    // Club logos (generated shield underneath as fallback)
+    spotlightHomeLogoContainer.innerHTML = spotlightLogoHTML(match.homeCode, match.homeColor, match.homeLogo);
+    spotlightAwayLogoContainer.innerHTML = spotlightLogoHTML(match.awayCode, match.awayColor, match.awayLogo);
     
     // Set scorers list
     spotlightHomeScorers.innerHTML = "";
@@ -2923,6 +2949,24 @@ function initEventHandlers() {
         e.preventDefault();
         showNotification("Sign-up is disabled in this demo — log in with any email", true);
     });
+
+    // Footer deep links (index.html#live, #fixtures, #news, #teams, #leagues, #league-EPL…)
+    const handleHashRoute = () => {
+        const hash = (window.location.hash || "").replace("#", "");
+        if (!hash) return;
+        if (hash === "live") { setFilter("live"); setActiveNav(navLive); scrollToEl(".live-scores-section"); }
+        else if (hash === "fixtures") { setFilter("today"); setActiveNav(navFixtures); scrollToEl(".live-scores-section"); }
+        else if (hash === "news") { setActiveNav(navNews); scrollToEl(".sidebar-news"); }
+        else if (hash === "teams") { setActiveNav(navTeams); scrollToEl(".standings-card"); }
+        else if (hash === "leagues") { setActiveNav(navLeagues); scrollToEl(".sidebar-leagues"); }
+        else if (hash.indexOf("league-") === 0) {
+            const row = document.querySelector(`.league-row[data-league-id="${hash.slice(7)}"]`);
+            if (row) row.click();
+            else scrollToEl(".sidebar-leagues");
+        }
+    };
+    window.addEventListener("hashchange", handleHashRoute);
+    handleHashRoute();
 }
 
 // Apply the persisted theme (if any) before first render

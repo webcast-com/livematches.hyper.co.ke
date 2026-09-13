@@ -130,3 +130,4 @@ experience; the backend only adds sync + out-of-band alerts.
 - **2026-09-12 — PR-B "Match centre depth"**: 1.5 key-events timeline, 1.6 lineups, 1.7 share + .ics calendar export, 1.9 offline/stale-data banner.
 - **2026-09-12 — PR-C "Time travel + new sport"**: 1.4 fixtures calendar (?dates=), 3.1 Formula 1 tab (Jolpica API), 3.4 flag CDN with emoji fallback.
 - **2026-09-13 — Mobile hardening pass**: flex ellipsis/overflow fixes header-to-footer (match cards, spotlight, standings, timeline, lineups, F1 rows).
+- **2026-09-13 — Team logos + legal/support pages**: real ESPN club logos overlaid on generated badges (match cards + spotlight, onerror fallback), footer Support/Leagues/Quick-Links wired to terms/privacy/about + index hash routes, brand logo.svg + favicon, data credit.
