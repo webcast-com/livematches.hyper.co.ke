@@ -4107,3 +4107,65 @@ body.modal-open {
     line-height: 1;
 }
 #install-btn svg { display: block; }
+
+/* ==========================================
+   MATCH CENTRE PAGE (match.html)
+   ========================================== */
+.match-hero {
+    margin-top: 16px;
+    border: 1px solid rgba(0, 242, 254, 0.25);
+    background: linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(79, 172, 254, 0.08));
+    border-radius: 14px;
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+.match-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+.match-hero-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+}
+.match-hero-name {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    min-width: 0;
+    text-align: center;
+}
+.match-hero-score {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--primary);
+    padding: 4px 14px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+.match-hero-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+.match-open-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    text-align: center;
+}
+@media (max-width: 560px) {
+    .match-hero-name { font-size: 15px; }
+    .match-hero-score { font-size: 22px; }
+    .match-hero-logo { width: 32px; height: 32px; }
+}

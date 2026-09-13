@@ -1636,8 +1636,7 @@ function renderTicker() {
         `;
         
         card.addEventListener("click", () => {
-            storyLocked = true;
-            setSpotlightMatch(match.id);
+            openMatchPage(match);
         });
         
         tickerSlider.appendChild(card);
@@ -1964,6 +1963,18 @@ function matchYmd(iso) {
     return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
 }
 
+function matchPageUrl(m) {
+    if (m && m.leagueSlug && m.espnEventId && m.date) {
+        const ymd = matchYmd(m.date);
+        if (ymd) return `match.html?league=${encodeURIComponent(m.leagueSlug)}&id=${encodeURIComponent(m.espnEventId)}&date=${ymd}`;
+    }
+    return `match.html`;
+}
+function openMatchPage(m) {
+    try { sessionStorage.setItem("scorehub-match", JSON.stringify(m)); } catch (e) {}
+    window.location.href = matchPageUrl(m);
+}
+
 function canPreviewMatch(m) {
     return !!(isApiMode && m && m.sport === "football" && m.espnEventId && m.leagueSlug && m.date
         && matchYmd(m.date) && new Date(m.date).getTime() > Date.now());
@@ -2231,11 +2242,10 @@ function renderMatches() {
             </div>
         `;
         
-        // Click to spotlight card (excluding favoriting star click)
+        // Click to open dedicated match page (excluding fav star / preview/report links)
         card.addEventListener("click", (e) => {
             if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link")) return;
-            storyLocked = true;
-            setSpotlightMatch(match.id);
+            openMatchPage(match);
         });
         
         // Favorite toggle click handler
@@ -2934,11 +2944,10 @@ function initEventHandlers() {
                     <span class="search-sport-badge">${m.sport}</span>
                 `;
                 item.addEventListener("click", () => {
-                    setSpotlightMatch(m.id);
                     searchInput.value = "";
                     searchResults.style.display = "none";
                     searchInput.blur();
-                    scrollToEl("#match-spotlight");
+                    openMatchPage(m);
                 });
                 searchResults.appendChild(item);
             });
@@ -3116,9 +3125,18 @@ function initEventHandlers() {
         scrollToEl(".stats-comparison-card");
     });
 
-    // Spotlight Share / Add-to-calendar buttons
+    // Spotlight Share / Add-to-calendar buttons + click spotlight to open match page
     if (shareMatchBtn) shareMatchBtn.addEventListener("click", shareSpotlightMatch);
     if (addCalendarBtn) addCalendarBtn.addEventListener("click", downloadSpotlightICS);
+    const spotlightCard = document.getElementById("match-spotlight");
+    if (spotlightCard) {
+        spotlightCard.style.cursor = "pointer";
+        spotlightCard.addEventListener("click", (e) => {
+            if (e.target.closest("button") || e.target.closest("a") || e.target.closest(".btn-star-fav")) return;
+            const m = spotlightMatch();
+            if (m) openMatchPage(m);
+        });
+    }
 
     // Header star → jump to favorited matches
     if (favsToggleTopBtn) favsToggleTopBtn.addEventListener("click", () => {
