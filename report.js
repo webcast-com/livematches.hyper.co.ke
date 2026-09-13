@@ -485,7 +485,44 @@ async function bootReport() {
         goals: parsed.goals, reds: parsed.reds, yellows: parsed.yellows,
         stats: { h: parseSideStats(hc), a: parseSideStats(ac) }
     });
-    try { document.title = `${H.name} ${hs}–${as} ${A.name} report — ScoreHub`; } catch (e) {}
+    try { 
+        const seoTitle = `${H.name} ${hs}–${as} ${A.name} Report - ${leagueName} Result, Goals & Stats | ScoreHub`;
+        document.title = seoTitle;
+        if (window.SEO) {
+            SEO.setTitle(seoTitle);
+            SEO.setDescription(`${rp.standfirst} ${rp.paragraphs[0] ? rp.paragraphs[0].slice(0,120) : ''} Final score ${hs}-${as}.`);
+            SEO.setCanonical(window.location.href.split('#')[0]);
+            SEO.setImage(H.logo || A.logo || '');
+            SEO.setKeywords([H.name, A.name, leagueName, 'report', 'result', `${hs}-${as}`, 'goals', 'ScoreHub']);
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: 'Reports', url: 'https://livematches.hyper.co.ke/previews.html' },
+                { name: `${H.name} ${hs}-${as} ${A.name}`, url: window.location.href.split('#')[0] }
+            ]);
+            SEO.sportsEvent({
+                name: `${H.name} vs ${A.name}`,
+                description: rp.standfirst,
+                startDate: ev.date,
+                venue: venue,
+                league: leagueName,
+                homeTeam: H.name,
+                awayTeam: A.name,
+                homeLogo: H.logo,
+                awayLogo: A.logo,
+                sport: 'Soccer',
+                eventStatus: 'https://schema.org/EventCompleted'
+            });
+            SEO.newsArticle({
+                type: 'NewsArticle',
+                headline: rp.headline,
+                description: rp.standfirst,
+                image: H.logo,
+                datePublished: ev.date,
+                author: 'ScoreHub',
+                url: window.location.href.split('#')[0]
+            });
+        }
+    } catch (e) {}
     const logoImg = (u) => u ? `<img class="pred-logo" style="width:26px;height:26px;" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">` : "";
     const nextBox = (next.H || next.A)
         ? `<div class="report-next"><h3>${t("report.next")}</h3>`

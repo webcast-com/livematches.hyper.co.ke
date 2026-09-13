@@ -6,21 +6,22 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <title>Football News Story | ScoreHub</title>
+    <title>Live Match Centre - Score & Stats | ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
-    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
-    <meta name="description" content="Latest football news, stories and updates from worldwide leagues. Read on ScoreHub with related stories and live event scorecard.">
-    <meta name="keywords" content="football news, soccer news, latest news, ScoreHub">
-    <link rel="canonical" href="https://livematches.hyper.co.ke/story.html">
-    <meta property="og:title" content="Football News Story | ScoreHub">
-    <meta property="og:description" content="Latest football news, stories and updates from worldwide leagues. Read on ScoreHub with related stories and live event scorecard.">
-    <meta property="og:url" content="https://livematches.hyper.co.ke/story.html">
-    <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
-    <meta property="og:type" content="article">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ScoreHub">
+    <meta property="og:title" content="Live Match Centre - Score & Stats | ScoreHub">
+    <meta property="og:description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Football News Story | ScoreHub">
-    <meta name="twitter:description" content="Latest football news, stories and updates from worldwide leagues. Read on ScoreHub with related stories and live event scorecard.">
+    <meta name="twitter:title" content="Live Match Centre - Score & Stats | ScoreHub">
+    <meta name="twitter:description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
+    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.classList.add("light-mode");}}catch(e){}})();</script>
+    <meta name="description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
+    <meta name="keywords" content="live match, football live score, match stats, lineups, commentary, ScoreHub">
+    <link rel="canonical" href="https://livematches.hyper.co.ke/match.html">
+    <meta property="og:url" content="https://livematches.hyper.co.ke/match.html">
+    <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <script type="application/ld+json" id="org-jsonld">{"@context":"https://schema.org","@type":"Organization","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","logo":"https://livematches.hyper.co.ke/icon-512.png","sameAs":["https://livematches.hyper.co.ke/"]}</script>
     <script type="application/ld+json" id="website-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","potentialAction":{"@type":"SearchAction","target":"https://livematches.hyper.co.ke/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
@@ -36,11 +37,14 @@
     <div class="app-container legal-page">
         <div class="legal-header">
             <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
-            <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
+            <div style="display:flex;gap:8px;">
+                <a class="btn btn-login" href="previews.html">Previews</a>
+                <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
+            </div>
         </div>
 
-        <main class="card legal-card" id="story-body">
-            <p class="loading-note">Loading story&hellip;</p>
+        <main class="card legal-card" id="match-body">
+            <p class="loading-note">Loading match centre…</p>
         </main>
 
         <footer class="legal-footer">
@@ -56,7 +60,8 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="story.js"></script>
+    <script src="share.js"></script>
+    <script src="match.js"></script>
     <script src="i18n.js"></script>
     <script src="seo.js"></script>
     <script src="pwa.js"></script>

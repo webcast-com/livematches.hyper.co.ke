@@ -1,0 +1,33 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /match.html
+Allow: /preview.html
+Allow: /report.html
+Allow: /story.html
+Allow: /standings.html
+Allow: /previews.html
+Allow: /transfers.html
+Allow: /predictions.html
+Allow: /shop.html
+Allow: /about.html
+Disallow: /offline.html
+Disallow: /*?*id=example*
+
+Sitemap: https://livematches.hyper.co.ke/sitemap.xml
+
+# Crawl-delay for politeness
+Crawl-delay: 1
+
+# For AI / SEO crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /

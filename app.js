@@ -526,28 +526,157 @@ function generateTeamSVG(code, color) {
 
 // Map sport-tab values to ESPN API sport/league slugs
 const ESPN_ENDPOINTS = {
-    football:    ["soccer/eng.1", "soccer/uefa.champions", "soccer/esp.1", "soccer/ita.1", "soccer/ger.1", "soccer/fra.1"],
-    basketball:  ["basketball/nba"],
-    tennis:      ["tennis/wta", "tennis/atp"],
-    baseball:    ["baseball/mlb"],
-    icehockey:   ["hockey/nhl"],
-    rugby:       ["rugby/premiership"],
-    all:         ["soccer/eng.1", "soccer/uefa.champions", "soccer/esp.1", "soccer/ita.1", "soccer/ger.1", "basketball/nba"]
+    football: [
+        // Top European leagues
+        "soccer/eng.1", "soccer/eng.2", "soccer/eng.fa", "soccer/eng.league_cup",
+        "soccer/esp.1", "soccer/esp.2", "soccer/esp.copa_del_rey",
+        "soccer/ger.1", "soccer/ger.2", "soccer/ger.dfb_pokal",
+        "soccer/ita.1", "soccer/ita.2", "soccer/ita.coppa_italia",
+        "soccer/fra.1", "soccer/fra.2",
+        "soccer/ned.1", "soccer/por.1", "soccer/bel.1", "soccer/tur.1", "soccer/sco.1",
+        // Americas
+        "soccer/usa.1", "soccer/mex.1", "soccer/bra.1", "soccer/arg.1",
+        // Asia / Middle East / Oceania
+        "soccer/jpn.1", "soccer/aus.1", "soccer/sau.1",
+        // Continental tournaments
+        "soccer/uefa.champions", "soccer/uefa.europa", "soccer/uefa.europa.conf",
+        "soccer/uefa.euro", "soccer/uefa.nations", "soccer/fifa.world",
+        "soccer/conmebol.libertadores", "soccer/conmebol.sudamericana",
+        "soccer/fifa.club_world"
+    ],
+    basketball: [
+        "basketball/nba", "basketball/wnba", "basketball/euroleague",
+        "basketball/mens-college-basketball", "basketball/womens-college-basketball"
+    ],
+    tennis: [
+        "tennis/atp", "tennis/wta"
+    ],
+    baseball: [
+        "baseball/mlb", "baseball/college-baseball"
+    ],
+    icehockey: [
+        "hockey/nhl"
+    ],
+    rugby: [
+        "rugby/premiership", "rugby/6-nations", "rugby/rugby-world-cup"
+    ],
+    cricket: [
+        "cricket/ipl", "cricket/pak-psl", "cricket/eng-vitality-blast"
+    ],
+    all: [
+        // Football top + continental + US
+        "soccer/eng.1", "soccer/esp.1", "soccer/ger.1", "soccer/ita.1", "soccer/fra.1",
+        "soccer/ned.1", "soccer/por.1", "soccer/usa.1", "soccer/mex.1", "soccer/bra.1", "soccer/sau.1",
+        "soccer/uefa.champions", "soccer/uefa.europa", "soccer/fifa.world", "soccer/conmebol.libertadores",
+        // Other sports
+        "basketball/nba", "tennis/atp", "tennis/wta", "baseball/mlb", "hockey/nhl",
+        "rugby/premiership", "cricket/ipl"
+    ],
+    worldwide: [
+        // 50+ soccer leagues for full worldwide coverage
+        "soccer/eng.1", "soccer/eng.2", "soccer/eng.3", "soccer/eng.fa", "soccer/eng.league_cup",
+        "soccer/esp.1", "soccer/esp.2", "soccer/esp.copa_del_rey",
+        "soccer/ger.1", "soccer/ger.2", "soccer/ger.dfb_pokal",
+        "soccer/ita.1", "soccer/ita.2", "soccer/ita.coppa_italia",
+        "soccer/fra.1", "soccer/fra.2", "soccer/fra.coupe_de_france",
+        "soccer/ned.1", "soccer/ned.2", "soccer/por.1", "soccer/bel.1", "soccer/tur.1",
+        "soccer/sco.1", "soccer/sui.1", "soccer/aut.1", "soccer/den.1", "soccer/swe.1", "soccer/nor.1",
+        "soccer/gre.1", "soccer/rus.1", "soccer/ukr.1",
+        "soccer/usa.1", "soccer/usa.nwsl", "soccer/mex.1", "soccer/bra.1", "soccer/arg.1", "soccer/col.1", "soccer/chi.1",
+        "soccer/jpn.1", "soccer/aus.1", "soccer/ind.1", "soccer/sau.1",
+        "soccer/uefa.champions", "soccer/uefa.europa", "soccer/uefa.europa.conf",
+        "soccer/uefa.euro", "soccer/uefa.euroq", "soccer/uefa.nations", "soccer/uefa.wchampions",
+        "soccer/fifa.world", "soccer/fifa.worldq", "soccer/fifa.wworld", "soccer/fifa.club_world",
+        "soccer/conmebol.libertadores", "soccer/conmebol.sudamericana", "soccer/concacaf.champions", "soccer/afc.champions"
+    ]
 };
 
 const LEAGUE_NAMES = {
-    "soccer/eng.1":         { name: "Premier League",         code: "EPL",         sport: "football" },
-    "soccer/uefa.champions":{ name: "UEFA Champions League",  code: "UCL",         sport: "football" },
-    "soccer/esp.1":         { name: "La Liga",                code: "LaLiga",      sport: "football" },
-    "soccer/ita.1":         { name: "Serie A",                code: "SerieA",      sport: "football" },
-    "soccer/ger.1":         { name: "Bundesliga",             code: "Bundesliga",  sport: "football" },
-    "soccer/fra.1":         { name: "Ligue 1",                code: "Ligue1",      sport: "football" },
-    "basketball/nba":       { name: "NBA",                    code: "NBA",         sport: "basketball" },
-    "tennis/atp":           { name: "ATP Tour",               code: "ATP",         sport: "tennis" },
-    "tennis/wta":           { name: "WTA Tour",               code: "WTA",         sport: "tennis" },
-    "baseball/mlb":         { name: "MLB",                    code: "MLB",         sport: "baseball" },
-    "hockey/nhl":           { name: "NHL",                    code: "NHL",         sport: "icehockey" },
-    "rugby/premiership":    { name: "Rugby Premiership",      code: "RUG",         sport: "rugby" }
+    // England
+    "soccer/eng.1":           { name: "Premier League",            code: "EPL",      sport: "football" },
+    "soccer/eng.2":           { name: "Championship",              code: "ENG2",     sport: "football" },
+    "soccer/eng.3":           { name: "League One",                code: "ENG3",     sport: "football" },
+    "soccer/eng.fa":          { name: "FA Cup",                    code: "FAC",      sport: "football" },
+    "soccer/eng.league_cup":  { name: "Carabao Cup",               code: "EFLC",     sport: "football" },
+    // Spain
+    "soccer/esp.1":           { name: "La Liga",                   code: "LaLiga",   sport: "football" },
+    "soccer/esp.2":           { name: "LaLiga 2",                  code: "LaL2",     sport: "football" },
+    "soccer/esp.copa_del_rey":{ name: "Copa del Rey",              code: "CDR",      sport: "football" },
+    // Germany
+    "soccer/ger.1":           { name: "Bundesliga",                code: "Bundes",   sport: "football" },
+    "soccer/ger.2":           { name: "2. Bundesliga",             code: "GER2",     sport: "football" },
+    "soccer/ger.dfb_pokal":   { name: "DFB-Pokal",                 code: "DFB",      sport: "football" },
+    // Italy
+    "soccer/ita.1":           { name: "Serie A",                   code: "SerieA",   sport: "football" },
+    "soccer/ita.2":           { name: "Serie B",                   code: "ITA2",     sport: "football" },
+    "soccer/ita.coppa_italia":{ name: "Coppa Italia",              code: "COPPA",    sport: "football" },
+    // France
+    "soccer/fra.1":           { name: "Ligue 1",                   code: "Ligue1",   sport: "football" },
+    "soccer/fra.2":           { name: "Ligue 2",                   code: "FRA2",     sport: "football" },
+    "soccer/fra.coupe_de_france": { name: "Coupe de France",       code: "CDF",      sport: "football" },
+    // Other Europe
+    "soccer/ned.1":           { name: "Eredivisie",                code: "ERE",      sport: "football" },
+    "soccer/ned.2":           { name: "Eerste Divisie",            code: "NED2",     sport: "football" },
+    "soccer/por.1":           { name: "Primeira Liga",             code: "POR",      sport: "football" },
+    "soccer/bel.1":           { name: "Belgian Pro League",        code: "BEL",      sport: "football" },
+    "soccer/tur.1":           { name: "Turkish Super Lig",         code: "TUR",      sport: "football" },
+    "soccer/sco.1":           { name: "Scottish Premiership",      code: "SCO",      sport: "football" },
+    "soccer/sui.1":           { name: "Swiss Super League",        code: "SUI",      sport: "football" },
+    "soccer/aut.1":           { name: "Austrian Bundesliga",       code: "AUT",      sport: "football" },
+    "soccer/den.1":           { name: "Danish Superliga",          code: "DEN",      sport: "football" },
+    "soccer/swe.1":           { name: "Allsvenskan",               code: "SWE",      sport: "football" },
+    "soccer/nor.1":           { name: "Eliteserien",               code: "NOR",      sport: "football" },
+    "soccer/gre.1":           { name: "Super League Greece",       code: "GRE",      sport: "football" },
+    "soccer/rus.1":           { name: "Russian Premier League",    code: "RUS",      sport: "football" },
+    "soccer/ukr.1":           { name: "Ukrainian Premier League",  code: "UKR",      sport: "football" },
+    // Americas
+    "soccer/usa.1":           { name: "Major League Soccer",       code: "MLS",      sport: "football" },
+    "soccer/usa.nwsl":        { name: "NWSL",                      code: "NWSL",     sport: "football" },
+    "soccer/mex.1":           { name: "Liga MX",                   code: "LIGAMX",   sport: "football" },
+    "soccer/bra.1":           { name: "Brasileiro Serie A",        code: "BRA",      sport: "football" },
+    "soccer/arg.1":           { name: "Liga Profesional",          code: "ARG",      sport: "football" },
+    "soccer/col.1":           { name: "Primera A Colombia",        code: "COL",      sport: "football" },
+    "soccer/chi.1":           { name: "Chile Primera",             code: "CHI",      sport: "football" },
+    // Asia / Middle East / Oceania
+    "soccer/jpn.1":           { name: "J1 League",                 code: "J1",       sport: "football" },
+    "soccer/aus.1":           { name: "A-League",                  code: "AUS",      sport: "football" },
+    "soccer/ind.1":           { name: "Indian Super League",       code: "ISL",      sport: "football" },
+    "soccer/sau.1":           { name: "Saudi Pro League",          code: "SAU",      sport: "football" },
+    // UEFA / FIFA / Continental
+    "soccer/uefa.champions":        { name: "UEFA Champions League",   code: "UCL",      sport: "football" },
+    "soccer/uefa.europa":           { name: "UEFA Europa League",      code: "UEL",      sport: "football" },
+    "soccer/uefa.europa.conf":      { name: "Europa Conference League",code: "UECL",     sport: "football" },
+    "soccer/uefa.champions_qual":   { name: "UCL Qualifiers",          code: "UCLQ",     sport: "football" },
+    "soccer/uefa.europa_qual":      { name: "UEL Qualifiers",          code: "UELQ",     sport: "football" },
+    "soccer/uefa.euro":             { name: "UEFA Euro",               code: "EURO",     sport: "football" },
+    "soccer/uefa.euroq":            { name: "Euro Qualifiers",         code: "EUROQ",    sport: "football" },
+    "soccer/uefa.nations":          { name: "UEFA Nations League",     code: "UNL",      sport: "football" },
+    "soccer/uefa.wchampions":       { name: "Women's Champions League",code: "UWCL",     sport: "football" },
+    "soccer/fifa.world":            { name: "FIFA World Cup",          code: "WC",       sport: "football" },
+    "soccer/fifa.worldq":           { name: "World Cup Qualifiers",    code: "WCQ",      sport: "football" },
+    "soccer/fifa.wworld":           { name: "Women's World Cup",       code: "WWC",      sport: "football" },
+    "soccer/fifa.club_world":       { name: "Club World Cup",          code: "CWC",      sport: "football" },
+    "soccer/conmebol.libertadores": { name: "Copa Libertadores",       code: "LIB",      sport: "football" },
+    "soccer/conmebol.sudamericana": { name: "Copa Sudamericana",       code: "SUD",      sport: "football" },
+    "soccer/concacaf.champions":    { name: "CONCACAF Champions Cup",  code: "CCC",      sport: "football" },
+    "soccer/afc.champions":         { name: "AFC Champions League",    code: "ACL",      sport: "football" },
+    // Other sports - expanded
+    "basketball/nba":               { name: "NBA",                     code: "NBA",      sport: "basketball" },
+    "basketball/wnba":              { name: "WNBA",                    code: "WNBA",     sport: "basketball" },
+    "basketball/euroleague":        { name: "EuroLeague",              code: "EUROL",    sport: "basketball" },
+    "basketball/mens-college-basketball": { name: "NCAA Men",          code: "NCAAM",    sport: "basketball" },
+    "basketball/womens-college-basketball": { name: "NCAA Women",      code: "NCAAW",    sport: "basketball" },
+    "tennis/atp":                   { name: "ATP Tour",                code: "ATP",      sport: "tennis" },
+    "tennis/wta":                   { name: "WTA Tour",                code: "WTA",      sport: "tennis" },
+    "baseball/mlb":                 { name: "MLB",                     code: "MLB",      sport: "baseball" },
+    "baseball/college-baseball":    { name: "College Baseball",        code: "NCAA-B",   sport: "baseball" },
+    "hockey/nhl":                   { name: "NHL",                     code: "NHL",      sport: "icehockey" },
+    "rugby/premiership":            { name: "Rugby Premiership",       code: "RUG",      sport: "rugby" },
+    "rugby/6-nations":              { name: "Six Nations",             code: "6NAT",     sport: "rugby" },
+    "rugby/rugby-world-cup":        { name: "Rugby World Cup",         code: "RWC",      sport: "rugby" },
+    "cricket/ipl":                  { name: "Indian Premier League",   code: "IPL",      sport: "cricket" },
+    "cricket/pak-psl":              { name: "Pakistan Super League",   code: "PSL",      sport: "cricket" },
+    "cricket/eng-vitality-blast":   { name: "Vitality Blast",          code: "BLAST",    sport: "cricket" }
 };
 
 // Team color palette for well-known clubs
@@ -901,7 +1030,7 @@ function showSkeletons(count = 4) {
     }
 }
 
-// Fetch and load all matches for the selected sport from the ESPN API
+// Fetch and load all matches for the selected sport from the ESPN API - now worldwide with chunked fetching
 async function loadAPIMatches() {
     if (currentSport === "f1") { loadF1Data(); return; }
     if (apiLoading) return;
@@ -911,23 +1040,31 @@ async function loadAPIMatches() {
     const endpoints = ESPN_ENDPOINTS[currentSport] || ESPN_ENDPOINTS["all"];
     const fetched = [];
 
-    await Promise.allSettled(
-        endpoints.map(async slug => {
-            try {
-                const data = await fetchESPNLeague(slug);
-                // Remember the current season year (used for the leaders endpoint)
-                if (data.season && data.season.year) espnSeasonYear = data.season.year;
-                const leagueInfo = LEAGUE_NAMES[slug] || { name: slug, code: slug.split("/")[1].toUpperCase(), sport: "football" };
-                const events = data.events || [];
-                events.forEach(evt => {
-                    const match = parseESPNEvent(evt, leagueInfo, slug);
-                    if (match) fetched.push(match);
-                });
-            } catch (err) {
-                console.warn("ESPN fetch error for", slug, err.message);
-            }
-        })
-    );
+    // Chunked parallel fetching to support 50+ worldwide leagues without hammering the browser/ESPN
+    const CHUNK_SIZE = 6;
+    for (let i = 0; i < endpoints.length; i += CHUNK_SIZE) {
+        const chunk = endpoints.slice(i, i + CHUNK_SIZE);
+        await Promise.allSettled(
+            chunk.map(async slug => {
+                try {
+                    const data = await fetchESPNLeague(slug);
+                    if (data.season && data.season.year) espnSeasonYear = data.season.year;
+                    const leagueInfo = LEAGUE_NAMES[slug] || { name: slug, code: slug.split("/")[1].toUpperCase(), sport: "football" };
+                    const events = data.events || [];
+                    events.forEach(evt => {
+                        const match = parseESPNEvent(evt, leagueInfo, slug);
+                        if (match) fetched.push(match);
+                    });
+                } catch (err) {
+                    console.warn("ESPN fetch error for", slug, err.message);
+                }
+            })
+        );
+        // Small delay between chunks to be nice to ESPN CDN
+        if (i + CHUNK_SIZE < endpoints.length) {
+            await new Promise(r => setTimeout(r, 150));
+        }
+    }
 
     if (apiMatches.length === 0 && fetched.length === 0) {
         // No data at all — API unreachable or blocked. Fall back gracefully.
@@ -969,6 +1106,7 @@ async function loadAPIMatches() {
 
     // Update live match counter badge
     const liveCount = apiMatches.filter(m => m.status === "live").length;
+    try{ updateHomeSEO(window._lastMatches || []); }catch(e){}
     const badge = document.getElementById("live-match-count-badge");
     const statNum = document.getElementById("stat-live-matches");
     if (badge) badge.textContent = `${liveCount || apiMatches.length} Matches (API)`;
@@ -1056,7 +1194,8 @@ function setApiMode(enable) {
         if (statusBar) statusBar.classList.remove("visible");
 
         // Restore simulation counters
-        const badge = document.getElementById("live-match-count-badge");
+        try{ updateHomeSEO(window._lastMatches || []); }catch(e){}
+    const badge = document.getElementById("live-match-count-badge");
         const statNum = document.getElementById("stat-live-matches");
         if (badge) badge.textContent = "54 Matches Live Now";
         if (statNum) statNum.textContent = "54";
@@ -1064,6 +1203,9 @@ function setApiMode(enable) {
         // Restore the simulated extras (standings / news / scorers)
         usingLiveCommentary = false;
         scoreDeltas.clear();
+        liveHighlights = null;
+        const hs = document.getElementById("highlights-strip");
+        if (hs) hs.hidden = true;
         renderStandings();
         renderNews();
         renderScorers();
@@ -1173,20 +1315,101 @@ async function loadLiveStandings(leagueKey) {
     return rows;
 }
 
-// Latest headlines from the ESPN news endpoint
+// Latest headlines from the ESPN news endpoint - now worldwide (aggregates multiple leagues for variety)
 async function loadLiveNews() {
-    const data = await fetchESPNPath(`/apis/site/v2/sports/soccer/eng.1/news?limit=6`, {
-        validate: d => !!(d && Array.isArray(d.articles))
-    });
-    return data.articles.slice(0, 5).map(a => ({
-        id: a.id,
-        raw: a,
-        title: a.headline || a.description || "Untitled",
-        category: pickNewsCategory(a),
-        time: timeAgoString(a.published),
-        image: (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "",
-        link: (a.links && a.links.web && a.links.web.href) || "https://www.espn.com/soccer/"
+    // Try a few top leagues for richer news coverage, fallback to EPL
+    const newsLeagues = ["eng.1", "esp.1", "uefa.champions", "usa.1", "mex.1"];
+    const all = [];
+    await Promise.allSettled(newsLeagues.map(async slug => {
+        try {
+            const data = await fetchESPNPath(`/apis/site/v2/sports/soccer/${slug}/news?limit=6`, {
+                validate: d => !!(d && Array.isArray(d.articles))
+            });
+            (data.articles || []).forEach(a => {
+                all.push({
+                    id: `${slug}-${a.id}`,
+                    raw: a,
+                    leagueSlug: slug,
+                    title: a.headline || a.description || "Untitled",
+                    category: pickNewsCategory(a),
+                    time: timeAgoString(a.published),
+                    image: (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "",
+                    link: (a.links && a.links.web && a.links.web.href) || "https://www.espn.com/soccer/",
+                    hasVideo: !!(a.links && a.links.api && a.links.api.videos) || (Array.isArray(a.videos) && a.videos.length) || (a.type === "Video")
+                });
+            });
+        } catch (e) { /* ignore per-league failure */ }
     }));
+    if (!all.length) {
+        const data = await fetchESPNPath(`/apis/site/v2/sports/soccer/eng.1/news?limit=6`, {
+            validate: d => !!(d && Array.isArray(d.articles))
+        });
+        return data.articles.slice(0, 5).map(a => ({
+            id: a.id,
+            raw: a,
+            leagueSlug: "eng.1",
+            title: a.headline || a.description || "Untitled",
+            category: pickNewsCategory(a),
+            time: timeAgoString(a.published),
+            image: (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "",
+            link: (a.links && a.links.web && a.links.web.href) || "https://www.espn.com/soccer/",
+            hasVideo: false
+        }));
+    }
+    // De-duplicate by title and sort newest first, keep 8
+    const seen = new Set();
+    const uniq = [];
+    for (const item of all) {
+        if (!seen.has(item.title)) {
+            seen.add(item.title);
+            uniq.push(item);
+        }
+        if (uniq.length >= 8) break;
+    }
+    return uniq;
+}
+
+// Highlights: fetch real video highlights from ESPN (news videos + summary videos)
+let liveHighlights = null;
+let liveHighlightsAt = 0;
+const HIGHLIGHTS_TTL_MS = 5 * 60 * 1000;
+
+async function loadLiveHighlights(force = false) {
+    if (!isApiMode) return null;
+    if (!force && liveHighlights && Date.now() - liveHighlightsAt < HIGHLIGHTS_TTL_MS) return liveHighlights;
+    try {
+        // Pull video news from top leagues
+        const videoLeagues = ["eng.1", "esp.1", "uefa.champions", "ger.1", "ita.1"];
+        const vids = [];
+        await Promise.allSettled(videoLeagues.map(async slug => {
+            try {
+                const data = await fetchESPNPath(`/apis/site/v2/sports/soccer/${slug}/news?limit=20`, {
+                    validate: d => !!(d && Array.isArray(d.articles))
+                });
+                (data.articles || []).forEach(a => {
+                    const hasVid = (a.links && a.links.api && a.links.api.videos) || (Array.isArray(a.videos) && a.videos.length) || a.type === "Video";
+                    if (!hasVid) return;
+                    const thumb = (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "";
+                    const videoHref = (a.links && a.links.web && a.links.web.href) || "";
+                    vids.push({
+                        id: `${slug}-${a.id}`,
+                        title: a.headline || a.description || "Highlight",
+                        league: slug,
+                        category: pickNewsCategory(a),
+                        time: timeAgoString(a.published),
+                        image: thumb,
+                        link: videoHref,
+                        raw: a
+                    });
+                });
+            } catch (e) {}
+        }));
+        liveHighlights = vids.slice(0, 6);
+        liveHighlightsAt = Date.now();
+        return liveHighlights;
+    } catch (e) {
+        return null;
+    }
 }
 
 // Golden boot (or assist leaders) via the core API leaders endpoint
@@ -1276,6 +1499,28 @@ function loadLiveExtras(force = false) {
                 if (isApiMode) renderNews();
             }
         }).catch(err => console.warn("News fetch failed:", err.message));
+    }
+
+    if (force || !liveHighlights || Date.now() - liveHighlightsAt > HIGHLIGHTS_TTL_MS) {
+        loadLiveHighlights().then(rows => {
+            if (rows && rows.length) {
+                if (isApiMode) {
+                    // Merge highlights into news feed with priority (video first)
+                    const existing = liveNews || [];
+                    const merged = [...rows.map(h => ({...h, hasVideo:true})), ...existing];
+                    const seen = new Set();
+                    const uniq = [];
+                    for (const item of merged) {
+                        if (!seen.has(item.title)) { seen.add(item.title); uniq.push(item); }
+                        if (uniq.length >= 8) break;
+                    }
+                    liveNews = uniq;
+                    liveNewsAt = Date.now();
+                    renderNews();
+                    renderHighlights();
+                }
+            }
+        }).catch(err => console.warn("Highlights fetch failed:", err.message));
     }
 }
 
@@ -1591,17 +1836,84 @@ function setScoreSmooth(el, value) {
     }, 1000);
 }
 
-// Render Live Ticker
+// Render Live Ticker — robust for desktop marquee + mobile swipe
+let tickerDragInitialized = false;
+let tickerIsDragging = false;
+let tickerDragStartX = 0;
+let tickerDragScrollLeft = 0;
+let tickerDragMoved = 0;
+let tickerPauseTimer = null;
+
+function initTickerDrag() {
+    if (tickerDragInitialized) return;
+    const strip = document.querySelector(".ticker-strip");
+    if (!strip) return;
+    tickerDragInitialized = true;
+
+    const startDrag = (clientX) => {
+        tickerIsDragging = true;
+        tickerDragMoved = 0;
+        tickerDragStartX = clientX;
+        tickerDragScrollLeft = strip.scrollLeft;
+        strip.classList.add("is-dragging", "is-paused");
+    };
+    const moveDrag = (clientX) => {
+        if (!tickerIsDragging) return;
+        const dx = clientX - tickerDragStartX;
+        tickerDragMoved = Math.max(tickerDragMoved, Math.abs(dx));
+        if (window.innerWidth <= 768) {
+            strip.scrollLeft = tickerDragScrollLeft - dx;
+        }
+    };
+    const endDrag = () => {
+        if (!tickerIsDragging) return;
+        tickerIsDragging = false;
+        strip.classList.remove("is-dragging");
+        clearTimeout(tickerPauseTimer);
+        tickerPauseTimer = setTimeout(() => strip.classList.remove("is-paused"), 1500);
+        if (tickerDragMoved > 8) {
+            strip.dataset.suppressClick = "1";
+            setTimeout(() => { delete strip.dataset.suppressClick; }, 300);
+        }
+    };
+
+    strip.addEventListener("mousedown", (e) => startDrag(e.clientX));
+    window.addEventListener("mousemove", (e) => moveDrag(e.clientX));
+    window.addEventListener("mouseup", endDrag);
+    strip.addEventListener("touchstart", (e) => startDrag(e.touches[0].clientX), { passive: true });
+    strip.addEventListener("touchmove", (e) => moveDrag(e.touches[0].clientX), { passive: true });
+    strip.addEventListener("touchend", endDrag, { passive: true });
+    strip.addEventListener("touchcancel", endDrag, { passive: true });
+
+    strip.addEventListener("scroll", () => {
+        if (!tickerIsDragging) {
+            strip.classList.add("is-paused");
+            clearTimeout(tickerPauseTimer);
+            tickerPauseTimer = setTimeout(() => strip.classList.remove("is-paused"), 2500);
+        }
+    }, { passive: true });
+    strip.addEventListener("mouseenter", () => strip.classList.add("is-paused"));
+    strip.addEventListener("mouseleave", () => {
+        if (!tickerIsDragging) {
+            clearTimeout(tickerPauseTimer);
+            tickerPauseTimer = setTimeout(() => strip.classList.remove("is-paused"), 800);
+        }
+    });
+}
+
 function renderTicker() {
+    const strip = document.querySelector(".ticker-strip");
+    const prevScroll = strip ? strip.scrollLeft : 0;
+    const wasDragging = strip ? strip.classList.contains("is-dragging") : false;
+
     tickerSlider.innerHTML = "";
-    
+
     const activeMatches = isApiMode ? apiMatches : MOCK_MATCHES;
     if (activeMatches.length === 0) {
         tickerSlider.innerHTML = `<span style="font-size: 11px; color: var(--text-muted); padding: 0 20px;">No live ticker events</span>`;
         return;
     }
-    
-    // In simulation mode show only football; in API mode show everything
+
     const tickerSource = isApiMode
         ? activeMatches
         : activeMatches.filter(m => m.sport === "football");
@@ -1611,13 +1923,16 @@ function renderTicker() {
         return;
     }
 
-    // We double the matches list so it loops infinitely smoothly
+    // Always double for seamless infinite marquee — desktop and mobile both auto-scroll
     const tickerMatches = [...tickerSource, ...tickerSource];
-    
+
     tickerMatches.forEach((match) => {
         const card = document.createElement("div");
         card.className = "ticker-card";
         card.setAttribute("data-match-id", match.id);
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        card.setAttribute("aria-label", `${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam}, ${match.leagueId} ${match.time}`);
 
         const isLive = match.status === "live";
         const liveBadge = isLive ? `<span class="ticker-live-dot"></span>` : "";
@@ -1634,14 +1949,32 @@ function renderTicker() {
             </div>
             <span class="ticker-time">${match.time}</span>
         `;
-        
-        card.addEventListener("click", () => {
-            storyLocked = true;
-            setSpotlightMatch(match.id);
+
+        const handleOpen = (e) => {
+            if (e) e.preventDefault();
+            if (strip && strip.dataset.suppressClick === "1") return;
+            if (tickerDragMoved > 8) return;
+            openMatchPage(match);
+        };
+
+        card.addEventListener("click", handleOpen);
+        card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                handleOpen(e);
+            }
         });
-        
+
         tickerSlider.appendChild(card);
     });
+
+    // Preserve manual swipe position across re-renders (mobile) - if user has scrolled, keep it
+    if (strip && !wasDragging && window.innerWidth <= 768) {
+        requestAnimationFrame(() => {
+            strip.scrollLeft = prevScroll;
+        });
+    }
+
+    initTickerDrag();
 }
 
 // Render Standings
@@ -1722,28 +2055,69 @@ function renderNews() {
     const list = useLive ? liveNews : MOCK_NEWS;
 
     list.forEach((news) => {
+        const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
         const card = document.createElement(useLive ? "a" : "div");
-        card.className = "news-card";
+        card.className = "news-card" + (isVideo ? " has-video" : "");
         if (useLive) {
-            card.href = "story.html";
-            card.addEventListener("click", () => {
-                try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
-            });
+            // If it's a video highlight, open directly on ESPN, otherwise use story page
+            if (isVideo && news.link && news.link.includes("espn.com")) {
+                card.href = news.link;
+                card.target = "_blank";
+                card.rel = "noopener";
+            } else {
+                card.href = "story.html";
+                card.addEventListener("click", () => {
+                    try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+                });
+            }
         }
         const thumbStyle = news.image
             ? `background-image: url('${news.image}');`
             : `background: ${news.grad}`;
         card.innerHTML = `
-            <div class="news-thumb" style="${thumbStyle}"></div>
+            <div class="news-thumb" style="${thumbStyle}">${isVideo ? '<span class="news-video-badge">▶</span>' : ''}</div>
             <div class="news-meta">
-                <span class="news-category-badge">${news.category}</span>
+                <span class="news-category-badge">${news.category}${isVideo ? ' · 🎥 Highlight' : ''}</span>
                 <h4 class="news-title">${news.title}</h4>
-                <span class="news-time">${news.time}</span>
+                <span class="news-time">${news.time}${news.leagueSlug ? ' · ' + (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : ''}</span>
             </div>
         `;
         newsContainer.appendChild(card);
     });
 }
+
+function renderHighlights() {
+    const strip = document.getElementById("highlights-strip");
+    const track = document.getElementById("highlights-track");
+    if (!strip || !track) return;
+    if (!isApiMode || !liveHighlights || !liveHighlights.length) {
+        strip.hidden = true;
+        return;
+    }
+    strip.hidden = false;
+    track.innerHTML = "";
+    liveHighlights.forEach(item => {
+        const a = document.createElement("a");
+        a.className = "highlight-card";
+        a.href = item.link || "https://www.espn.com/soccer/";
+        a.target = "_blank";
+        a.rel = "noopener";
+        const thumbStyle = item.image ? `background-image: url('${item.image}');` : `background: var(--bg-card-solid);`;
+        const leagueLabel = item.league ? (LEAGUE_NAMES['soccer/'+item.league] ? LEAGUE_NAMES['soccer/'+item.league].name : item.league) : item.category;
+        a.innerHTML = `
+            <div class="highlight-thumb" style="${thumbStyle}">
+                <div class="highlight-play"><span>▶</span></div>
+            </div>
+            <div class="highlight-meta">
+                <span class="highlight-league">${leagueLabel}</span>
+                <span class="highlight-title">${item.title}</span>
+                <span class="news-time">${item.time}</span>
+            </div>
+        `;
+        track.appendChild(a);
+    });
+}
+    try{ updateHighlightsSEO(liveHighlights); }catch(e){}
 
 // Render Matches List
 // --- FIXTURES CALENDAR (ESPN scoreboard ?dates= support) ---
@@ -1934,10 +2308,35 @@ function renderF1() {
 const LEAGUE_FLAG_CODES = {
     EPL: "gb-eng",
     UCL: "eu",
+    UEL: "eu",
     LaLiga: "es",
     SerieA: "it",
     Bundesliga: "de",
-    Ligue1: "fr"
+    Ligue1: "fr",
+    ERE: "nl",
+    POR: "pt",
+    MLS: "us",
+    SAU: "sa",
+    BRA: "br",
+    BEL: "be",
+    TUR: "tr",
+    SCO: "gb-sct",
+    SUI: "ch",
+    AUT: "at",
+    DEN: "dk",
+    SWE: "se",
+    NOR: "no",
+    GRE: "gr",
+    RUS: "ru",
+    UKR: "ua",
+    LIGAMX: "mx",
+    ARG: "ar",
+    J1: "jp",
+    AUS: "au",
+    ISL: "in",
+    LIB: "eu",
+    CWC: "eu",
+    WC: "eu"
 };
 
 function enhanceLeagueFlags() {
@@ -1962,6 +2361,18 @@ function matchYmd(iso) {
     if (isNaN(d.getTime())) return "";
     const p = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
+function matchPageUrl(m) {
+    if (m && m.leagueSlug && m.espnEventId && m.date) {
+        const ymd = matchYmd(m.date);
+        if (ymd) return `match.html?league=${encodeURIComponent(m.leagueSlug)}&id=${encodeURIComponent(m.espnEventId)}&date=${ymd}`;
+    }
+    return `match.html`;
+}
+function openMatchPage(m) {
+    try { sessionStorage.setItem("scorehub-match", JSON.stringify(m)); } catch (e) {}
+    window.location.href = matchPageUrl(m);
 }
 
 function canPreviewMatch(m) {
@@ -2135,8 +2546,44 @@ function updateStoryTag() {
     }
 }
 
+function getMatchStatusInfo(match) {
+    const timeStr = String(match.time || "");
+    const htScore = String(match.halftimeScore || "");
+    const isHT = timeStr === "HT" || timeStr.includes("HT") || htScore === "HT" || timeStr.includes("Half");
+    const isLive = match.status === "live" && !isHT;
+    const isFinished = !isLive && !isHT && (
+        timeStr === "FT" || timeStr.includes("FT") || htScore.includes("FT") || htScore === "Ended" ||
+        timeStr.toLowerCase().includes("ended") || timeStr.toLowerCase().includes("full")
+    );
+    const isToday = !isLive && !isHT && !isFinished;
+    let label = "";
+    let cls = "";
+    let priority = 3;
+    if (isLive) { label = "LIVE"; cls = "status-live"; priority = 0; }
+    else if (isHT) { label = "HT"; cls = "status-ht"; priority = 1; }
+    else if (isFinished) { label = "FT"; cls = "status-ft"; priority = 2; }
+    else { label = timeStr || "TODAY"; cls = "status-today"; priority = 3; }
+    return { isLive, isHT, isFinished, isToday, label, cls, priority };
+}
+
+function formatMatchDate(iso) {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    const today = new Date();
+    const isToday = d.toDateString() === today.toDateString();
+    const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
+    if (isToday) return { key: "today", label: "Today", short: "Today" };
+    if (d.toDateString() === yesterday.toDateString()) return { key: "yesterday", label: "Yesterday", short: "Yesterday" };
+    if (d.toDateString() === tomorrow.toDateString()) return { key: "tomorrow", label: "Tomorrow", short: "Tomorrow" };
+    const label = d.toLocaleDateString(appLocale(), { weekday: "long", month: "short", day: "numeric" });
+    const short = d.toLocaleDateString(appLocale(), { month: "short", day: "numeric" });
+    const ymd = toYYYYMMDD(d);
+    return { key: ymd, label, short, iso: d.toISOString() };
+}
+
 function renderMatches() {
-    // Formula 1 renders its own view inside the scores card
     const scoresSection = document.querySelector(".live-scores-section");
     if (currentSport === "f1") { renderF1(); return; }
     if (scoresSection) scoresSection.classList.remove("f1-mode");
@@ -2146,26 +2593,28 @@ function renderMatches() {
     
     const activeMatches = isApiMode ? apiMatches : MOCK_MATCHES;
     
-    // Filter matches
     let filtered = activeMatches.filter((m) => {
-        // Sport selector
-        if (currentSport !== "all" && m.sport !== currentSport) return false;
-
-        // League sidebar selector
+        if (currentSport !== "all" && currentSport !== "worldwide" && m.sport !== currentSport) return false;
         if (currentLeague !== "all" && m.leagueId !== currentLeague) return false;
-        
-        // Tab filters
-        if (currentFilter === "live" && m.status !== "live") return false;
-        if (currentFilter === "ht" && m.time !== "HT" && m.halftimeScore !== "Ended" && !m.time.includes("HT")) return false;
-        if (currentFilter === "today" && m.status !== "today" && m.status !== "live") return false;
+        const st = getMatchStatusInfo(m);
+        if (currentFilter === "live" && !st.isLive) return false;
+        if (currentFilter === "ht" && !st.isHT) return false;
+        if (currentFilter === "today" && st.isFinished) return false;
         if (currentFilter === "favorites" && !m.favorites) return false;
-        
         return true;
     });
 
-    // Optional league ordering (toggled by the sliders button)
     if (sortByLeague) {
         filtered.sort((a, b) => (a.league || "").localeCompare(b.league || ""));
+    } else {
+        filtered.sort((a, b) => {
+            const sa = getMatchStatusInfo(a);
+            const sb = getMatchStatusInfo(b);
+            if (sa.priority !== sb.priority) return sa.priority - sb.priority;
+            const da = a.date ? new Date(a.date).getTime() : 0;
+            const db = b.date ? new Date(b.date).getTime() : 0;
+            return da - db;
+        });
     }
 
     if (filtered.length === 0) {
@@ -2176,84 +2625,130 @@ function renderMatches() {
         `;
         return;
     }
-    
-    filtered.forEach((match) => {
-        const card = document.createElement("div");
-        const scoreDelta = scoreDeltas.get(match.id);
-        card.className = `match-card ${match.id === spotlightMatchId ? 'active-spotlight' : ''}${scoreDelta ? ' scored' : ''}`;
-        card.setAttribute("data-match-id", match.id);
-        
-        const isLive = match.status === "live";
-        const homeScorersString = match.scorers.home.join(", ");
-        const awayScorersString = match.scorers.away.join(", ");
-        
-        card.innerHTML = `
-            <div class="match-card-header">
-                <span class="match-card-league">${match.league}</span>
-                <span class="match-card-time ${isLive ? 'live' : ''}">
-                    ${isLive ? '<span class="live-indicator-dot"></span>' : ''}
-                    ${match.time}
-                </span>
+
+    // Group by date for clean info
+    const groups = new Map();
+    filtered.forEach(m => {
+        const fmt = m.date ? formatMatchDate(m.date) : null;
+        const key = fmt ? fmt.key : "today";
+        if (!groups.has(key)) groups.set(key, { fmt: fmt || { key: "today", label: "Today", short: "Today" }, matches: [] });
+        groups.get(key).matches.push(m);
+    });
+    try{ window._lastMatches = matches; }catch(e){}
+    try{ updateHomeSEO(matches); }catch(e){}
+
+    const sortedGroupKeys = [...groups.keys()].sort((a,b) => {
+        if (a === "today") return -1;
+        if (b === "today") return 1;
+        if (a === "yesterday" && b !== "today") return -1;
+        if (b === "yesterday" && a !== "today") return 1;
+        if (a === "tomorrow") return 1;
+        if (b === "tomorrow") return -1;
+        return a.localeCompare(b);
+    });
+
+    sortedGroupKeys.forEach(gk => {
+        const group = groups.get(gk);
+        const fmt = group.fmt;
+        // Date header with clean info
+        const dateHeader = document.createElement("div");
+        dateHeader.className = "matches-date-header";
+        const liveInGroup = group.matches.filter(m => getMatchStatusInfo(m).isLive).length;
+        const htInGroup = group.matches.filter(m => getMatchStatusInfo(m).isHT).length;
+        const ftInGroup = group.matches.filter(m => getMatchStatusInfo(m).isFinished).length;
+        dateHeader.innerHTML = `
+            <div class="date-header-left">
+                <span class="date-header-label">${fmt.label}</span>
+                ${fmt.short && fmt.label !== fmt.short ? `<span class="date-header-short">${fmt.short}</span>` : ''}
             </div>
-            
-            <div class="match-card-scoreboard">
-                <div class="match-card-team-info">
-                    <span class="match-team-name">${match.homeTeam}</span>
-                    ${teamBadgeHTML(match.homeCode, match.homeLogo, 20)}
-                </div>
-                
-                <div class="match-card-scores">
-                    <span>${scoreCell(match.homeScore, scoreDelta && scoreDelta.home ? scoreDelta.prevHome : null)}</span>
-                    <span class="score-dash">-</span>
-                    <span>${scoreCell(match.awayScore, scoreDelta && scoreDelta.away ? scoreDelta.prevAway : null)}</span>
-                </div>
-                
-                <div class="match-card-team-info away">
-                    ${teamBadgeHTML(match.awayCode, match.awayLogo, 20)}
-                    <span class="match-team-name">${match.awayTeam}</span>
-                </div>
-            </div>
-            
-            <div class="match-card-footer">
-                <div class="match-stat-capsules">
-                    ${previewLinkHTML(match)}
-                    ${reportLinkHTML(match)}
-                    ${match.odds ? `<span class="stat-capsule" title="Odds ${match.homeCode}/${match.awayCode}/Draw via ${match.odds.provider}">🎲 ${oddsSummary(match.odds)}</span>` : ""}
-                    <span class="stat-capsule">⚽ ${match.homeScore + match.awayScore} Goals</span>
-                    <span class="stat-capsule">📊 ${match.stats.possession}% Poss</span>
-                </div>
-                
-                <button class="btn-star-fav ${match.favorites ? 'favorited' : ''}" data-match-id="${match.id}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="${match.favorites ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                </button>
+            <div class="date-header-right">
+                <span class="date-header-count">${group.matches.length} matches</span>
+                ${liveInGroup ? `<span class="date-header-badge live">${liveInGroup} LIVE</span>` : ''}
+                ${htInGroup ? `<span class="date-header-badge ht">${htInGroup} HT</span>` : ''}
+                ${ftInGroup ? `<span class="date-header-badge ft">${ftInGroup} FT</span>` : ''}
             </div>
         `;
-        
-        // Click to spotlight card (excluding favoriting star click)
-        card.addEventListener("click", (e) => {
-            if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link")) return;
-            storyLocked = true;
-            setSpotlightMatch(match.id);
+        matchesContainer.appendChild(dateHeader);
+
+        group.matches.forEach((match) => {
+            const card = document.createElement("div");
+            const scoreDelta = scoreDeltas.get(match.id);
+            const st = getMatchStatusInfo(match);
+            card.className = `match-card match-status-${st.cls} ${match.id === spotlightMatchId ? 'active-spotlight' : ''}${scoreDelta ? ' scored' : ''}`;
+            card.setAttribute("data-match-id", match.id);
+            
+            const dateInfo = match.date ? formatMatchDate(match.date) : null;
+            const dateBadge = dateInfo && dateInfo.key !== "today" ? `<span class="match-date-badge">${dateInfo.short}</span>` : "";
+            
+            card.innerHTML = `
+                <div class="match-card-header">
+                    <div class="match-card-league-wrap">
+                        <span class="match-card-league">${match.league}</span>
+                        ${dateBadge}
+                    </div>
+                    <div class="match-card-status ${st.cls}">
+                        ${st.isLive ? '<span class="live-indicator-dot"></span>' : ''}
+                        <span class="status-label">${st.label}</span>
+                        ${st.isLive || st.isHT ? `<span class="status-time">${match.time}</span>` : (st.isFinished ? `<span class="status-time">${match.time}</span>` : `<span class="status-time">${match.time}</span>`)}
+                    </div>
+                </div>
+                
+                <div class="match-card-scoreboard">
+                    <div class="match-card-team-info">
+                        <span class="match-team-name">${match.homeTeam}</span>
+                        ${teamBadgeHTML(match.homeCode, match.homeLogo, 20)}
+                    </div>
+                    
+                    <div class="match-card-scores">
+                        <span class="${st.isLive ? 'score-live' : ''}">${scoreCell(match.homeScore, scoreDelta && scoreDelta.home ? scoreDelta.prevHome : null)}</span>
+                        <span class="score-dash">-</span>
+                        <span class="${st.isLive ? 'score-live' : ''}">${scoreCell(match.awayScore, scoreDelta && scoreDelta.away ? scoreDelta.prevAway : null)}</span>
+                    </div>
+                    
+                    <div class="match-card-team-info away">
+                        ${teamBadgeHTML(match.awayCode, match.awayLogo, 20)}
+                        <span class="match-team-name">${match.awayTeam}</span>
+                    </div>
+                </div>
+                
+                <div class="match-card-footer">
+                    <div class="match-stat-capsules">
+                        <span class="stat-capsule status-capsule ${st.cls}">${st.isLive ? '🔴 LIVE' : st.isHT ? '🟠 HT' : st.isFinished ? '⚫ FT' : '🔵 ' + st.label}</span>
+                        ${previewLinkHTML(match)}
+                        ${reportLinkHTML(match)}
+                        ${match.odds ? `<span class="stat-capsule" title="Odds ${match.homeCode}/${match.awayCode}/Draw via ${match.odds.provider}">🎲 ${oddsSummary(match.odds)}</span>` : ""}
+                        <span class="stat-capsule">⚽ ${match.homeScore + match.awayScore} Goals</span>
+                        <span class="stat-capsule">📊 ${match.stats.possession}% Poss</span>
+                    </div>
+                    
+                    <button class="btn-star-fav ${match.favorites ? 'favorited' : ''}" data-match-id="${match.id}" aria-label="Favorite">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="${match.favorites ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            card.addEventListener("click", (e) => {
+                if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link")) return;
+                openMatchPage(match);
+            });
+            
+            const favBtn = card.querySelector(".btn-star-fav");
+            favBtn.addEventListener("click", () => {
+                match.favorites = !match.favorites;
+                if (match.favorites) favoriteIds.add(match.id);
+                else favoriteIds.delete(match.id);
+                persistFavorites();
+                favBtn.classList.toggle("favorited");
+                renderMatches();
+                if (match.favorites) {
+                    showNotification(tf("fav.added", { h: match.homeTeam, a: match.awayTeam }));
+                }
+            });
+            
+            matchesContainer.appendChild(card);
         });
-        
-        // Favorite toggle click handler
-        const favBtn = card.querySelector(".btn-star-fav");
-        favBtn.addEventListener("click", () => {
-            match.favorites = !match.favorites;
-            if (match.favorites) favoriteIds.add(match.id);
-            else favoriteIds.delete(match.id);
-            persistFavorites();
-            favBtn.classList.toggle("favorited");
-            renderMatches();
-            // Show alert/notify if favorited
-            if (match.favorites) {
-                showNotification(tf("fav.added", { h: match.homeTeam, a: match.awayTeam }));
-            }
-        });
-        
-        matchesContainer.appendChild(card);
     });
 }
 
@@ -2525,8 +3020,9 @@ let gameSeconds = 72;
 function simulationLoop() {
     // Only run in simulation mode
     if (isApiMode) return;
-    // Don't rebuild lists mid-interaction (drawer / modal open)
+    // Don't rebuild lists mid-interaction (drawer / modal open / ticker swipe)
     if (document.body.classList.contains("nav-open") || document.querySelector(".modal-overlay.active")) return;
+    if (typeof tickerIsDragging !== "undefined" && tickerIsDragging) return;
 
     // 1. Increment Time
     MOCK_MATCHES.forEach((match) => {
@@ -2556,6 +3052,7 @@ function simulationLoop() {
 function eventSimulation() {
     // Only run in simulation mode
     if (isApiMode) return;
+    if (typeof tickerIsDragging !== "undefined" && tickerIsDragging) return;
 
     // Pick a random live match
     const liveMatches = MOCK_MATCHES.filter((m) => m.status === "live");
@@ -2934,11 +3431,10 @@ function initEventHandlers() {
                     <span class="search-sport-badge">${m.sport}</span>
                 `;
                 item.addEventListener("click", () => {
-                    setSpotlightMatch(m.id);
                     searchInput.value = "";
                     searchResults.style.display = "none";
                     searchInput.blur();
-                    scrollToEl("#match-spotlight");
+                    openMatchPage(m);
                 });
                 searchResults.appendChild(item);
             });
@@ -2968,6 +3464,11 @@ function initEventHandlers() {
         document.body.classList.remove("nav-open");
         navToggleBtn.setAttribute("aria-expanded", "false");
         navToggleBtn.setAttribute("aria-label", "Open menu");
+        // also close More dropdown
+        const moreDD = document.querySelector(".main-nav .dropdown");
+        const moreTog = document.querySelector(".main-nav .dropdown-toggle");
+        if (moreDD) moreDD.classList.remove("open");
+        if (moreTog) moreTog.setAttribute("aria-expanded", "false");
     };
 
     navToggleBtn.addEventListener("click", (e) => {
@@ -2977,8 +3478,9 @@ function initEventHandlers() {
         navToggleBtn.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
     });
 
-    // Close the drawer after choosing a destination
+    // Close the drawer after choosing a destination (but not when toggling More)
     mainNav.querySelectorAll("a").forEach((link) => {
+        if (link.classList.contains("dropdown-toggle")) return;
         link.addEventListener("click", closeMobileNav);
     });
 
@@ -3116,9 +3618,18 @@ function initEventHandlers() {
         scrollToEl(".stats-comparison-card");
     });
 
-    // Spotlight Share / Add-to-calendar buttons
+    // Spotlight Share / Add-to-calendar buttons + click spotlight to open match page
     if (shareMatchBtn) shareMatchBtn.addEventListener("click", shareSpotlightMatch);
     if (addCalendarBtn) addCalendarBtn.addEventListener("click", downloadSpotlightICS);
+    const spotlightCard = document.getElementById("match-spotlight");
+    if (spotlightCard) {
+        spotlightCard.style.cursor = "pointer";
+        spotlightCard.addEventListener("click", (e) => {
+            if (e.target.closest("button") || e.target.closest("a") || e.target.closest(".btn-star-fav")) return;
+            const m = spotlightMatch();
+            if (m) openMatchPage(m);
+        });
+    }
 
     // Header star → jump to favorited matches
     if (favsToggleTopBtn) favsToggleTopBtn.addEventListener("click", () => {
@@ -3140,12 +3651,43 @@ function initEventHandlers() {
         showNotification(sortByLeague ? "Matches sorted by league" : "Matches back to default order", true);
     });
 
-    // "More" drawer links + signup placeholder give feedback instead of dead-ending
-    document.querySelectorAll(".dropdown-menu a").forEach((link) => {
-        link.addEventListener("click", (e) => {
+    // --- More dropdown (header) — click to toggle, works on desktop + mobile ---
+    const moreDropdown = document.querySelector(".main-nav .dropdown");
+    const moreToggle = document.querySelector(".main-nav .dropdown-toggle");
+    const closeMore = () => {
+        if (moreDropdown) moreDropdown.classList.remove("open");
+        if (moreToggle) moreToggle.setAttribute("aria-expanded", "false");
+    };
+    if (moreDropdown && moreToggle) {
+        moreToggle.setAttribute("aria-expanded", "false");
+        moreToggle.setAttribute("aria-haspopup", "true");
+        moreToggle.addEventListener("click", (e) => {
             e.preventDefault();
-            showNotification(`${link.textContent.trim()} hub coming soon in this demo`, true);
+            e.stopPropagation();
+            const willOpen = !moreDropdown.classList.contains("open");
+            // close other popovers
+            document.querySelectorAll(".main-nav .dropdown.open").forEach(d => {
+                if (d !== moreDropdown) d.classList.remove("open");
+            });
+            moreDropdown.classList.toggle("open", willOpen);
+            moreToggle.setAttribute("aria-expanded", String(willOpen));
         });
+        // Clicking a real page link inside More should navigate and close drawer
+        moreDropdown.querySelectorAll(".dropdown-menu a").forEach(link => {
+            link.addEventListener("click", () => {
+                closeMore();
+                closeMobileNav();
+            });
+        });
+    }
+    // Close More when clicking outside header or pressing Escape
+    document.addEventListener("click", (e) => {
+        if (moreDropdown && !e.target.closest(".main-nav .dropdown")) {
+            closeMore();
+        }
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMore();
     });
 
     if (goToSignup) goToSignup.addEventListener("click", (e) => {
@@ -3223,6 +3765,40 @@ function init() {
 // Start everything when DOM is ready
 document.addEventListener("DOMContentLoaded", init);
 
+
+function updateHomeSEO(matches) {
+    try {
+        if (!window.SEO || !matches || !matches.length) return;
+        const items = matches.slice(0, 10).map((m,i) => ({
+            name: (m.home && m.home.name ? m.home.name : 'Home') + ' vs ' + (m.away && m.away.name ? m.away.name : 'Away'),
+            url: 'https://livematches.hyper.co.ke/match.html?league=' + encodeURIComponent(m.league||'eng.1') + '&id=' + encodeURIComponent(m.id||'') + '&date=' + encodeURIComponent(m.dateYmd||'')
+        }));
+        SEO.itemList(items, 'Live Football Matches Today');
+        SEO.breadcrumb([
+            { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+            { name: 'Live Scores', url: 'https://livematches.hyper.co.ke/#live' }
+        ]);
+    } catch(e) {}
+}
+
+function updateHighlightsSEO(highlights) {
+    try {
+        if (!window.SEO || !highlights || !highlights.length) return;
+        // Set VideoObject for first highlight as example
+        const first = highlights[0];
+        if (first && first.video) {
+            SEO.videoObject({
+                name: first.title || 'Football Highlight',
+                description: first.description || 'Watch latest football highlights',
+                thumbnailUrl: first.thumb || first.image || 'https://livematches.hyper.co.ke/icon-512.png',
+                uploadDate: first.date || new Date().toISOString(),
+                contentUrl: first.video,
+                embedUrl: first.video
+            });
+        }
+    } catch(e) {}
+}
+
 window.__rerenderLang = function () {
     try { refreshApiModeText(); } catch (e) {}
     try { renderDateStrip(); } catch (e) {}
@@ -3231,5 +3807,6 @@ window.__rerenderLang = function () {
     try { renderStandings(); } catch (e) {}
     try { renderNews(); } catch (e) {}
     try { renderScorers(); } catch (e) {}
+    try { renderHighlights(); } catch (e) {}
     try { updateStoryTag(); } catch (e) {}
 };

@@ -188,7 +188,33 @@ function bootStory() {
             + `<div class="window-strip">${t("story.gohome")}</div>`;
         return;
     }
-    try { document.title = `${art.headline} — ScoreHub`; } catch (e) {}
+    try { 
+        const seoTitle = `${art.headline} | ${code} News | ScoreHub`;
+        document.title = seoTitle;
+        if (window.SEO) {
+            const img = storyImage(art);
+            SEO.setTitle(seoTitle);
+            SEO.setDescription((art.description || art.headline || '').slice(0,155));
+            SEO.setCanonical(window.location.href.split('?')[0] + '?id=' + encodeURIComponent(art.id || ''));
+            SEO.setImage(img || '');
+            SEO.setType('article');
+            SEO.setKeywords([code, 'football news', art.headline, 'ScoreHub'].concat(storyTeams(art).map(t=>t.abbr)));
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: code, url: `https://livematches.hyper.co.ke/standings.html?league=${storyLeagueSlug(art)}` },
+                { name: art.headline.slice(0,50), url: window.location.href.split('#')[0] }
+            ]);
+            SEO.newsArticle({
+                headline: art.headline,
+                description: art.description || art.headline,
+                image: img,
+                datePublished: art.published,
+                author: art.byline || 'ESPN',
+                url: window.location.href.split('#')[0],
+                type: 'NewsArticle'
+            });
+        }
+    } catch (e) {}
     const code = storyLeagueCode(art);
     const img = storyImage(art);
     const teams = storyTeams(art);

@@ -116,6 +116,20 @@ async function loadStandings() {
     err.hidden = true;
     box.innerHTML = `<p class="loading-note">${t("table.loading")}</p>`;
     const L = STANDINGS_LEAGUES.find((x) => x.code === standingsCode) || STANDINGS_LEAGUES[0];
+    try {
+        if (window.SEO) {
+            const title = `${L.name} Standings 2025/26 - Table, Points & Stats | ScoreHub`;
+            SEO.setTitle(title);
+            SEO.setDescription(`Live ${L.name} standings: full table with P, W, D, L, GF, GA, GD, points. Updated hourly from ESPN on ScoreHub.`);
+            SEO.setCanonical(`https://livematches.hyper.co.ke/standings.html?league=${L.slug}`);
+            SEO.setKeywords([L.name, 'standings', 'table', 'Premier League', 'LaLiga', 'ScoreHub']);
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: 'Standings', url: 'https://livematches.hyper.co.ke/standings.html' },
+                { name: L.name, url: `https://livematches.hyper.co.ke/standings.html?league=${L.slug}` }
+            ]);
+        }
+    } catch(e){}
     const rows = await fetchStandings(L.slug);
     if (!rows.length) {
         box.innerHTML = "";
