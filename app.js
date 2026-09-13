@@ -1939,6 +1939,23 @@ function enhanceLeagueFlags() {
     });
 }
 
+function matchYmd(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
+function canPreviewMatch(m) {
+    return !!(isApiMode && m && m.sport === "football" && m.espnEventId && m.leagueSlug && m.date
+        && matchYmd(m.date) && new Date(m.date).getTime() > Date.now());
+}
+
+function previewLinkHTML(m) {
+    if (!canPreviewMatch(m)) return "";
+    return `<a class="stat-capsule preview-link" href="preview.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match preview">📰 Preview</a>`;
+}
+
 function renderMatches() {
     // Formula 1 renders its own view inside the scores card
     const scoresSection = document.querySelector(".live-scores-section");
@@ -2020,6 +2037,7 @@ function renderMatches() {
             
             <div class="match-card-footer">
                 <div class="match-stat-capsules">
+                    ${previewLinkHTML(match)}
                     ${match.odds ? `<span class="stat-capsule" title="Odds ${match.homeCode}/${match.awayCode}/Draw via ${match.odds.provider}">🎲 ${oddsSummary(match.odds)}</span>` : ""}
                     <span class="stat-capsule">⚽ ${match.homeScore + match.awayScore} Goals</span>
                     <span class="stat-capsule">📊 ${match.stats.possession}% Poss</span>
@@ -2035,7 +2053,7 @@ function renderMatches() {
         
         // Click to spotlight card (excluding favoriting star click)
         card.addEventListener("click", (e) => {
-            if (e.target.closest(".btn-star-fav")) return;
+            if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link")) return;
             setSpotlightMatch(match.id);
         });
         

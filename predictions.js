@@ -61,6 +61,12 @@ function parseFixture(ev, L) {
     };
 }
 
+function predYmd(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return ymdOf(d);
+}
+
 function formatKickoff(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
@@ -131,7 +137,7 @@ function fixtureCardHTML(f) {
         ? (saved.ph != null && saved.pa != null ? "Locked — settling after full time" : "Locked — kicked off")
         : (saved.ph != null && saved.pa != null ? `<span class="saved">✓ Saved</span>` : "Tap a score to predict");
     return `<div class="pred-card" data-id="${esc(f.id)}">`
-        + `<div class="pred-meta"><span class="league-tag">${esc(f.code)}</span><span>${esc(formatKickoff(f.date))}</span></div>`
+        + `<div class="pred-meta"><span class="league-tag">${esc(f.code)}</span><span>${esc(formatKickoff(f.date))}</span>${f.league !== "demo" ? `<a class="pred-preview" href="preview.html?league=${esc(f.league)}&id=${esc(f.id)}&date=${predYmd(f.date)}">Preview &rarr;</a>` : ""}</div>`
         + `<div class="pred-teams"><span class="pred-team">${f.hl ? `<img class="pred-logo" src="${esc(f.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${esc(f.home)}</span>`
         + `<span class="pred-inputs">`
         + `<input class="pred-score" type="number" min="0" max="20" inputmode="numeric" data-id="${esc(f.id)}" data-side="ph" value="${ph}" ${locked ? "disabled" : ""} aria-label="${esc(f.home)} score">`
