@@ -41,12 +41,6 @@ function formatKickoffLong(iso) {
     try { return d.toLocaleString(appLocale(), { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }); }
     catch (e) { return d.toLocaleString(); }
 }
-function formatDateShort(iso) {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return "";
-    try { return d.toLocaleString(appLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
-    catch (e) { return d.toLocaleDateString(); }
-}
 function teamLogoURL(team) {
     if (!team) return "";
     if (Array.isArray(team.logos) && team.logos[0] && team.logos[0].href) return team.logos[0].href;
@@ -214,19 +208,6 @@ function statusPill(ev) {
     if (state === "in") return `<span class="league-tag" style="background:rgba(239,68,68,0.12);color:#ef4444;border-color:rgba(239,68,68,0.3);">● LIVE · ${esc(detail || ev.status.displayClock || "")}</span>`;
     if (state === "post" || st.completed) return `<span class="league-tag">FT · ${esc(detail)}</span>`;
     return `<span class="league-tag">${esc(detail || "Upcoming")}</span>`;
-}
-function scoreboardHTML(H, A, hs, as, ev) {
-    const comp = (ev && ev.competitions && ev.competitions[0]) || {};
-    const venue = (comp.venue && (comp.venue.fullName || comp.venue.shortName)) || "";
-    const st = (ev && ev.status && ev.status.type) || {};
-    const isLive = st.state === "in";
-    const score = isLive || st.completed || st.state === "post" ? `${hs != null ? hs : "–"} – ${as != null ? as : "–"}` : "vs";
-    return `<div class="match-hero">
-        <div class="match-hero-top">${logoImg(H.logo, "match-hero-logo")}<span class="match-hero-name">${esc(H.name)}</span>
-        <span class="match-hero-score">${esc(score)}</span>
-        <span class="match-hero-name">${esc(A.name)}</span>${logoImg(A.logo, "match-hero-logo")}</div>
-        <div class="match-hero-sub">${venue ? esc(venue) + " · " : ""}${esc(formatKickoffLong(ev.date))}</div>
-    </div>`;
 }
 function statsBarsHTML(H, A, sh, sa) {
     const cfg = [
@@ -445,6 +426,11 @@ async function bootMatch() {
     const hs = hc.score != null ? parseInt(hc.score, 10) : null;
     const as = ac.score != null ? parseInt(ac.score, 10) : null;
     const st = (ev.status && ev.status.type) || {};
+    // Resolved before the SEO block — a later `const` reference would throw (TDZ)
+    // and the catch below would silently drop every SEO tag on this page.
+    const venueFull = (comp.venue && (comp.venue.fullName || comp.venue.shortName)) || "";
+    const venueCity = (comp.venue && comp.venue.address && comp.venue.address.city) || "";
+    const venue = [venueFull, venueCity].filter(Boolean).join(", ");
     try { 
         const seoTitle = `${H.name} ${hs != null ? hs + "–" + as + " " : "vs "}${A.name} Live Score - ${leagueName} | ScoreHub`;
         document.title = seoTitle;
@@ -483,10 +469,6 @@ async function bootMatch() {
         if (results[0].status === "fulfilled") summary = results[0].value;
         if (results[1].status === "fulfilled") table = results[1].value;
     } catch (e) {}
-
-    const venueFull = (comp.venue && (comp.venue.fullName || comp.venue.shortName)) || "";
-    const venueCity = (comp.venue && comp.venue.address && comp.venue.address.city) || "";
-    const venue = [venueFull, venueCity].filter(Boolean).join(", ");
 
     // Scorers from details
     const details = comp.details || [];

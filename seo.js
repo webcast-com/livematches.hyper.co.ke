@@ -101,8 +101,10 @@
         setCanonical(window.location.href.split('#')[0]);
     }
 
-    // Organization + Website JSON-LD for every page
-    setJSONLD('seo-org', {
+    // Organization + Website JSON-LD for every page. Reuse the ids the static
+    // markup already ships (org-jsonld / website-jsonld) so each page ends up
+    // with one Organization and one WebSite node instead of a duplicate pair.
+    setJSONLD('org-jsonld', {
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "ScoreHub",
@@ -110,7 +112,7 @@
         "logo": siteUrl + "/icon-512.png",
         "sameAs": []
     });
-    setJSONLD('seo-website', {
+    setJSONLD('website-jsonld', {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "ScoreHub",

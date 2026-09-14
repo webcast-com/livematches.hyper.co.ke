@@ -105,7 +105,14 @@ a {
 .app-container {
     max-width: 1800px;
     margin: 0 auto;
-    padding: 0 20px;
+    /* --gutter is the horizontal page padding. Full-bleed sections
+       (.sports-selector, .ticker-strip, .highlights-strip) cancel it with
+       margin: 0 calc(var(--gutter) * -1), so the two must stay in sync:
+       when the mobile breakpoints shrank this padding to 12px/10px but the
+       sections still cancelled 12px, they ended up 4px wider than the screen
+       and made the whole homepage scroll sideways. */
+    --gutter: 20px;
+    padding: 0 var(--gutter);
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -1175,6 +1182,16 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     align-items: start;
 }
 
+/* Grid (and flex) items default to min-width:auto, so a single wide child
+   stretches its whole track — and then the page. On mobile the Popular
+   Leagues card is a horizontally scrolling chip row (see .leagues-list
+   flex-direction:row), which without this blew the homepage out to ~1727px:
+   10 of the 12 league chips ran off-screen and every other section (match
+   cards, date strip, filter chips) was stretched to the same width. */
+.dashboard-grid > * {
+    min-width: 0;
+}
+
 .card-box {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -2168,6 +2185,14 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     padding: 60px 40px 20px 40px;
     border-radius: 24px 24px 0 0;
     margin-top: 40px;
+    /* The phone mockup's decorative glow is a 340x380 pseudo-element behind a
+       160px box, so it overhangs ~90px on each side. Absolutely positioned, it
+       still counts towards the page's scrollable overflow: it made the page
+       30px wider than the viewport from 1600px up. Clip it at the footer edge
+       (which is the viewport edge) — the part that showed was off-screen
+       anyway. `clip` rather than `hidden` so this does not become a scroll
+       container and vertical bloom is left alone. */
+    overflow-x: clip;
 }
 
 .footer-top-grid {
@@ -2295,7 +2320,11 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     position: absolute;
     left: 50%;
     top: 46%;
-    width: 340px;
+    /* Decorative glow, 180px wider than the 160px phone it sits behind.
+       It is absolutely positioned, so it counts towards the page scroll
+       width even though it is invisible — on a 320px screen that pushed the
+       footer 10px past the viewport. Cap it to the viewport width. */
+    width: min(340px, 100vw);
     height: 380px;
     transform: translate(-50%, -50%);
     background: radial-gradient(ellipse at center, rgba(0, 242, 254, 0.15) 0%, rgba(79, 172, 254, 0.06) 45%, transparent 70%);
@@ -3224,6 +3253,19 @@ a.shop-alt:hover { color: var(--primary); }
     .card { padding: 16px; }
 }
 
+/* One table per conference (MLS) needs a label above each one */
+.standings-group-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 18px 0 2px 2px;
+}
+.standings-group-title:first-child {
+    margin-top: 6px;
+}
+
 /* Team logos on Predictions / Transfers / Shop (img removes itself on failure) */
 .pred-logo {
     width: 20px;
@@ -3690,7 +3732,15 @@ body.modal-open {
 }
 
 
-@media (max-width: 992px) {
+/* The full inline header (logo + tagline + 8 nav links + 280px search + 7
+   action buttons) measures 1697px wide with nothing wrapped, plus the 20px
+   container gutters = 1737px of viewport. Below that the header was squeezed
+   (nav links and the logo tagline wrapped onto two lines) and, from 993px to
+   ~1620px, it stretched the document to 1600px, so every page scrolled
+   sideways on common laptops (1024/1280/1366/1440/1536). Collapse it here into
+   the same two-row header + hamburger drawer the tablets and phones already
+   use; the full inline nav returns at 1761px and up, with room to spare. */
+@media (max-width: 1760px) {
     .main-header {
         padding: 12px 0;
         display: grid;
@@ -3813,6 +3863,10 @@ body.modal-open {
     .main-nav .dropdown-menu a:hover {
         background: rgba(255,255,255,0.05);
     }
+}
+
+
+@media (max-width: 992px) {
 
     .hero-grid {
         grid-template-columns: 1fr;
@@ -3881,7 +3935,8 @@ body.modal-open {
 
 @media (max-width: 768px) {
     .app-container {
-        padding: 0 12px;
+        --gutter: 12px;
+        padding: 0 var(--gutter);
         gap: 12px;
     }
 
@@ -3963,7 +4018,7 @@ body.modal-open {
     }
 
     .sports-selector {
-        margin: 0 -12px;
+        margin: 0 calc(var(--gutter) * -1);
         padding: 5px 12px;
     }
     .sports-track {
@@ -3983,7 +4038,7 @@ body.modal-open {
     }
 
     .ticker-strip {
-        margin: 0 -12px;
+        margin: 0 calc(var(--gutter) * -1);
         padding: 8px 0 12px;
         overflow-x: auto;
         overflow-y: hidden;
@@ -4495,7 +4550,8 @@ body.modal-open {
 
 @media (max-width: 480px) {
     .app-container {
-        padding: 0 10px;
+        --gutter: 10px;
+        padding: 0 var(--gutter);
         gap: 10px;
     }
     .main-header {
@@ -4642,7 +4698,7 @@ body.modal-open {
 
 @media (max-width: 768px) {
     .highlights-strip {
-        margin: 0 -12px;
+        margin: 0 calc(var(--gutter) * -1);
         border-radius: 0;
         border-left: none;
         border-right: none;
