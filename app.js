@@ -731,6 +731,37 @@ const TEAM_COLORS = {
 // The first strategy that returns valid ESPN JSON is remembered and reused.
 
 const ESPN_FETCH_TIMEOUT_MS = 10000;
+const ESPN_PROBE_TIMEOUT_MS = 3500;            // one transport, reachability check
+const ESPN_TRANSPORT_COOLDOWN_MS = 5 * 60 * 1000;
+const ESPN_TRANSPORT_FAIL_LIMIT = 2;           // consecutive failures before cooling down
+const ESPN_SWEEP_WATCHDOG_MS = 12000;          // nothing fetched yet → stop and fall back
+const ESPN_SWEEP_MAX_MS = 60000;               // hard cap on a sweep that is limping along
+const ESPN_REFRESH_MS = 60000;                 // live data: refresh cadence
+const ESPN_RECOVERY_MS = 5 * 60 * 1000;        // simulation mode: how often to look for live data
+
+// A transport that keeps failing (blocked host, blackholed CDN) is taken out of
+// rotation for a while instead of being retried for every one of the 50+ leagues
+// in a sweep. The first successful response clears it again.
+const espnTransportFails = new Map();      // strategy index → consecutive failures
+const espnTransportDownUntil = new Map();  // strategy index → epoch ms it may be retried
+
+function espnTransportUsable(idx) {
+    return (espnTransportDownUntil.get(idx) || 0) <= Date.now();
+}
+
+function espnTransportNoteFailure(idx) {
+    const fails = (espnTransportFails.get(idx) || 0) + 1;
+    espnTransportFails.set(idx, fails);
+    if (fails >= ESPN_TRANSPORT_FAIL_LIMIT) {
+        espnTransportDownUntil.set(idx, Date.now() + ESPN_TRANSPORT_COOLDOWN_MS);
+        console.info(`ESPN transport "${ESPN_STRATEGIES[idx].name}" cooling down for ${Math.round(ESPN_TRANSPORT_COOLDOWN_MS / 60000)} min after ${fails} failures.`);
+    }
+}
+
+function espnTransportNoteSuccess(idx) {
+    espnTransportFails.set(idx, 0);
+    espnTransportDownUntil.delete(idx);
+}
 
 // Each strategy: build(path, host) → fetchable URL, parse(resp) → ESPN JSON.
 // "host" is the ESPN origin serving the requested path (defaults to site.api.espn.com);
@@ -778,13 +809,19 @@ function isValidESPNData(data) {
         (Array.isArray(data.leagues) || Array.isArray(data.events) || data.season || data.day));
 }
 
-async function fetchWithTimeout(url, timeoutMs) {
+async function fetchWithTimeout(url, timeoutMs, outerSignal) {
     const controller = new AbortController();
+    const onOuterAbort = () => controller.abort();
+    if (outerSignal) {
+        if (outerSignal.aborted) controller.abort();
+        else outerSignal.addEventListener("abort", onOuterAbort, { once: true });
+    }
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
         return await fetch(url, { cache: "no-cache", signal: controller.signal });
     } finally {
         clearTimeout(timer);
+        if (outerSignal) outerSignal.removeEventListener("abort", onOuterAbort);
     }
 }
 
@@ -794,9 +831,16 @@ function espnTransportName() {
 
 // Fetch any ESPN JSON resource, trying each transport strategy (memoized first)
 // until one returns data that passes the endpoint-specific validator.
+// opts.force ignores the cooldowns (reachability probe / user-initiated retry),
+// opts.quiet suppresses the per-transport console noise, opts.timeout overrides
+// the per-attempt timeout, opts.signal aborts the attempt from outside (sweep
+// watchdog).
 async function fetchESPNPath(path, opts = {}) {
     const host = opts.host || "site.api.espn.com";
     const validate = opts.validate || isValidESPNData;
+    const timeoutMs = opts.timeout || ESPN_FETCH_TIMEOUT_MS;
+    const outerSignal = opts.signal;
+    const quiet = !!opts.quiet;
 
     // Try the memoized strategy first, then the rest in order
     const order = [];
@@ -806,32 +850,64 @@ async function fetchESPNPath(path, opts = {}) {
     }
 
     let lastError = null;
+    let attempted = 0;
     for (const idx of order) {
         const strategy = ESPN_STRATEGIES[idx];
         if (strategy.applies && !strategy.applies(host)) continue;
+        if (!opts.force && !espnTransportUsable(idx)) { lastError = lastError || new Error("transports cooling down"); continue; }
+        if (outerSignal && outerSignal.aborted) { lastError = new Error("request budget reached"); break; }
+        attempted++;
         try {
-            const resp = await fetchWithTimeout(strategy.build(path, host), ESPN_FETCH_TIMEOUT_MS);
+            const resp = await fetchWithTimeout(strategy.build(path, host), timeoutMs, outerSignal);
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await strategy.parse(resp);
             if (!validate(data)) throw new Error("response failed validation (likely a CDN block page)");
             espnWorkingStrategy = idx; // remember what works
+            espnTransportNoteSuccess(idx);
             return data;
         } catch (err) {
+            // An abort from the sweep watchdog is not the transport's fault.
+            if (outerSignal && outerSignal.aborted) {
+                lastError = new Error("request budget reached");
+                break;
+            }
             if (err && err.name === "AbortError") {
                 lastError = new Error("timeout");
             } else {
                 lastError = err;
             }
-            console.warn(`ESPN fetch via ${strategy.name} (${host}) failed:`, lastError.message);
+            if (!opts.probe) espnTransportNoteFailure(idx);
+            if (!quiet) console.warn(`ESPN fetch via ${strategy.name} (${host}) failed:`, lastError.message);
         }
+    }
+    if (!attempted) {
+        throw new Error(`All transports for ${host}${path} are cooling down after repeated failures (${lastError ? lastError.message : "no transports"})`);
     }
     throw new Error(`All transports failed for ${host}${path} (${lastError ? lastError.message : "unknown error"})`);
 }
 
 // Fetch ESPN scoreboard for a specific endpoint slug
-async function fetchESPNLeague(slug) {
+async function fetchESPNLeague(slug, signal) {
     const qs = selectedDate ? `?dates=${selectedDate}` : "";
-    return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard${qs}`);
+    return fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard${qs}`, { signal });
+}
+
+// One cheap request used to answer "is ESPN reachable right now?" without
+// sweeping every league. Bypasses the transport cooldowns (that is the point)
+// but with a short timeout, and it never counts against the cooldown counters.
+async function espnProbe() {
+    const endpoints = ESPN_ENDPOINTS[currentSport] || ESPN_ENDPOINTS["all"];
+    const slug = endpoints[0] || "soccer/eng.1";
+    const qs = selectedDate ? `?dates=${selectedDate}` : "";
+    try {
+        const data = await fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard${qs}`, {
+            force: true, probe: true, quiet: true, timeout: ESPN_PROBE_TIMEOUT_MS
+        });
+        return data || null;
+    } catch (err) {
+        console.info("ESPN reachability probe failed:", err.message);
+        return null;
+    }
 }
 
 // Best-effort club logo URL from an ESPN team object (scoreboard shapes vary)
@@ -1074,47 +1150,75 @@ function showSkeletons(count = 4) {
 }
 
 // Fetch and load all matches for the selected sport from the ESPN API - now worldwide with chunked fetching
-async function loadAPIMatches() {
+async function loadAPIMatches(opts = {}) {
     if (currentSport === "f1") { loadF1Data(); return; }
     if (apiLoading) return;
     apiLoading = true;
-    showSkeletons(5);
+    // Keep whatever is already on screen (the initial simulation render) instead
+    // of blanking it behind skeletons for the whole fetch: the status bar already
+    // says "Fetching…", and the list fills in the moment live data lands.
+    if (!matchesContainer.children.length) showSkeletons(5);
 
     const endpoints = ESPN_ENDPOINTS[currentSport] || ESPN_ENDPOINTS["all"];
     const fetched = [];
+    const sweepStart = Date.now();
 
-    // Chunked parallel fetching to support 50+ worldwide leagues without hammering the browser/ESPN
-    const CHUNK_SIZE = 6;
-    for (let i = 0; i < endpoints.length; i += CHUNK_SIZE) {
-        const chunk = endpoints.slice(i, i + CHUNK_SIZE);
-        await Promise.allSettled(
-            chunk.map(async slug => {
-                try {
-                    const data = await fetchESPNLeague(slug);
-                    if (data.season && data.season.year) espnSeasonYear = data.season.year;
-                    const leagueInfo = LEAGUE_NAMES[slug] || { name: slug, code: slug.split("/")[1].toUpperCase(), sport: "football" };
-                    const events = data.events || [];
-                    events.forEach(evt => {
-                        const match = parseESPNEvent(evt, leagueInfo, slug);
-                        if (match) fetched.push(match);
-                    });
-                } catch (err) {
-                    console.warn("ESPN fetch error for", slug, err.message);
-                }
-            })
-        );
-        // Small delay between chunks to be nice to ESPN CDN
-        if (i + CHUNK_SIZE < endpoints.length) {
-            await new Promise(r => setTimeout(r, 150));
+    // A blocked or blackholed ESPN used to hold the page for minutes: every league
+    // walked all five transports at a 10 s timeout each, so 15 leagues took longer
+    // than a cup of tea and 57 (worldwide) took the best part of ten minutes before
+    // falling back to simulation. The sweep now gives up on its own — as soon as it
+    // is clear nothing is coming — and the transports stop being retried per league.
+    const sweepAbort = new AbortController();
+    const sweepTimers = [
+        setTimeout(() => { if (fetched.length === 0) sweepAbort.abort(); }, ESPN_SWEEP_WATCHDOG_MS),
+        setTimeout(() => sweepAbort.abort(), ESPN_SWEEP_MAX_MS)
+    ];
+
+    try {
+        // Chunked parallel fetching to support 50+ worldwide leagues without hammering the browser/ESPN
+        const CHUNK_SIZE = 6;
+        for (let i = 0; i < endpoints.length; i += CHUNK_SIZE) {
+            if (sweepAbort.signal.aborted) break;
+            const chunk = endpoints.slice(i, i + CHUNK_SIZE);
+            await Promise.allSettled(
+                chunk.map(async slug => {
+                    try {
+                        const data = await fetchESPNLeague(slug, sweepAbort.signal);
+                        if (data.season && data.season.year) espnSeasonYear = data.season.year;
+                        const leagueInfo = LEAGUE_NAMES[slug] || { name: slug, code: slug.split("/")[1].toUpperCase(), sport: "football" };
+                        const events = data.events || [];
+                        events.forEach(evt => {
+                            const match = parseESPNEvent(evt, leagueInfo, slug);
+                            if (match) fetched.push(match);
+                        });
+                    } catch (err) {
+                        console.warn("ESPN fetch error for", slug, err.message);
+                    }
+                })
+            );
+            if (sweepAbort.signal.aborted) break;
+            // Nothing has arrived and every transport has gone into cooldown: the
+            // remaining leagues cannot succeed either, so stop instead of paying
+            // for another round of connection attempts.
+            if (fetched.length === 0 && ESPN_STRATEGIES.every((s, idx) => !espnTransportUsable(idx))) {
+                sweepAbort.abort();
+                break;
+            }
+            // Small delay between chunks to be nice to ESPN CDN
+            if (i + CHUNK_SIZE < endpoints.length) {
+                await new Promise(r => setTimeout(r, 150));
+            }
         }
+    } finally {
+        sweepTimers.forEach(clearTimeout);
     }
 
     if (apiMatches.length === 0 && fetched.length === 0) {
         // No data at all — API unreachable or blocked. Fall back gracefully.
         apiLoading = false;
-        console.info("ESPN fetch failed on all transports. Falling back to simulation.");
+        console.info(`ESPN fetch failed on all transports after ${Math.round((Date.now() - sweepStart) / 1000)}s (${sweepAbort.signal.aborted ? "gave up early" : "every league tried"}). Falling back to simulation.`);
         setApiMode(false);
-        showNotification(t("notif.apifail"));
+        if (!opts.silent) showNotification(t("notif.apifail"));
         return;
     }
 
@@ -1212,7 +1316,7 @@ async function loadAPIMatches() {
 }
 
 // Toggle between Simulation and Live API modes
-function setApiMode(enable) {
+function setApiMode(enable, opts = {}) {
     isApiMode = enable;
     const statusBar = document.getElementById("api-status-bar");
     const lastUpdatedEl = document.getElementById("api-last-updated");
@@ -1226,7 +1330,7 @@ function setApiMode(enable) {
             statusBar.classList.add("visible");
             if (lastUpdatedEl) lastUpdatedEl.textContent = "Fetching...";
         }
-        loadAPIMatches();
+        loadAPIMatches(opts);
     } else {
         isApiMode = false;
         apiMatches = [];
@@ -3837,6 +3941,45 @@ function applyStoredTheme() {
     if (sun) sun.classList.toggle("hidden", saved !== "light");
 }
 
+// --- LIVE REFRESH SCHEDULER ---
+// One self-scheduling tick instead of a fixed interval, so the cadence can stretch
+// while ESPN is down (60 s → one probe per recovery window) and so a sweep already
+// in flight is never stacked on top of another one.
+let liveRefreshTimer = null;
+
+function scheduleLiveRefresh(delayMs) {
+    clearTimeout(liveRefreshTimer);
+    liveRefreshTimer = setTimeout(runLiveRefresh, delayMs);
+}
+
+async function runLiveRefresh() {
+    let next = ESPN_REFRESH_MS;
+    try {
+        if (apiLoading) {
+            next = 15000;                       // a sweep is running — check back shortly
+        } else if (currentSport === "f1") {
+            loadF1Data();
+        } else if (isApiMode) {
+            loadAPIMatches();
+            loadLiveExtras();                   // TTL-cached internally (~5 min)
+            refreshLiveMatchCentre();           // updates an open Watch Live modal
+            if (!isApiMode) next = ESPN_RECOVERY_MS;  // that sweep fell back to simulation
+        } else {
+            next = ESPN_RECOVERY_MS;
+            // Simulation mode: only switch back once ESPN actually answers, so the
+            // mode badge and the cards do not flicker on every failed attempt.
+            if (await espnProbe()) {
+                console.info("ESPN reachable again — switching back to live data.");
+                setApiMode(true, { silent: true });   // background switch — no toast needed
+                next = ESPN_REFRESH_MS;
+            }
+        }
+    } catch (err) {
+        console.warn("Live refresh tick failed:", err && err.message);
+    }
+    scheduleLiveRefresh(next);
+}
+
 // --- INITIALIZATION --- 
 function init() {
     applyStoredTheme();
@@ -3860,15 +4003,10 @@ function init() {
     setInterval(simulationLoop, 6000);   // clock ticks every 6 s
     setInterval(eventSimulation, 18000); // match events every 18 s
     
-    // Auto-refresh ESPN API data every 60 seconds when in API mode
-    setInterval(() => {
-        if (isApiMode && !apiLoading) {
-            if (currentSport === "f1") loadF1Data();
-            else loadAPIMatches();
-            loadLiveExtras(); // TTL-cached internally, refreshes every ~5 min
-            refreshLiveMatchCentre(); // updates the open Watch Live modal
-        }
-    }, 60000);
+    // Live data refresh: every 60 s while live scores are on screen, and a single
+    // cheap probe every 5 min while showing simulation data. Before, this ticked
+    // the whole 15-57 league sweep every minute whatever state ESPN was in.
+    scheduleLiveRefresh(ESPN_REFRESH_MS);
     
     // Start tactical pitch broadcast animations
     setInterval(runPitchTrackerAnimation, 1200);
