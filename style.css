@@ -2185,6 +2185,14 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     padding: 60px 40px 20px 40px;
     border-radius: 24px 24px 0 0;
     margin-top: 40px;
+    /* The phone mockup's decorative glow is a 340x380 pseudo-element behind a
+       160px box, so it overhangs ~90px on each side. Absolutely positioned, it
+       still counts towards the page's scrollable overflow: it made the page
+       30px wider than the viewport from 1600px up. Clip it at the footer edge
+       (which is the viewport edge) — the part that showed was off-screen
+       anyway. `clip` rather than `hidden` so this does not become a scroll
+       container and vertical bloom is left alone. */
+    overflow-x: clip;
 }
 
 .footer-top-grid {
@@ -3711,7 +3719,15 @@ body.modal-open {
 }
 
 
-@media (max-width: 992px) {
+/* The full inline header (logo + tagline + 8 nav links + 280px search + 7
+   action buttons) measures 1697px wide with nothing wrapped, plus the 20px
+   container gutters = 1737px of viewport. Below that the header was squeezed
+   (nav links and the logo tagline wrapped onto two lines) and, from 993px to
+   ~1620px, it stretched the document to 1600px, so every page scrolled
+   sideways on common laptops (1024/1280/1366/1440/1536). Collapse it here into
+   the same two-row header + hamburger drawer the tablets and phones already
+   use; the full inline nav returns at 1761px and up, with room to spare. */
+@media (max-width: 1760px) {
     .main-header {
         padding: 12px 0;
         display: grid;
@@ -3834,6 +3850,10 @@ body.modal-open {
     .main-nav .dropdown-menu a:hover {
         background: rgba(255,255,255,0.05);
     }
+}
+
+
+@media (max-width: 992px) {
 
     .hero-grid {
         grid-template-columns: 1fr;
