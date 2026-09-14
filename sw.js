@@ -1,6 +1,10 @@
 /* ScoreHub service worker — offline shell + runtime caching.
-   Bump SW_VERSION to force-update all clients (it names both caches, so the
-   precache is rebuilt and the old caches are dropped on activate). */
+   SW_VERSION names both caches, so bumping it rebuilds the precache and drops
+   the old caches on activate. Bumping is no longer *required* to ship a new
+   style.css/app.js: same-origin assets are served stale-while-revalidate, so
+   the copy behind the precache refreshes itself on the next visit (it used to
+   be cache-first, which pinned whatever was installed until someone bumped
+   this string). Bump it when the precache list itself changes. */
 const SW_VERSION = 'v2';
 const STATIC_CACHE = `scorehub-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `scorehub-runtime-${SW_VERSION}`;
@@ -43,6 +47,31 @@ function trimCache(name, max) {
   }));
 }
 
+/* Where is this request already cached? The precache (install-time app shell)
+   comes first, then anything picked up at runtime. The returned name is where a
+   refreshed copy has to go back so the stale copy is actually replaced. */
+async function cacheLookup(req) {
+  for (const name of [STATIC_CACHE, RUNTIME_CACHE]) {
+    const hit = await caches.open(name).then((cache) => cache.match(req));
+    if (hit) return { hit, name };
+  }
+  return { hit: null, name: null };
+}
+
+/* Fetch and refresh the stored copy in whichever cache holds it (the runtime
+   cache for anything new). Cache-write failures never affect the response we
+   hand back — 206/redirect responses cannot be stored and that is fine. */
+async function revalidate(req, cacheName) {
+  const res = await fetch(req);
+  if (res && res.status === 200) {
+    const name = cacheName || RUNTIME_CACHE;
+    caches.open(name)
+      .then((cache) => cache.put(req, res.clone()).then(() => trimCache(name, 80)))
+      .catch(() => null);
+  }
+  return res;
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -72,12 +101,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Same-origin assets: cache first, then network (cached for next time).
-  event.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
-      const copy = res.clone();
-      caches.open(RUNTIME_CACHE).then((c) => { c.put(req, copy); trimCache(RUNTIME_CACHE, 80); });
-      return res;
-    }).catch(() => (req.destination === 'image' ? caches.match('icon-192.png') : undefined)))
-  );
+  // Same-origin assets: stale-while-revalidate — the cached copy is served
+  // immediately (instant paint, still works offline) while a fresh copy is
+  // fetched and stored for the next visit.
+  event.respondWith((async () => {
+    const { hit, name } = await cacheLookup(req);
+    if (hit) {
+      event.waitUntil(revalidate(req, name).catch(() => null));
+      return hit;
+    }
+    try {
+      return await revalidate(req, null);
+    } catch (e) {
+      const fallback = req.destination === 'image' ? await caches.match('icon-192.png') : null;
+      return fallback || Response.error();
+    }
+  })());
 });
