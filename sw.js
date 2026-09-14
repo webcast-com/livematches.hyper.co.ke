@@ -1,8 +1,9 @@
 /* ScoreHub service worker — offline shell + runtime caching.
-   Bump SW_VERSION (and the cache names) to force-update all clients. */
+   Bump SW_VERSION to force-update all clients (it names both caches, so the
+   precache is rebuilt and the old caches are dropped on activate). */
 const SW_VERSION = 'v2';
-const STATIC_CACHE = 'scorehub-static-v2';
-const RUNTIME_CACHE = 'scorehub-runtime-v2';
+const STATIC_CACHE = `scorehub-static-${SW_VERSION}`;
+const RUNTIME_CACHE = `scorehub-runtime-${SW_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 
 const PRECACHE = [

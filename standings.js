@@ -139,10 +139,26 @@ async function loadStandings() {
     window.__standingsRows = rows; renderTable(rows);
 }
 
+// Two spellings reach this page: the tab chips / homepage league rows use the
+// short code (`EPL`, `LaLiga`) while sitemap.xml plus the match and story
+// deep links use the ESPN slug (`eng.1`, `uefa.champions`). Accept both so
+// those links show the league they asked for instead of silently falling back
+// to the Premier League table.
+function resolveLeagueKey(q) {
+    if (!q) return null;
+    const key = String(q).trim();
+    if (!key) return null;
+    const byCode = STANDINGS_LEAGUES.find((x) => x.code.toLowerCase() === key.toLowerCase());
+    if (byCode) return byCode.code;
+    const bySlug = STANDINGS_LEAGUES.find((x) => x.slug.toLowerCase() === key.toLowerCase());
+    if (bySlug) return bySlug.code;
+    return null;
+}
+
 function bootStandings() {
     try {
-        const q = new URLSearchParams(window.location.search).get("league");
-        if (q && STANDINGS_LEAGUES.some((x) => x.code === q)) standingsCode = q;
+        const key = resolveLeagueKey(new URLSearchParams(window.location.search).get("league"));
+        if (key) standingsCode = key;
     } catch (e) {}
     document.querySelectorAll("#standings-chips .standings-tab").forEach((btn) => {
         btn.classList.toggle("active", (btn.dataset.league || "EPL") === standingsCode);

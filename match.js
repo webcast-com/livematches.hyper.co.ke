@@ -445,6 +445,11 @@ async function bootMatch() {
     const hs = hc.score != null ? parseInt(hc.score, 10) : null;
     const as = ac.score != null ? parseInt(ac.score, 10) : null;
     const st = (ev.status && ev.status.type) || {};
+    // Resolved before the SEO block — a later `const` reference would throw (TDZ)
+    // and the catch below would silently drop every SEO tag on this page.
+    const venueFull = (comp.venue && (comp.venue.fullName || comp.venue.shortName)) || "";
+    const venueCity = (comp.venue && comp.venue.address && comp.venue.address.city) || "";
+    const venue = [venueFull, venueCity].filter(Boolean).join(", ");
     try { 
         const seoTitle = `${H.name} ${hs != null ? hs + "–" + as + " " : "vs "}${A.name} Live Score - ${leagueName} | ScoreHub`;
         document.title = seoTitle;
@@ -483,10 +488,6 @@ async function bootMatch() {
         if (results[0].status === "fulfilled") summary = results[0].value;
         if (results[1].status === "fulfilled") table = results[1].value;
     } catch (e) {}
-
-    const venueFull = (comp.venue && (comp.venue.fullName || comp.venue.shortName)) || "";
-    const venueCity = (comp.venue && comp.venue.address && comp.venue.address.city) || "";
-    const venue = [venueFull, venueCity].filter(Boolean).join(", ");
 
     // Scorers from details
     const details = comp.details || [];

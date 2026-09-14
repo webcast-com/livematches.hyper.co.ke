@@ -2740,8 +2740,8 @@ function renderMatches() {
         if (!groups.has(key)) groups.set(key, { fmt: fmt || { key: "today", label: "Today", short: "Today" }, matches: [] });
         groups.get(key).matches.push(m);
     });
-    try{ window._lastMatches = matches; }catch(e){}
-    try{ updateHomeSEO(matches); }catch(e){}
+    try{ window._lastMatches = filtered; }catch(e){}
+    try{ updateHomeSEO(filtered); }catch(e){}
 
     const sortedGroupKeys = [...groups.keys()].sort((a,b) => {
         if (a === "today") return -1;
@@ -2795,7 +2795,7 @@ function renderMatches() {
                     <div class="match-card-status ${st.cls}">
                         ${st.isLive ? '<span class="live-indicator-dot"></span>' : ''}
                         <span class="status-label">${st.label}</span>
-                        ${st.isLive || st.isHT ? `<span class="status-time">${match.time}</span>` : (st.isFinished ? `<span class="status-time">${match.time}</span>` : `<span class="status-time">${match.time}</span>`)}
+                        ${st.isLive || st.isHT ? `<span class="status-time">${match.time}</span>` : ""}
                     </div>
                 </div>
                 
@@ -3537,10 +3537,10 @@ function initEventHandlers() {
                 item.className = "search-item";
                 item.innerHTML = `
                     <div>
-                        <div class="item-title">${m.homeTeam} vs ${m.awayTeam}</div>
-                        <div class="item-desc">${m.league} \u00b7 ${m.time}</div>
+                        <div class="item-title">${escHtml(m.homeTeam)} vs ${escHtml(m.awayTeam)}</div>
+                        <div class="item-desc">${escHtml(m.league)} \u00b7 ${escHtml(m.time)}</div>
                     </div>
-                    <span class="search-sport-badge">${m.sport}</span>
+                    <span class="search-sport-badge">${escHtml(m.sport)}</span>
                 `;
                 item.addEventListener("click", () => {
                     searchInput.value = "";
@@ -3881,10 +3881,16 @@ document.addEventListener("DOMContentLoaded", init);
 function updateHomeSEO(matches) {
     try {
         if (!window.SEO || !matches || !matches.length) return;
-        const items = matches.slice(0, 10).map((m,i) => ({
-            name: (m.home && m.home.name ? m.home.name : 'Home') + ' vs ' + (m.away && m.away.name ? m.away.name : 'Away'),
-            url: 'https://livematches.hyper.co.ke/match.html?league=' + encodeURIComponent(m.league||'eng.1') + '&id=' + encodeURIComponent(m.id||'') + '&date=' + encodeURIComponent(m.dateYmd||'')
-        }));
+        // Only ESPN-backed matches have a linkable match.html URL, and the
+        // internal match objects carry homeTeam/awayTeam (not nested home/away).
+        const items = matches
+            .filter((m) => m && m.espnEventId && m.leagueSlug && m.date)
+            .slice(0, 10)
+            .map((m) => ({
+                name: (m.homeTeam || 'Home') + ' vs ' + (m.awayTeam || 'Away'),
+                url: 'https://livematches.hyper.co.ke/' + matchPageUrl(m)
+            }));
+        if (!items.length) return;
         SEO.itemList(items, 'Live Football Matches Today');
         SEO.breadcrumb([
             { name: 'Home', url: 'https://livematches.hyper.co.ke/' },

@@ -188,6 +188,9 @@ function bootStory() {
             + `<div class="window-strip">${t("story.gohome")}</div>`;
         return;
     }
+    // Declared before the SEO block below — referencing a later `const` from the
+    // same scope throws (TDZ) and the catch would silently drop every SEO tag.
+    const code = storyLeagueCode(art);
     try { 
         const seoTitle = `${art.headline} | ${code} News | ScoreHub`;
         document.title = seoTitle;
@@ -215,7 +218,6 @@ function bootStory() {
             });
         }
     } catch (e) {}
-    const code = storyLeagueCode(art);
     const img = storyImage(art);
     const teams = storyTeams(art);
     const clubs = teams.length
