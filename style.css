@@ -3253,6 +3253,19 @@ a.shop-alt:hover { color: var(--primary); }
     .card { padding: 16px; }
 }
 
+/* One table per conference (MLS) needs a label above each one */
+.standings-group-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 18px 0 2px 2px;
+}
+.standings-group-title:first-child {
+    margin-top: 6px;
+}
+
 /* Team logos on Predictions / Transfers / Shop (img removes itself on failure) */
 .pred-logo {
     width: 20px;
