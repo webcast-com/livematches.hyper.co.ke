@@ -12,6 +12,8 @@ Allow: /predictions.html
 Allow: /shop.html
 Allow: /about.html
 Disallow: /offline.html
+# Hand-written endpoint samples for developers, not content
+Disallow: /testdata/
 Disallow: /*?*id=example*
 
 Sitemap: https://livematches.hyper.co.ke/sitemap.xml

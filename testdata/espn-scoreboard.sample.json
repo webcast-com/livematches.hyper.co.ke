@@ -1,0 +1,280 @@
+{
+  "leagues": [
+    {
+      "id": "700",
+      "uid": "s:600~l:700",
+      "name": "English Premier League",
+      "abbreviation": "Premier League",
+      "midsizeName": "ENG.1",
+      "slug": "eng.1",
+      "isTournament": false,
+      "season": {
+        "year": 2025,
+        "startDate": "2025-06-01T04:00Z",
+        "endDate": "2026-06-01T03:59Z",
+        "displayName": "2025-26 English Premier League",
+        "type": { "id": "1", "type": 1, "name": "2025-26", "abbreviation": "2025-26" }
+      },
+      "logos": [
+        { "href": "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+      ]
+    }
+  ],
+  "season": { "type": 13481, "year": 2025 },
+  "day": { "date": "2026-05-24" },
+  "events": [
+    {
+      "id": "704620",
+      "uid": "s:600~l:700~e:704620",
+      "date": "2026-05-24T15:00Z",
+      "name": "Arsenal vs Chelsea",
+      "shortName": "ARS vs CHE",
+      "season": { "year": 2025, "type": 13481, "slug": "regular-season" },
+      "links": [
+        {
+          "language": "en-US",
+          "rel": ["summary", "desktop", "event"],
+          "href": "https://www.espn.com/soccer/match/_/gameId/704620",
+          "text": "Match Summary",
+          "shortText": "Summary",
+          "isExternal": false,
+          "isPremium": false
+        }
+      ],
+      "status": {
+        "clock": 5400.0,
+        "displayClock": "90'+6'",
+        "period": 2,
+        "type": {
+          "id": "28",
+          "name": "STATUS_FULL_TIME",
+          "state": "post",
+          "completed": true,
+          "description": "Full Time",
+          "detail": "FT",
+          "shortDetail": "FT"
+        }
+      },
+      "venue": {
+        "id": "3829",
+        "fullName": "Emirates Stadium",
+        "address": { "city": "London", "country": "England" }
+      },
+      "competitions": [
+        {
+          "id": "704620",
+          "uid": "s:600~l:700~e:704620~c:704620",
+          "date": "2026-05-24T15:00Z",
+          "startDate": "2026-05-24T15:00Z",
+          "attendance": 60127,
+          "timeValid": true,
+          "recent": false,
+          "wasSuspended": false,
+          "playByPlayAvailable": true,
+          "status": {
+            "clock": 5400.0,
+            "displayClock": "90'+6'",
+            "period": 2,
+            "type": {
+              "id": "28",
+              "name": "STATUS_FULL_TIME",
+              "state": "post",
+              "completed": true,
+              "description": "Full Time",
+              "detail": "FT",
+              "shortDetail": "FT"
+            }
+          },
+          "venue": {
+            "id": "3829",
+            "fullName": "Emirates Stadium",
+            "address": { "city": "London", "country": "England" }
+          },
+          "format": { "regulation": { "periods": 2 } },
+          "notes": [],
+          "broadcasts": [
+            { "market": "national", "names": ["USA Network"] }
+          ],
+          "geoBroadcasts": [
+            {
+              "type": { "id": "1", "shortName": "TV" },
+              "market": { "id": "1", "type": "National" },
+              "media": { "shortName": "USA", "displayName": "USA Network" },
+              "lang": "en",
+              "region": "us"
+            }
+          ],
+          "competitors": [
+            {
+              "id": "359",
+              "uid": "s:600~t:359",
+              "type": "team",
+              "order": 0,
+              "homeAway": "home",
+              "winner": true,
+              "form": "WWLDW",
+              "score": "2",
+              "records": [
+                { "name": "Overall", "abbreviation": "Overall", "type": "total", "summary": "24-8-4" }
+              ],
+              "team": {
+                "id": "359",
+                "uid": "s:600~t:359",
+                "slug": "arsenal",
+                "abbreviation": "ARS",
+                "displayName": "Arsenal",
+                "shortDisplayName": "Arsenal",
+                "name": "Arsenal",
+                "location": "Arsenal",
+                "color": "ef0107",
+                "alternateColor": "063672",
+                "isActive": true,
+                "logos": [
+                  { "href": "https://a.espncdn.com/i/teamlogos/soccer/500/359.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+                ]
+              },
+              "statistics": [
+                { "name": "possessionPct", "abbreviation": "PPOS", "displayValue": "58.4", "value": 58.4 },
+                { "name": "foulsCommitted", "abbreviation": "FC", "displayValue": "9", "value": 9 },
+                { "name": "wonCorners", "abbreviation": "CW", "displayValue": "6", "value": 6 },
+                { "name": "saves", "abbreviation": "SV", "displayValue": "3", "value": 3 },
+                { "name": "totalShots", "abbreviation": "SHOT", "displayValue": "14", "value": 14 },
+                { "name": "shotsOnTarget", "abbreviation": "SOG", "displayValue": "6", "value": 6 },
+                { "name": "yellowCards", "abbreviation": "YC", "displayValue": "2", "value": 2 },
+                { "name": "redCards", "abbreviation": "RC", "displayValue": "0", "value": 0 }
+              ]
+            },
+            {
+              "id": "363",
+              "uid": "s:600~t:363",
+              "type": "team",
+              "order": 1,
+              "homeAway": "away",
+              "winner": false,
+              "form": "WDLWD",
+              "score": "1",
+              "records": [
+                { "name": "Overall", "abbreviation": "Overall", "type": "total", "summary": "20-9-7" }
+              ],
+              "team": {
+                "id": "363",
+                "uid": "s:600~t:363",
+                "slug": "chelsea",
+                "abbreviation": "CHE",
+                "displayName": "Chelsea",
+                "shortDisplayName": "Chelsea",
+                "name": "Chelsea",
+                "location": "Chelsea",
+                "color": "034694",
+                "alternateColor": "ffffff",
+                "isActive": true,
+                "logos": [
+                  { "href": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+                ]
+              },
+              "statistics": [
+                { "name": "possessionPct", "abbreviation": "PPOS", "displayValue": "41.6", "value": 41.6 },
+                { "name": "foulsCommitted", "abbreviation": "FC", "displayValue": "13", "value": 13 },
+                { "name": "wonCorners", "abbreviation": "CW", "displayValue": "2", "value": 2 },
+                { "name": "saves", "abbreviation": "SV", "displayValue": "4", "value": 4 },
+                { "name": "totalShots", "abbreviation": "SHOT", "displayValue": "9", "value": 9 },
+                { "name": "shotsOnTarget", "abbreviation": "SOG", "displayValue": "4", "value": 4 },
+                { "name": "yellowCards", "abbreviation": "YC", "displayValue": "3", "value": 3 },
+                { "name": "redCards", "abbreviation": "RC", "displayValue": "0", "value": 0 }
+              ]
+            }
+          ],
+          "details": [
+            {
+              "id": "7046201",
+              "type": { "id": "70", "text": "Goal" },
+              "clock": { "value": 720.0, "displayValue": "12'" },
+              "team": { "id": "359" },
+              "scoringPlay": true,
+              "scoreValue": 1,
+              "penaltyKick": false,
+              "ownGoal": false,
+              "redCard": false,
+              "yellowCard": false,
+              "athletesInvolved": [
+                { "id": "233097", "displayName": "Martin \u00d8degaard", "shortName": "M. \u00d8degaard", "jersey": "8" }
+              ]
+            },
+            {
+              "id": "7046202",
+              "type": { "id": "70", "text": "Goal" },
+              "clock": { "value": 2700.0, "displayValue": "45'" },
+              "team": { "id": "363" },
+              "scoringPlay": true,
+              "scoreValue": 1,
+              "penaltyKick": false,
+              "ownGoal": false,
+              "redCard": false,
+              "yellowCard": false,
+              "athletesInvolved": [
+                { "id": "253464", "displayName": "N. Jackson", "shortName": "N. Jackson", "jersey": "15" }
+              ]
+            },
+            {
+              "id": "7046203",
+              "type": { "id": "70", "text": "Goal" },
+              "clock": { "value": 2790.0, "displayValue": "45'+2'" },
+              "team": { "id": "359" },
+              "scoringPlay": true,
+              "scoreValue": 1,
+              "penaltyKick": false,
+              "ownGoal": false,
+              "redCard": false,
+              "yellowCard": false,
+              "athletesInvolved": [
+                { "id": "254359", "displayName": "Bukayo Saka", "shortName": "B. Saka", "jersey": "7" }
+              ]
+            },
+            {
+              "id": "7046204",
+              "type": { "id": "94", "text": "Yellow Card" },
+              "clock": { "value": 3300.0, "displayValue": "55'" },
+              "team": { "id": "363" },
+              "scoringPlay": false,
+              "scoreValue": 0,
+              "penaltyKick": false,
+              "ownGoal": false,
+              "redCard": false,
+              "yellowCard": true,
+              "athletesInvolved": [
+                { "id": "203509", "displayName": "Mois\u00e9s Caicedo", "shortName": "M. Caicedo", "jersey": "25" }
+              ]
+            }
+          ],
+          "headlines": [
+            {
+              "description": "Arsenal 2-1 Chelsea: Bukayo Saka strikes before half-time to settle the north London finale",
+              "type": "Recap"
+            }
+          ],
+          "odds": [
+            {
+              "provider": { "id": "100", "name": "Draft Kings", "displayName": "Draft Kings" },
+              "details": "ARS -145",
+              "overUnder": 2.5,
+              "spread": -0.5,
+              "homeTeamOdds": { "moneyLine": -145, "spreadOdds": -110 },
+              "drawOdds": { "moneyLine": 260 },
+              "awayTeamOdds": { "moneyLine": 380, "spreadOdds": -110 }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "provider": {
+    "id": "100",
+    "name": "Draft Kings",
+    "displayName": "Draft Kings",
+    "priority": 1,
+    "logos": [
+      { "href": "https://a.espncdn.com/i/betting/Draftkings_Light.svg", "rel": ["light"] },
+      { "href": "https://a.espncdn.com/i/betting/Draftkings_Dark.svg", "rel": ["dark"] }
+    ]
+  }
+}

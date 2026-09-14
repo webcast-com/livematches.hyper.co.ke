@@ -63,8 +63,10 @@ independently shippable and revertible.
 | 2.6 ✅ | **Fuller odds** — parse O/U and BTTS from ESPN odds `details` | Already-fetched `comp.odds` | S | Very low | Current 1X2 capsule |
 | 2.7 | **More headlines per league tab** (news follows the standings tab) | Same news endpoint, slug per tab (already proven for `eng.1`) | S | Very low | Keep EPL feed |
 
-> Spike note: verify each endpoint shape in `espn_test.json`-style fixtures
-> before wiring UI (same approach as the current integration).
+> Spike note: verify each endpoint shape against the samples in `testdata/`
+> (`espn-scoreboard.sample.json`, `espn-standings.sample.json`) before wiring
+> UI. `node testdata/verify.mjs` checks them against the live parsers, and
+> against the league lists in `sitemap.xml` / `standings.html`, in one pass.
 
 ## Phase 3 — New Free APIs (no keys, CORS-friendly)
 
@@ -140,3 +142,5 @@ experience; the backend only adds sync + out-of-band alerts.
 
 - **2026-09-13 — PWA installability + Kiswahili toggle (6.1)**: manifest + service worker (31-file precache, offline shell fallback, runtime caches) + install prompt button + generated icons (192/512/apple-touch); i18n.js EN/SW chrome dict (~170 keys) with header SW/EN toggle, locale-aware dates and per-page re-render hooks; narratives/legal prose stay EN in v1.
 - **2026-09-14 — Phase 2.6 Fuller odds**: richer odds extraction across all `comp.odds` providers (not just the first entry) — decimal 1X2 triple, Over/Under line with Over/Under payouts, and Both-Teams-to-Score (Yes/No) markets where ESPN publishes them; three colour-coded stat-capsules (cyan/purple/orange with proper light-theme variants) replace the single text capsule; Goals/Possession capsules now hide on pre-match cards where they were showing "0 Goals" / "—% Poss"; same richer parser ported to match.js for the match-centre header; robust fallback — any missing market simply doesn't render.
+
+- **2026-09-15 — Bug pass: sitemap leagues, stale caches, desktop overflow**: standings.html now renders every league `sitemap.xml` advertises (MLS, Liga MX, Brasileirão, Eredivisie, Primeira Liga, Süper Lig, Saudi Pro League — the `?league=` deep links used to fall back to the Premier League table) with conference-aware parsing, so MLS shows both Eastern and Western tables and season labels come from the payload instead of a hard-coded "2025/26"; the service worker serves same-origin assets stale-while-revalidate, so a deploy no longer needs a `SW_VERSION` bump; the unusable flattened `espn_test.json` is replaced by `testdata/` samples plus `node testdata/verify.mjs`; dead `formatDateShort()`/`scoreboardHTML()` removed from match.js; and the header no longer stretches the document at 993–1760px (it collapses to the tablet/phone layout below 1760px) with the footer's phone-mockup glow clipped so it cannot add 30px to the page.

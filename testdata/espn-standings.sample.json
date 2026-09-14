@@ -1,0 +1,185 @@
+{
+  "uid": "s:600~l:19",
+  "id": "19",
+  "name": "Major League Soccer",
+  "abbreviation": "MLS",
+  "slug": "usa.1",
+  "season": {
+    "year": 2026,
+    "startDate": "2026-02-21T05:00Z",
+    "endDate": "2026-12-06T04:59Z",
+    "displayName": "2026 Major League Soccer",
+    "type": { "id": "1", "type": 1, "name": "2026", "abbreviation": "2026" }
+  },
+  "children": [
+    {
+      "id": "19~1",
+      "name": "Eastern Conference",
+      "abbreviation": "East",
+      "standings": {
+        "id": "19~1",
+        "name": "Eastern Conference",
+        "displayName": "Eastern Conference",
+        "entries": [
+          {
+            "team": {
+              "id": "20232",
+              "uid": "s:600~t:20232",
+              "slug": "inter-miami-cf",
+              "abbreviation": "MIA",
+              "displayName": "Inter Miami CF",
+              "shortDisplayName": "Inter Miami",
+              "name": "Inter Miami CF",
+              "location": "Inter Miami",
+              "color": "f7b5cd",
+              "logos": [
+                { "href": "https://a.espncdn.com/i/teamlogos/soccer/500/20232.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+              ]
+            },
+            "stats": [
+              { "name": "rank", "abbreviation": "R", "value": 1, "displayValue": "1" },
+              { "name": "gamesPlayed", "abbreviation": "GP", "value": 30, "displayValue": "30" },
+              { "name": "wins", "abbreviation": "W", "value": 19, "displayValue": "19" },
+              { "name": "ties", "abbreviation": "T", "value": 5, "displayValue": "5" },
+              { "name": "losses", "abbreviation": "L", "value": 6, "displayValue": "6" },
+              { "name": "pointsFor", "abbreviation": "GF", "value": 68, "displayValue": "68" },
+              { "name": "pointsAgainst", "abbreviation": "GA", "value": 40, "displayValue": "40" },
+              { "name": "pointDifferential", "abbreviation": "GD", "value": 28, "displayValue": "+28" },
+              { "name": "points", "abbreviation": "P", "value": 62, "displayValue": "62" }
+            ],
+            "note": {
+              "color": "#81D6AC",
+              "description": "Clinched playoff berth",
+              "rank": 1
+            }
+          },
+          {
+            "team": {
+              "id": "10739",
+              "uid": "s:600~t:10739",
+              "slug": "fc-cincinnati",
+              "abbreviation": "CIN",
+              "displayName": "FC Cincinnati",
+              "shortDisplayName": "FC Cincinnati",
+              "name": "FC Cincinnati",
+              "location": "FC Cincinnati",
+              "color": "003087",
+              "logos": [
+                { "href": "https://a.espncdn.com/i/teamlogos/soccer/500/10739.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+              ]
+            },
+            "stats": [
+              { "name": "rank", "abbreviation": "R", "value": 2, "displayValue": "2" },
+              { "name": "gamesPlayed", "abbreviation": "GP", "value": 30, "displayValue": "30" },
+              { "name": "wins", "abbreviation": "W", "value": 18, "displayValue": "18" },
+              { "name": "ties", "abbreviation": "T", "value": 4, "displayValue": "4" },
+              { "name": "losses", "abbreviation": "L", "value": 8, "displayValue": "8" },
+              { "name": "pointsFor", "abbreviation": "GF", "value": 55, "displayValue": "55" },
+              { "name": "pointsAgainst", "abbreviation": "GA", "value": 41, "displayValue": "41" },
+              { "name": "pointDifferential", "abbreviation": "GD", "value": 14, "displayValue": "+14" },
+              { "name": "points", "abbreviation": "P", "value": 58, "displayValue": "58" }
+            ]
+          },
+          {
+            "team": {
+              "id": "12011",
+              "uid": "s:600~t:12011",
+              "slug": "columbus-crew",
+              "abbreviation": "CLB",
+              "displayName": "Columbus Crew",
+              "shortDisplayName": "Columbus",
+              "name": "Columbus Crew",
+              "location": "Columbus",
+              "color": "fef200",
+              "logos": [
+                { "href": "https://a.espncdn.com/i/teamlogos/soccer/500/12011.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+              ]
+            },
+            "stats": [
+              { "name": "rank", "abbreviation": "R", "value": 3, "displayValue": "3" },
+              { "name": "gamesPlayed", "abbreviation": "GP", "value": 30, "displayValue": "30" },
+              { "name": "wins", "abbreviation": "W", "value": 16, "displayValue": "16" },
+              { "name": "ties", "abbreviation": "T", "value": 7, "displayValue": "7" },
+              { "name": "losses", "abbreviation": "L", "value": 7, "displayValue": "7" },
+              { "name": "pointsFor", "abbreviation": "GF", "value": 58, "displayValue": "58" },
+              { "name": "pointsAgainst", "abbreviation": "GA", "value": 45, "displayValue": "45" },
+              { "name": "pointDifferential", "abbreviation": "GD", "value": 13, "displayValue": "+13" },
+              { "name": "points", "abbreviation": "P", "value": 55, "displayValue": "55" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "19~2",
+      "name": "Western Conference",
+      "abbreviation": "West",
+      "standings": {
+        "id": "19~2",
+        "name": "Western Conference",
+        "displayName": "Western Conference",
+        "entries": [
+          {
+            "team": {
+              "id": "18966",
+              "uid": "s:600~t:18966",
+              "slug": "los-angeles-football-club",
+              "abbreviation": "LAFC",
+              "displayName": "LAFC",
+              "shortDisplayName": "LAFC",
+              "name": "Los Angeles Football Club",
+              "location": "Los Angeles",
+              "color": "c39e6d",
+              "logos": [
+                { "href": "https://a.espncdn.com/i/teamlogos/soccer/500/18966.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+              ]
+            },
+            "stats": [
+              { "name": "rank", "abbreviation": "R", "value": 1, "displayValue": "1" },
+              { "name": "gamesPlayed", "abbreviation": "GP", "value": 30, "displayValue": "30" },
+              { "name": "wins", "abbreviation": "W", "value": 18, "displayValue": "18" },
+              { "name": "ties", "abbreviation": "T", "value": 6, "displayValue": "6" },
+              { "name": "losses", "abbreviation": "L", "value": 6, "displayValue": "6" },
+              { "name": "pointsFor", "abbreviation": "GF", "value": 61, "displayValue": "61" },
+              { "name": "pointsAgainst", "abbreviation": "GA", "value": 38, "displayValue": "38" },
+              { "name": "pointDifferential", "abbreviation": "GD", "value": 23, "displayValue": "+23" },
+              { "name": "points", "abbreviation": "P", "value": 60, "displayValue": "60" }
+            ],
+            "note": {
+              "color": "#81D6AC",
+              "description": "Clinched playoff berth",
+              "rank": 1
+            }
+          },
+          {
+            "team": {
+              "id": "18777",
+              "uid": "s:600~t:18777",
+              "slug": "seattle-sounders",
+              "abbreviation": "SEA",
+              "displayName": "Seattle Sounders FC",
+              "shortDisplayName": "Seattle",
+              "name": "Seattle Sounders FC",
+              "location": "Seattle",
+              "color": "5d9741",
+              "logos": [
+                { "href": "https://a.espncdn.com/i/teamlogos/soccer/500/18777.png", "width": 500, "height": 500, "rel": ["full", "default"] }
+              ]
+            },
+            "stats": [
+              { "name": "rank", "abbreviation": "R", "value": 2, "displayValue": "2" },
+              { "name": "gamesPlayed", "abbreviation": "GP", "value": 30, "displayValue": "30" },
+              { "name": "wins", "abbreviation": "W", "value": 15, "displayValue": "15" },
+              { "name": "ties", "abbreviation": "T", "value": 8, "displayValue": "8" },
+              { "name": "losses", "abbreviation": "L", "value": 7, "displayValue": "7" },
+              { "name": "pointsFor", "abbreviation": "GF", "value": 50, "displayValue": "50" },
+              { "name": "pointsAgainst", "abbreviation": "GA", "value": 39, "displayValue": "39" },
+              { "name": "pointDifferential", "abbreviation": "GD", "value": 11, "displayValue": "+11" },
+              { "name": "points", "abbreviation": "P", "value": 53, "displayValue": "53" }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
