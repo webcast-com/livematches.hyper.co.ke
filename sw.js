@@ -12,7 +12,7 @@ const OFFLINE_URL = 'offline.html';
 
 const PRECACHE = [
   './', 'index.html', 'offline.html', 'manifest.webmanifest',
-  'style.css', 'app.js', 'i18n.js', 'seo.js', 'pwa.js', 'share.js',
+  'style.css', 'app.js', 'i18n.js', 'seo.js', 'pwa.js', 'share.js', 'analytics.js',
   'match.html', 'match.js',
   'preview.html', 'preview.js', 'report.html', 'report.js',
   'previews.html', 'previews.js', 'standings.html', 'standings.js',

@@ -6,14 +6,210 @@
    Pure helpers are top-level and side-effect free for testability.
 */
 
+const MOCK_MATCHES = [
+    {
+        id: "fb-1",
+        sport: "football",
+        league: "UEFA Champions League",
+        leagueId: "UCL",
+        homeTeam: "Arsenal",
+        homeCode: "ARS",
+        homeColor: "#dd1d25",
+        awayTeam: "Chelsea",
+        awayCode: "CHE",
+        awayColor: "#034694",
+        homeScore: 2,
+        awayScore: 1,
+        halftimeScore: "HT 1-0",
+        time: "72'",
+        status: "live",
+        stats: { possession: 55, shots: 8, shotsOnTarget: 4, corners: 4, fouls: 7, yellowCards: 2, redCards: 0 },
+        scorers: { home: ["12' Martin Ødegaard", "45'+2 Bukayo Saka"], away: ["45' N. Jackson"] }
+    },
+    {
+        id: "fb-2",
+        sport: "football",
+        league: "Premier League",
+        leagueId: "EPL",
+        homeTeam: "Manchester City",
+        homeCode: "MCI",
+        homeColor: "#6cabdd",
+        awayTeam: "Newcastle United",
+        awayCode: "NEW",
+        awayColor: "#241f20",
+        homeScore: 1,
+        awayScore: 0,
+        halftimeScore: "HT 0-0",
+        time: "68'",
+        status: "live",
+        stats: { possession: 62, shots: 11, shotsOnTarget: 5, corners: 7, fouls: 5, yellowCards: 1, redCards: 0 },
+        scorers: { home: ["58' Erling Haaland"], away: [] }
+    },
+    {
+        id: "fb-3",
+        sport: "football",
+        league: "La Liga",
+        leagueId: "LaLiga",
+        homeTeam: "Barcelona",
+        homeCode: "BAR",
+        homeColor: "#004d98",
+        awayTeam: "Real Madrid",
+        awayCode: "RMA",
+        awayColor: "#ffffff",
+        homeScore: 0,
+        awayScore: 0,
+        halftimeScore: "HT 0-0",
+        time: "71'",
+        status: "live",
+        stats: { possession: 42, shots: 6, shotsOnTarget: 2, corners: 3, fouls: 9, yellowCards: 2, redCards: 0 },
+        scorers: { home: [], away: [] }
+    },
+    {
+        id: "fb-4",
+        sport: "football",
+        league: "Serie A",
+        leagueId: "SerieA",
+        homeTeam: "AC Milan",
+        homeCode: "MIL",
+        homeColor: "#fb090b",
+        awayTeam: "Inter Milan",
+        awayCode: "INT",
+        awayColor: "#0066b2",
+        homeScore: 1,
+        awayScore: 1,
+        halftimeScore: "HT 1-0",
+        time: "65'",
+        status: "live",
+        stats: { possession: 47, shots: 7, shotsOnTarget: 3, corners: 4, fouls: 11, yellowCards: 3, redCards: 0 },
+        scorers: { home: ["34' Rafael Leão"], away: ["55' Lautaro Martínez"] }
+    },
+    {
+        id: "fb-5",
+        sport: "football",
+        league: "Ligue 1",
+        leagueId: "Ligue1",
+        homeTeam: "Paris Saint-Germain",
+        homeCode: "PSG",
+        homeColor: "#002c59",
+        awayTeam: "Lille",
+        awayCode: "LIL",
+        awayColor: "#e01e22",
+        homeScore: 2,
+        awayScore: 0,
+        halftimeScore: "HT 2-0",
+        time: "70'",
+        status: "live",
+        stats: { possession: 58, shots: 9, shotsOnTarget: 4, corners: 5, fouls: 6, yellowCards: 0, redCards: 0 },
+        scorers: { home: ["18' Kylian Mbappé", "29' O. Dembélé"], away: [] }
+    },
+    {
+        id: "fb-6",
+        sport: "football",
+        league: "Bundesliga",
+        leagueId: "Bundesliga",
+        homeTeam: "Bayern Munich",
+        homeCode: "FCB",
+        homeColor: "#dc052d",
+        awayTeam: "Leverkusen",
+        awayCode: "LEV",
+        awayColor: "#e32219",
+        homeScore: 1,
+        awayScore: 0,
+        halftimeScore: "HT 1-0",
+        time: "71'",
+        status: "live",
+        stats: { possession: 51, shots: 8, shotsOnTarget: 3, corners: 3, fouls: 8, yellowCards: 2, redCards: 0 },
+        scorers: { home: ["41' Harry Kane"], away: [] }
+    }
+];
+
 const MATCH_LEAGUES = {
+    // England
     "eng.1": "Premier League",
+    "eng.2": "Championship",
+    "eng.3": "League One",
+    "eng.fa": "FA Cup",
+    "eng.league_cup": "Carabao Cup",
+    // Spain
     "esp.1": "La Liga",
-    "ita.1": "Serie A",
+    "esp.2": "LaLiga 2",
+    "esp.copa_del_rey": "Copa del Rey",
+    // Germany
     "ger.1": "Bundesliga",
+    "ger.2": "2. Bundesliga",
+    "ger.dfb_pokal": "DFB-Pokal",
+    // Italy
+    "ita.1": "Serie A",
+    "ita.2": "Serie B",
+    "ita.coppa_italia": "Coppa Italia",
+    // France
     "fra.1": "Ligue 1",
-    "uefa.champions": "Champions League"
+    "fra.2": "Ligue 2",
+    "fra.coupe_de_france": "Coupe de France",
+    // Other Europe
+    "ned.1": "Eredivisie",
+    "ned.2": "Eerste Divisie",
+    "por.1": "Primeira Liga",
+    "bel.1": "Belgian Pro League",
+    "tur.1": "Süper Lig",
+    "sco.1": "Scottish Premiership",
+    "sui.1": "Swiss Super League",
+    "aut.1": "Austrian Bundesliga",
+    "den.1": "Danish Superliga",
+    "swe.1": "Allsvenskan",
+    "nor.1": "Eliteserien",
+    "gre.1": "Super League Greece",
+    "rus.1": "Russian Premier League",
+    "ukr.1": "Ukrainian Premier League",
+    // Americas
+    "usa.1": "Major League Soccer",
+    "usa.nwsl": "NWSL",
+    "mex.1": "Liga MX",
+    "bra.1": "Brasileirão Série A",
+    "arg.1": "Liga Profesional",
+    "col.1": "Primera A Colombia",
+    "chi.1": "Chile Primera",
+    // Asia / Middle East / Oceania
+    "jpn.1": "J1 League",
+    "aus.1": "A-League",
+    "ind.1": "Indian Super League",
+    "sau.1": "Saudi Pro League",
+    // UEFA / FIFA / Continental
+    "uefa.champions": "UEFA Champions League",
+    "uefa.europa": "UEFA Europa League",
+    "uefa.europa.conf": "Europa Conference League",
+    "uefa.champions_qual": "UCL Qualifiers",
+    "uefa.europa_qual": "UEL Qualifiers",
+    "uefa.euro": "UEFA Euro",
+    "uefa.euroq": "Euro Qualifiers",
+    "uefa.nations": "UEFA Nations League",
+    "uefa.wchampions": "Women's Champions League",
+    "fifa.world": "FIFA World Cup",
+    "fifa.worldq": "World Cup Qualifiers",
+    "fifa.wworld": "Women's World Cup",
+    "fifa.club_world": "Club World Cup",
+    "conmebol.libertadores": "Copa Libertadores",
+    "conmebol.sudamericana": "Copa Sudamericana",
+    "concacaf.champions": "CONCACAF Champions Cup",
+    "afc.champions": "AFC Champions League"
 };
+
+function cleanLeagueSlug(slug) {
+    if (!slug) return "eng.1";
+    let s = String(slug).trim();
+    if (s.startsWith("soccer/")) s = s.slice(7);
+    const codeMap = {
+        EPL: "eng.1", LaLiga: "esp.1", SerieA: "ita.1", UCL: "uefa.champions",
+        Bundesliga: "ger.1", Ligue1: "fra.1", MLS: "usa.1"
+    };
+    return codeMap[s] || s;
+}
+
+function getLeagueName(slug) {
+    if (!slug) return "Football";
+    const clean = cleanLeagueSlug(slug);
+    return MATCH_LEAGUES[clean] || MATCH_LEAGUES[slug] || "Football";
+}
 
 function esc(s) {
     return String(s == null ? "" : s)
@@ -58,12 +254,20 @@ function matchRowForTeam(T, rows) {
     }
     return null;
 }
+function extractStandingsEntries(node, out) {
+    if (!node || typeof node !== "object") return out;
+    if (node.standings && Array.isArray(node.standings.entries)) {
+        out.push(...node.standings.entries);
+        return out;
+    }
+    if (Array.isArray(node.children)) node.children.forEach((c) => extractStandingsEntries(c, out));
+    return out;
+}
+
 function parseTable(data) {
-    if (!data || !Array.isArray(data.children) || !data.children.length) return [];
-    const child = data.children[0] || {};
-    const node = child.standings || (child.children && child.children[0] && child.children[0].standings) || null;
-    if (!node || !Array.isArray(node.entries)) return [];
-    return node.entries.map((entry, i) => {
+    if (!data || typeof data !== "object") return [];
+    const entries = extractStandingsEntries(data, []);
+    return entries.map((entry, i) => {
         const team = entry.team || {};
         const get = (names) => {
             for (const name of names) {
@@ -162,28 +366,82 @@ function icsDateUTC(d) {
 
 // --- Fetch helpers (direct ESPN, same pattern as preview/report) ---
 
-async function fetchEvent(slug, id, dateYmd) {
-    const base = `https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard`;
-    const urls = dateYmd ? [`${base}?dates=${dateYmd}&limit=100`, `${base}?limit=100`] : [`${base}?limit=100`];
+async function fetchSummary(slug, id) {
+    const clean = cleanLeagueSlug(slug);
+    const path = `/apis/site/v2/sports/soccer/${clean}/summary?event=${id}`;
+    const urls = [
+        `https://site.web.api.espn.com${path}`,
+        `https://site.api.espn.com${path}`
+    ];
     for (const u of urls) {
         try {
             const r = await fetch(u);
             if (!r.ok) continue;
-            const j = await r.json();
-            const ev = j && Array.isArray(j.events) && j.events.find((x) => String(x.id) === String(id));
-            if (ev) return ev;
+            return await r.json();
         } catch (e) { /* next */ }
     }
     return null;
 }
-async function fetchSummary(slug, id) {
-    const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/summary?event=${id}`;
-    const r = await fetch(url);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    return r.json();
+
+async function fetchEvent(slug, id, dateYmd) {
+    const clean = cleanLeagueSlug(slug);
+    const path = `/apis/site/v2/sports/soccer/${clean}/scoreboard`;
+    const hosts = [
+        "https://site.web.api.espn.com",
+        "https://site.api.espn.com"
+    ];
+    const queryVariants = [];
+    if (dateYmd) {
+        queryVariants.push(`?dates=${dateYmd}&limit=100`);
+        try {
+            const y = parseInt(dateYmd.slice(0, 4), 10);
+            const m = parseInt(dateYmd.slice(4, 6), 10) - 1;
+            const d = parseInt(dateYmd.slice(6, 8), 10);
+            const prev = new Date(Date.UTC(y, m, d - 1));
+            const next = new Date(Date.UTC(y, m, d + 1));
+            const p2 = (n) => String(n).padStart(2, "0");
+            queryVariants.push(`?dates=${prev.getUTCFullYear()}${p2(prev.getUTCMonth() + 1)}${p2(prev.getUTCDate())}&limit=100`);
+            queryVariants.push(`?dates=${next.getUTCFullYear()}${p2(next.getUTCMonth() + 1)}${p2(next.getUTCDate())}&limit=100`);
+        } catch (e) {}
+    }
+    queryVariants.push("?limit=100");
+
+    for (const host of hosts) {
+        for (const q of queryVariants) {
+            try {
+                const r = await fetch(`${host}${path}${q}`);
+                if (!r.ok) continue;
+                const j = await r.json();
+                const ev = j && Array.isArray(j.events) && j.events.find((x) => String(x.id) === String(id));
+                if (ev) return ev;
+            } catch (e) { /* next */ }
+        }
+    }
+
+    // Direct event summary fallback if scoreboard query missed it
+    for (const host of hosts) {
+        try {
+            const r = await fetch(`${host}/apis/site/v2/sports/soccer/${clean}/summary?event=${id}`);
+            if (!r.ok) continue;
+            const s = await r.json();
+            if (s && s.header && Array.isArray(s.header.competitions) && s.header.competitions[0]) {
+                const comp = s.header.competitions[0];
+                return {
+                    id: String(id),
+                    date: comp.date || s.header.date || new Date().toISOString(),
+                    name: s.header.season && s.header.season.name ? `${comp.competitors?.[0]?.team?.displayName} vs ${comp.competitors?.[1]?.team?.displayName}` : "Match",
+                    competitions: [comp],
+                    status: comp.status || { type: { state: "post", completed: true } }
+                };
+            }
+        } catch (e) {}
+    }
+
+    return null;
 }
 async function fetchTable(slug) {
-    const path = `/apis/v2/sports/soccer/${slug}/standings?region=us&lang=en&contentorigin=espn`;
+    const clean = cleanLeagueSlug(slug);
+    const path = `/apis/v2/sports/soccer/${clean}/standings?region=us&lang=en&contentorigin=espn`;
     const urls = [`https://site.web.api.espn.com${path}`, `https://site.api.espn.com${path}`];
     for (const u of urls) {
         try {
@@ -316,7 +574,7 @@ function wireShare(H, A, ev, hs, as) {
     const when = formatKickoffLong(ev.date);
     const score = (ev.status && ev.status.type && ev.status.type.state !== "pre") ? `${hs}–${as}` : when;
     const canvas = document.getElementById("share-canvas");
-    if (canvas) {
+    if (canvas && typeof drawShareCard === "function") {
         drawShareCard(canvas, {
             kicker: `${leagueName} · ${ev.status && ev.status.type && ev.status.type.state === "in" ? "LIVE" : (ev.status && ev.status.type.completed ? "FULL TIME" : "UPCOMING")}`.toUpperCase(),
             home: H.name, away: A.name,
@@ -326,12 +584,12 @@ function wireShare(H, A, ev, hs, as) {
         });
     }
     const root = document.getElementById("share-row");
-    if (root) {
+    if (root && typeof wireShareButtons === "function") {
         wireShareButtons(root, {
             title: `${H.name} ${hs != null ? hs + "–" + as : "vs"} ${A.name}`,
             text: `${H.name} vs ${A.name} — ${leagueName}`,
             url: window.location.href,
-            filename: shareFileName(`match-${H.code}-${A.code}`)
+            filename: (typeof shareFileName === "function") ? shareFileName(`match-${H.code}-${A.code}`) : `match-${H.code}-${A.code}.png`
         });
     }
 }
@@ -354,6 +612,11 @@ function downloadICS(H, A, ev, leagueName) {
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
+function matchHighlightUrl(homeTeam, awayTeam, leagueName) {
+    const q = `${homeTeam || ""} vs ${awayTeam || ""} highlights ${leagueName || ""}`.trim();
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+}
+
 function renderSimMatch(m) {
     const box = document.getElementById("match-body");
     const H = { name: m.homeTeam || "Home", code: m.homeCode || "HOM", logo: m.homeLogo || "" };
@@ -364,16 +627,34 @@ function renderSimMatch(m) {
     const scorersA = (m.scorers && m.scorers.away) || [];
     const sh = m.stats || {};
     const sa = m.awayStats || { possession: 100 - (sh.possession || 50), shots: Math.round((sh.shots || 0) * 0.8), shotsOnTarget: Math.round((sh.shotsOnTarget || 0) * 0.8), corners: Math.round((sh.corners || 0) * 0.8), fouls: Math.round((sh.fouls || 0) * 0.8) };
+    const simSlug = cleanLeagueSlug(m.leagueSlug || m.leagueId || "eng.1");
+    const simId = m.espnEventId || m.id || "";
+    const isSimPre = (!isLive && hs == null && as == null) || m.status === "scheduled";
+    const isSimPost = (!isLive && m.status === "finished") || (m.time === "FT" || String(m.time).includes("FT"));
+    const simPreviewBtn = isSimPre
+        ? `<a class="btn btn-login btn-sm" href="preview.html?league=${esc(simSlug)}&id=${esc(simId)}">📰 Preview</a>`
+        : "";
+    const simReportBtn = isSimPost
+        ? `<a class="btn btn-login btn-sm" href="report.html?league=${esc(simSlug)}&id=${esc(simId)}">📝 Report</a>`
+        : "";
     box.innerHTML = `<span class="league-tag">${esc(m.league || "Football")}</span> ${isLive ? `<span class="league-tag" style="background:rgba(239,68,68,0.12);color:#ef4444;border-color:rgba(239,68,68,0.3);">● LIVE · ${esc(m.time || "")}</span>` : `<span class="league-tag">${esc(m.time || "")}</span>`}
         <h1 style="margin-top:10px;">${esc(H.name)} vs ${esc(A.name)}</h1>
         <div class="match-hero"><div class="match-hero-top">${logoImg(H.logo, "match-hero-logo")}<span class="match-hero-name">${esc(H.name)}</span><span class="match-hero-score">${esc(hs)} – ${esc(as)}</span><span class="match-hero-name">${esc(A.name)}</span>${logoImg(A.logo, "match-hero-logo")}</div><div class="match-hero-sub">${esc(m.league || "")} · ${esc(m.time || "")}</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+            <a class="btn btn-login btn-sm highlight-btn" href="${matchHighlightUrl(H.name, A.name, m.league)}" target="_blank" rel="noopener">🎥 Highlights</a>
+            ${simPreviewBtn}
+            ${simReportBtn}
+            <button class="btn btn-login btn-sm" id="match-share-btn">Share</button>
+            <button class="btn btn-login btn-sm" id="match-ics-btn">Add to calendar</button>
+            <a class="btn btn-login btn-sm" href="standings.html">Table</a>
+        </div>
         <div class="pred-subrow"><h2 class="pred-sub">Scorers</h2></div>
         <div class="form-cols"><div class="form-col"><h3>${logoImg(H.logo, "pred-logo")} ${esc(H.name)}</h3>${scorersH.length ? scorersH.map((s) => `<div class="form-game">⚽ ${esc(s)}</div>`).join("") : `<p class="loading-note" style="padding:4px 0;">No goals yet.</p>`}</div><div class="form-col"><h3>${logoImg(A.logo, "pred-logo")} ${esc(A.name)}</h3>${scorersA.length ? scorersA.map((s) => `<div class="form-game">⚽ ${esc(s)}</div>`).join("") : `<p class="loading-note" style="padding:4px 0;">No goals yet.</p>`}</div></div>
         <div class="pred-subrow"><h2 class="pred-sub">Match Statistics</h2></div>
         <div class="stats-bars-container">${statsBarsHTML(H, A, { poss: sh.possession, shots: sh.shots, onTarget: sh.shotsOnTarget, corners: sh.corners, fouls: sh.fouls, yellows: sh.yellowCards, reds: sh.redCards }, { poss: sa.possession, shots: sa.shots, onTarget: sa.shotsOnTarget, corners: sa.corners, fouls: sa.fouls, yellows: sa.yellowCards, reds: sa.redCards })}</div>
         <p class="preview-note">This is a simulated match from Simulation Mode. Switch to Live API Mode on the homepage for real ESPN data.</p>
         <p class="preview-note"><a href="index.html" style="color:var(--primary);">&larr; Back to Scores</a></p>
-        ${shareSectionHTML()}`;
+        ${typeof shareSectionHTML === "function" ? shareSectionHTML() : ""}`;
     wireTabs();
     wireShare(H, A, { date: new Date().toISOString(), league: m.league, id: m.id, status: { type: { state: isLive ? "in" : "post" } }, venue: "" }, hs, as);
 }
@@ -385,6 +666,17 @@ async function bootMatch() {
         const q = new URLSearchParams(window.location.search);
         league = q.get("league") || ""; id = q.get("id") || ""; date = q.get("date") || "";
     } catch (e) {}
+
+    // Check if this is a known simulation match by ID
+    if (id && (id.startsWith("fb-") || id.startsWith("bb-") || id.startsWith("tn-"))) {
+        const mock = MOCK_MATCHES.find(m => m.id === id);
+        if (mock) {
+            document.title = `${mock.homeTeam} vs ${mock.awayTeam} — ScoreHub`;
+            renderSimMatch(mock);
+            return;
+        }
+    }
+
     // Fallback: simulation match stored from homepage click
     if (!league || !id) {
         try {
@@ -398,15 +690,44 @@ async function bootMatch() {
                 }
             }
         } catch (e) {}
+        if (MOCK_MATCHES && MOCK_MATCHES[0]) {
+            document.title = `${MOCK_MATCHES[0].homeTeam} vs ${MOCK_MATCHES[0].awayTeam} — ScoreHub`;
+            renderSimMatch(MOCK_MATCHES[0]);
+            return;
+        }
         box.innerHTML = `<h1>Match not found</h1><div class="window-strip">Open a match from <a href="index.html">Scores</a> — click any match card or ticker item to view its own page.</div>`;
         return;
     }
 
-    const leagueName = MATCH_LEAGUES[league] || league;
+    const cleanSlug = cleanLeagueSlug(league);
+    const leagueName = getLeagueName(cleanSlug);
     box.innerHTML = `<p class="loading-note">Loading ${esc(leagueName)} match…</p>`;
-    const ev = await fetchEvent(league, id, date);
+    const ev = await fetchEvent(cleanSlug, id, date);
     if (!ev) {
-        box.innerHTML = `<h1>Match unavailable</h1><div class="window-strip">Couldn't find this fixture — it may have been rescheduled. Try <a href="index.html">Scores</a>.</div>`;
+        // Fallback 1: check sessionStorage for the match that was clicked on homepage
+        try {
+            const raw = sessionStorage.getItem("scorehub-match");
+            if (raw) {
+                const m = JSON.parse(raw);
+                if (m && (String(m.id) === String(id) || String(m.espnEventId) === String(id) || (m.homeTeam && m.awayTeam))) {
+                    document.title = `${m.homeTeam} vs ${m.awayTeam} — ScoreHub`;
+                    renderSimMatch(m);
+                    return;
+                }
+            }
+        } catch (e) {}
+
+        // Fallback 2: check MOCK_MATCHES
+        const mock = MOCK_MATCHES.find(m => m.id === id);
+        if (mock) {
+            document.title = `${mock.homeTeam} vs ${mock.awayTeam} — ScoreHub`;
+            renderSimMatch(mock);
+            return;
+        }
+
+        box.innerHTML = `<h1>Match unavailable</h1><div class="window-strip">Couldn't connect to the live match feed right now. <button class="btn btn-login btn-sm" id="match-retry-btn" style="margin-left:8px;">Retry</button> or return to <a href="index.html">Scores</a>.</div>`;
+        const retryBtn = document.getElementById("match-retry-btn");
+        if (retryBtn) retryBtn.addEventListener("click", bootMatch);
         return;
     }
     const comp = (ev.competitions && ev.competitions[0]) || {};
@@ -416,11 +737,13 @@ async function bootMatch() {
     const H = {
         name: (hc.team && (hc.team.displayName || hc.team.shortDisplayName)) || "Home",
         code: (hc.team && (hc.team.abbreviation || hc.team.shortDisplayName)) || "HOM",
+        abbreviation: (hc.team && (hc.team.abbreviation || hc.team.shortDisplayName)) || "HOM",
         logo: teamLogoURL(hc.team)
     };
     const A = {
         name: (ac.team && (ac.team.displayName || ac.team.shortDisplayName)) || "Away",
         code: (ac.team && (ac.team.abbreviation || ac.team.shortDisplayName)) || "AWY",
+        abbreviation: (ac.team && (ac.team.abbreviation || ac.team.shortDisplayName)) || "AWY",
         logo: teamLogoURL(ac.team)
     };
     const hs = hc.score != null ? parseInt(hc.score, 10) : null;
@@ -565,14 +888,14 @@ async function bootMatch() {
 
     // Preview/report links
     const ymd = ymdFromISO(ev.date);
-    const previewHref = isPre ? `preview.html?league=${esc(league)}&id=${esc(id)}&date=${ymd}` : "";
-    const reportHref = isPost ? `report.html?league=${esc(league)}&id=${esc(id)}&date=${ymd}` : "";
+    const previewHref = isPre ? `preview.html?league=${esc(cleanSlug)}&id=${esc(id)}&date=${ymd}` : "";
+    const reportHref = isPost ? `report.html?league=${esc(cleanSlug)}&id=${esc(id)}&date=${ymd}` : "";
 
     // Commentary source
     const comm = summary ? (Array.isArray(summary.commentary) ? summary.commentary : (Array.isArray(summary.plays) ? summary.plays : [])) : [];
     const lineups = lineupsFromSummary(summary);
 
-    box.innerHTML = `<div class="pred-meta"><span class="league-tag">${esc(leagueName)}</span>${statusPill(ev)}${broadcast ? `<span>📺 ${esc(broadcast)}</span>` : ""}${oddsCapsulesHTML(odds, H.abbreviation, A.abbreviation)}</div>
+    box.innerHTML = `<div class="pred-meta"><span class="league-tag">${esc(leagueName)}</span>${statusPill(ev)}${broadcast ? `<span>📺 ${esc(broadcast)}</span>` : ""}${oddsCapsulesHTML(odds, H.code, A.code)}</div>
         <h1 style="margin-top:10px;">${esc(H.name)} vs ${esc(A.name)}</h1>
         <p class="legal-updated">${esc(formatKickoffLong(ev.date))}${venue ? ` · ${esc(venue)}` : ""}${posLine ? ` · ${esc(posLine)}` : ""}</p>
         <div class="match-hero"><div class="match-hero-top">${logoImg(H.logo, "match-hero-logo")}<span class="match-hero-name">${esc(H.name)}</span><span class="match-hero-score">${isPre ? "vs" : `${hs != null ? hs : "–"} – ${as != null ? as : "–"}`}</span><span class="match-hero-name">${esc(A.name)}</span>${logoImg(A.logo, "match-hero-logo")}</div></div>
@@ -580,9 +903,10 @@ async function bootMatch() {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
             ${previewHref ? `<a class="btn btn-login btn-sm" href="${previewHref}">📰 Preview</a>` : ""}
             ${reportHref ? `<a class="btn btn-login btn-sm" href="${reportHref}">📝 Report</a>` : ""}
+            ${(isPost || st.completed) ? `<a class="btn btn-login btn-sm highlight-btn" href="${matchHighlightUrl(H.name, A.name, leagueName)}" target="_blank" rel="noopener">🎥 Highlights</a>` : ""}
             <button class="btn btn-login btn-sm" id="match-share-btn">Share</button>
             <button class="btn btn-login btn-sm" id="match-ics-btn">Add to calendar</button>
-            <a class="btn btn-login btn-sm" href="standings.html?league=${esc(league === "eng.1" ? "EPL" : league === "esp.1" ? "LaLiga" : league === "ita.1" ? "SerieA" : league === "ger.1" ? "Bundesliga" : league === "fra.1" ? "Ligue1" : "UCL")}">Table</a>
+            <a class="btn btn-login btn-sm" href="standings.html?league=${esc(cleanSlug)}">Table</a>
         </div>
 
         <div class="match-centre-tabs" style="margin-top:18px;" role="tablist">
@@ -596,8 +920,8 @@ async function bootMatch() {
         <div class="chat-ticker-container mc-pane" id="mc-pane-lineups" hidden><div class="lineups-grid" id="lineups-grid">${(lineups.home.length || lineups.away.length) ? `<div class="lineup-col"><h5>${esc(H.name)}</h5>${lineups.home.map((p) => `<div class="lineup-player"><span>${esc(p.name)}</span><span class="lineup-pos">${esc(p.pos)}</span></div>`).join("") || `<div class="timeline-empty">Unavailable</div>`}</div><div class="lineup-col"><h5>${esc(A.name)}</h5>${lineups.away.map((p) => `<div class="lineup-player"><span>${esc(p.name)}</span><span class="lineup-pos">${esc(p.pos)}</span></div>`).join("") || `<div class="timeline-empty">Unavailable</div>`}</div>` : `<div class="timeline-empty" style="grid-column:1/-1;">Lineups aren't published for this match yet — check back closer to kickoff.</div>`}</div></div>
         <div class="chat-ticker-container mc-pane" id="mc-pane-stats" hidden><div class="stats-bars-container">${statsBarsHTML(H, A, sh, sa)}</div></div>
 
-        <p class="preview-note">Data: ESPN. ${isLive ? "This page auto-refreshes every 60 seconds while live." : ""} ${previewHref ? `<a href="${previewHref}" style="color:var(--primary);">Read preview →</a>` : ""} ${reportHref ? `<a href="${reportHref}" style="color:var(--primary);">Read report →</a>` : ""}</p>
-        ${shareSectionHTML()}
+        <p class="preview-note">Data: ESPN. ${isLive ? "This page auto-refreshes every 60 seconds while live." : ""} ${previewHref ? `<a href="${previewHref}" style="color:var(--primary);">Read preview →</a>` : ""} ${reportHref ? `<a href="${reportHref}" style="color:var(--primary);">Read report →</a>` : ""} ${(isPost || st.completed) ? `<a href="${matchHighlightUrl(H.name, A.name, leagueName)}" target="_blank" rel="noopener" style="color:#ff4b4b;">Watch highlights ↗</a>` : ""}</p>
+        ${typeof shareSectionHTML === "function" ? shareSectionHTML() : ""}
         <p class="preview-note"><a href="index.html" style="color:var(--primary);">&larr; Back to Scores</a> · <a href="previews.html" style="color:var(--primary);">All previews & reports</a></p>`;
 
     // Wire tabs + actions

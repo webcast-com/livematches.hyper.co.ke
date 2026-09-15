@@ -6,13 +6,171 @@
    side-effect free for testability. */
 
 const PREVIEW_LEAGUES = {
+    // England
     "eng.1": "Premier League",
+    "eng.2": "Championship",
+    "eng.3": "League One",
+    "eng.fa": "FA Cup",
+    "eng.league_cup": "Carabao Cup",
+    // Spain
     "esp.1": "La Liga",
-    "ita.1": "Serie A",
+    "esp.2": "LaLiga 2",
+    "esp.copa_del_rey": "Copa del Rey",
+    // Germany
     "ger.1": "Bundesliga",
+    "ger.2": "2. Bundesliga",
+    "ger.dfb_pokal": "DFB-Pokal",
+    // Italy
+    "ita.1": "Serie A",
+    "ita.2": "Serie B",
+    "ita.coppa_italia": "Coppa Italia",
+    // France
     "fra.1": "Ligue 1",
-    "uefa.champions": "Champions League"
+    "fra.2": "Ligue 2",
+    "fra.coupe_de_france": "Coupe de France",
+    // Other Europe
+    "ned.1": "Eredivisie",
+    "ned.2": "Eerste Divisie",
+    "por.1": "Primeira Liga",
+    "bel.1": "Belgian Pro League",
+    "tur.1": "Süper Lig",
+    "sco.1": "Scottish Premiership",
+    "sui.1": "Swiss Super League",
+    "aut.1": "Austrian Bundesliga",
+    "den.1": "Danish Superliga",
+    "swe.1": "Allsvenskan",
+    "nor.1": "Eliteserien",
+    "gre.1": "Super League Greece",
+    "rus.1": "Russian Premier League",
+    "ukr.1": "Ukrainian Premier League",
+    // Americas
+    "usa.1": "Major League Soccer",
+    "usa.nwsl": "NWSL",
+    "mex.1": "Liga MX",
+    "bra.1": "Brasileirão Série A",
+    "arg.1": "Liga Profesional",
+    "col.1": "Primera A Colombia",
+    "chi.1": "Chile Primera",
+    // Asia / Middle East / Oceania
+    "jpn.1": "J1 League",
+    "aus.1": "A-League",
+    "ind.1": "Indian Super League",
+    "sau.1": "Saudi Pro League",
+    // UEFA / FIFA / Continental
+    "uefa.champions": "UEFA Champions League",
+    "uefa.europa": "UEFA Europa League",
+    "uefa.europa.conf": "Europa Conference League",
+    "uefa.champions_qual": "UCL Qualifiers",
+    "uefa.europa_qual": "UEL Qualifiers",
+    "uefa.euro": "UEFA Euro",
+    "uefa.euroq": "Euro Qualifiers",
+    "uefa.nations": "UEFA Nations League",
+    "uefa.wchampions": "Women's Champions League",
+    "fifa.world": "FIFA World Cup",
+    "fifa.worldq": "World Cup Qualifiers",
+    "fifa.wworld": "Women's World Cup",
+    "fifa.club_world": "Club World Cup",
+    "conmebol.libertadores": "Copa Libertadores",
+    "conmebol.sudamericana": "Copa Sudamericana",
+    "concacaf.champions": "CONCACAF Champions Cup",
+    "afc.champions": "AFC Champions League"
 };
+
+function cleanLeagueSlug(slug) {
+    if (!slug) return "eng.1";
+    let s = String(slug).trim();
+    if (s.startsWith("soccer/")) s = s.slice(7);
+    const codeMap = {
+        EPL: "eng.1", LaLiga: "esp.1", SerieA: "ita.1", UCL: "uefa.champions",
+        Bundesliga: "ger.1", Ligue1: "fra.1", MLS: "usa.1"
+    };
+    return codeMap[s] || s;
+}
+
+function getLeagueName(slug) {
+    if (!slug) return "Football";
+    const clean = cleanLeagueSlug(slug);
+    return PREVIEW_LEAGUES[clean] || PREVIEW_LEAGUES[slug] || "Football";
+}
+
+function simMatchToPreviewEvent(m) {
+    if (!m) return null;
+    const homeTeam = m.homeTeam || "Home";
+    const awayTeam = m.awayTeam || "Away";
+    const homeCode = m.homeCode || (homeTeam.length > 3 ? homeTeam.slice(0, 3).toUpperCase() : homeTeam);
+    const awayCode = m.awayCode || (awayTeam.length > 3 ? awayTeam.slice(0, 3).toUpperCase() : awayTeam);
+    const isLive = m.status === "live";
+    const isPost = m.status === "finished";
+    return {
+        id: String(m.espnEventId || m.id || "sim"),
+        date: m.date || new Date().toISOString(),
+        name: `${homeTeam} vs ${awayTeam}`,
+        competitions: [{
+            id: String(m.espnEventId || m.id || "sim"),
+            date: m.date || new Date().toISOString(),
+            venue: { fullName: m.venue || "Stadium" },
+            attendance: m.attendance || 45000,
+            status: {
+                type: {
+                    state: isLive ? "in" : (isPost ? "post" : "pre"),
+                    completed: isPost,
+                    shortDetail: m.time || (isPost ? "FT" : "Upcoming")
+                }
+            },
+            competitors: [
+                {
+                    homeAway: "home",
+                    score: m.homeScore != null ? String(m.homeScore) : "",
+                    team: {
+                        displayName: homeTeam,
+                        shortDisplayName: homeTeam,
+                        abbreviation: homeCode,
+                        logos: m.homeLogo ? [{ href: m.homeLogo }] : []
+                    },
+                    leaders: m.topScorers && m.topScorers.home ? [{
+                        name: "goals",
+                        leaders: [{
+                            athlete: { displayName: m.topScorers.home.name || m.topScorers.home },
+                            displayValue: String(m.topScorers.home.goals || 12)
+                        }]
+                    }] : []
+                },
+                {
+                    homeAway: "away",
+                    score: m.awayScore != null ? String(m.awayScore) : "",
+                    team: {
+                        displayName: awayTeam,
+                        shortDisplayName: awayTeam,
+                        abbreviation: awayCode,
+                        logos: m.awayLogo ? [{ href: m.awayLogo }] : []
+                    },
+                    leaders: m.topScorers && m.topScorers.away ? [{
+                        name: "goals",
+                        leaders: [{
+                            athlete: { displayName: m.topScorers.away.name || m.topScorers.away },
+                            displayValue: String(m.topScorers.away.goals || 10)
+                        }]
+                    }] : []
+                }
+            ]
+        }],
+        status: {
+            type: {
+                state: isLive ? "in" : (isPost ? "post" : "pre"),
+                completed: isPost,
+                shortDetail: m.time || (isPost ? "FT" : "Upcoming")
+            }
+        }
+    };
+}
+
+function ymdFromISO(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}`;
+}
 
 function ord(n) {
     const s = ["th", "st", "nd", "rd"], v = n % 100;
@@ -144,12 +302,20 @@ function previewTeamLogo(team) {
     return "";
 }
 
+function extractStandingsEntries(node, out) {
+    if (!node || typeof node !== "object") return out;
+    if (node.standings && Array.isArray(node.standings.entries)) {
+        out.push(...node.standings.entries);
+        return out;
+    }
+    if (Array.isArray(node.children)) node.children.forEach((c) => extractStandingsEntries(c, out));
+    return out;
+}
+
 function parsePreviewTable(data) {
-    if (!data || !Array.isArray(data.children) || !data.children.length) return [];
-    const child = data.children[0] || {};
-    const node = child.standings || (child.children && child.children[0] && child.children[0].standings) || null;
-    if (!node || !Array.isArray(node.entries)) return [];
-    const rows = node.entries.map((entry, i) => {
+    if (!data || typeof data !== "object") return [];
+    const entries = extractStandingsEntries(data, []);
+    const rows = entries.map((entry, i) => {
         const team = entry.team || {};
         return {
             rank: previewStat(entry, ["rank"]) || (i + 1),
@@ -276,22 +442,65 @@ function buildPreview(input) {
 // --- Data loading ---
 
 async function fetchPreviewEvent(slug, id, dateYmd) {
-    const base = `https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard`;
-    const urls = [`${base}?dates=${dateYmd}&limit=100`, `${base}?limit=100`];
-    for (const u of urls) {
+    const clean = cleanLeagueSlug(slug);
+    const path = `/apis/site/v2/sports/soccer/${clean}/scoreboard`;
+    const hosts = [
+        "https://site.web.api.espn.com",
+        "https://site.api.espn.com"
+    ];
+    const queryVariants = [];
+    if (dateYmd) {
+        queryVariants.push(`?dates=${dateYmd}&limit=100`);
         try {
-            const r = await fetch(u);
-            if (!r.ok) continue;
-            const j = await r.json();
-            const ev = j && Array.isArray(j.events) && j.events.find((x) => String(x.id) === String(id));
-            if (ev) return ev;
-        } catch (e) { /* next */ }
+            const y = parseInt(dateYmd.slice(0, 4), 10);
+            const m = parseInt(dateYmd.slice(4, 6), 10) - 1;
+            const d = parseInt(dateYmd.slice(6, 8), 10);
+            const prev = new Date(Date.UTC(y, m, d - 1));
+            const next = new Date(Date.UTC(y, m, d + 1));
+            const p2 = (n) => String(n).padStart(2, "0");
+            queryVariants.push(`?dates=${prev.getUTCFullYear()}${p2(prev.getUTCMonth() + 1)}${p2(prev.getUTCDate())}&limit=100`);
+            queryVariants.push(`?dates=${next.getUTCFullYear()}${p2(next.getUTCMonth() + 1)}${p2(next.getUTCDate())}&limit=100`);
+        } catch (e) {}
     }
+    queryVariants.push("?limit=100");
+
+    for (const host of hosts) {
+        for (const q of queryVariants) {
+            try {
+                const r = await fetch(`${host}${path}${q}`);
+                if (!r.ok) continue;
+                const j = await r.json();
+                const ev = j && Array.isArray(j.events) && j.events.find((x) => String(x.id) === String(id));
+                if (ev) return ev;
+            } catch (e) { /* next */ }
+        }
+    }
+
+    // Direct event summary fallback if scoreboard query missed it
+    for (const host of hosts) {
+        try {
+            const r = await fetch(`${host}/apis/site/v2/sports/soccer/${clean}/summary?event=${id}`);
+            if (!r.ok) continue;
+            const s = await r.json();
+            if (s && s.header && Array.isArray(s.header.competitions) && s.header.competitions[0]) {
+                const comp = s.header.competitions[0];
+                return {
+                    id: String(id),
+                    date: comp.date || s.header.date || new Date().toISOString(),
+                    name: s.header.season && s.header.season.name ? `${comp.competitors?.[0]?.team?.displayName} vs ${comp.competitors?.[1]?.team?.displayName}` : "Match",
+                    competitions: [comp],
+                    status: comp.status || { type: { state: "pre" } }
+                };
+            }
+        } catch (e) {}
+    }
+
     return null;
 }
 
 async function fetchPreviewTable(slug) {
-    const path = `/apis/v2/sports/soccer/${slug}/standings?region=us&lang=en&contentorigin=espn`;
+    const clean = cleanLeagueSlug(slug);
+    const path = `/apis/v2/sports/soccer/${clean}/standings?region=us&lang=en&contentorigin=espn`;
     const urls = [
         `https://site.web.api.espn.com${path}`,
         `https://site.api.espn.com${path}`
@@ -308,10 +517,11 @@ async function fetchPreviewTable(slug) {
 }
 
 async function fetchFormEvents(slug, dates) {
+    const clean = cleanLeagueSlug(slug);
     const seen = new Set();
     const out = [];
     const results = await Promise.allSettled(dates.map((d) =>
-        fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${d}&limit=100`).then((r) => {
+        fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${clean}/scoreboard?dates=${d}&limit=100`).then((r) => {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
         })
@@ -367,23 +577,28 @@ function previewTopScorer(competitor) {
 }
 
 function previewOdds(comp) {
-    const o = comp && Array.isArray(comp.odds) && comp.odds[0];
-    if (!o) return null;
+    const rawOdds = Array.isArray(comp && comp.odds) ? comp.odds.filter(Boolean) : [];
+    if (!rawOdds.length) return null;
+    const o = rawOdds.find((x) => x.homeTeamOdds || x.awayTeamOdds || x.drawOdds) || rawOdds[0];
     const ml = (x) => x && (x.moneyLine != null ? x.moneyLine : x.summary);
     const out = { home: ml(o.homeTeamOdds), draw: ml(o.drawOdds), away: ml(o.awayTeamOdds) };
     return (out.home == null && out.draw == null && out.away == null) ? null : out;
 }
 
+function safeLocale() {
+    try { return typeof appLocale === "function" ? appLocale() : undefined; } catch (e) { return undefined; }
+}
+
 function formatKickoffLong(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(appLocale(), { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(safeLocale(), { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 }
 
 function formatGameDate(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(appLocale(), { day: "numeric", month: "short" });
+    return d.toLocaleString(safeLocale(), { day: "numeric", month: "short" });
 }
 
 // --- Render ---
@@ -421,19 +636,25 @@ function compareTableHTML(h, a) {
 }
 
 function wirePreviewShare(H, A, ev, leagueName, pv) {
-    drawShareCard(document.getElementById("share-canvas"), {
-        kicker: `${leagueName} · ${t("preview.tag")}`.toUpperCase(),
-        home: H.name, away: A.name,
-        middle: formatKickoffLong(ev.date),
-        sub: `${t("preview.says")}: ${pv.verdict.pick}`,
-        tag: "PREVIEW"
-    });
-    wireShareButtons(document.getElementById("share-row"), {
-        title: `${H.name} vs ${A.name} preview`,
-        text: `${pv.headline} — ${t("preview.says")} ${pv.verdict.pick}.`,
-        url: window.location.href,
-        filename: shareFileName(`preview-${H.code}-vs-${A.code}`)
-    });
+    const canvas = document.getElementById("share-canvas");
+    if (canvas && typeof drawShareCard === "function") {
+        drawShareCard(canvas, {
+            kicker: `${leagueName} · ${t("preview.tag")}`.toUpperCase(),
+            home: H.name, away: A.name,
+            middle: formatKickoffLong(ev.date),
+            sub: `${t("preview.says")}: ${pv.verdict.pick}`,
+            tag: "PREVIEW"
+        });
+    }
+    const root = document.getElementById("share-row");
+    if (root && typeof wireShareButtons === "function") {
+        wireShareButtons(root, {
+            title: `${H.name} vs ${A.name} preview`,
+            text: `${pv.headline} — ${t("preview.says")} ${pv.verdict.pick}.`,
+            url: window.location.href,
+            filename: (typeof shareFileName === "function") ? shareFileName(`preview-${H.code}-vs-${A.code}`) : `preview-${H.code}-vs-${A.code}.png`
+        });
+    }
 }
 
 async function bootPreview() {
@@ -443,14 +664,43 @@ async function bootPreview() {
         const q = new URLSearchParams(window.location.search);
         league = q.get("league") || ""; id = q.get("id") || ""; date = q.get("date") || "";
     } catch (e) {}
+
+    let sessionMatch = null;
+    try {
+        const raw = sessionStorage.getItem("scorehub-match");
+        if (raw) sessionMatch = JSON.parse(raw);
+    } catch (e) {}
+
+    if (!league || !id) {
+        if (sessionMatch) {
+            league = sessionMatch.leagueSlug || sessionMatch.leagueId || "eng.1";
+            id = sessionMatch.espnEventId || sessionMatch.id || "";
+            date = sessionMatch.date || "";
+        }
+    }
+
     if (!league || !id) {
         box.innerHTML = `<h1>${t("preview.nfh1")}</h1><div class="window-strip">${t("preview.notfound")}</div>`;
         return;
     }
-    const leagueName = PREVIEW_LEAGUES[league] || "Football";
-    const ev = await fetchPreviewEvent(league, id, date);
+
+    const cleanSlug = cleanLeagueSlug(league);
+    const leagueName = getLeagueName(cleanSlug);
+
+    let ev = null;
+    if (!String(id).startsWith("fb-") && !String(id).startsWith("demo-")) {
+        ev = await fetchPreviewEvent(cleanSlug, id, date);
+    }
     if (!ev) {
-        box.innerHTML = `<h1>${t("preview.unh1")}</h1><div class="window-strip">${t("preview.unavail")}</div>`;
+        if (sessionMatch && (String(sessionMatch.id) === String(id) || String(sessionMatch.espnEventId) === String(id) || (sessionMatch.homeTeam && sessionMatch.awayTeam))) {
+            ev = simMatchToPreviewEvent(sessionMatch);
+        }
+    }
+
+    if (!ev) {
+        box.innerHTML = `<h1>${t("preview.unh1")}</h1><div class="window-strip">${t("preview.unavail")} <button class="btn btn-login btn-sm" id="preview-retry-btn" style="margin-left:8px;">Retry</button> or return to <a href="index.html">Scores</a>.</div>`;
+        const retry = document.getElementById("preview-retry-btn");
+        if (retry) retry.addEventListener("click", bootPreview);
         return;
     }
     const comp = (ev.competitions && ev.competitions[0]) || {};
@@ -469,12 +719,19 @@ async function bootPreview() {
         logo: previewTeamLogo(ac.team)
     };
     if (st.state !== "pre") {
-        const score = (st.state === "in")
+        const isLive = st.state === "in";
+        const score = isLive
             ? `${hc.score != null ? hc.score : "–"} – ${ac.score != null ? ac.score : "–"}`
             : `${hc.score != null ? hc.score : "–"} – ${ac.score != null ? ac.score : "–"} FT`;
+        const ymd = ymdFromISO(ev.date) || date;
         box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span>`
             + `<h1 style="margin-top:10px;">${esc(H.name)} ${esc(score)} ${esc(A.name)}</h1>`
-            + `<div class="window-strip">${t("preview.played1")}${st.state === "in" ? t("preview.underway") : t("preview.finished")}${t("preview.played2")}</div>`;
+            + `<div class="window-strip">${t("preview.played1")}${isLive ? t("preview.underway") : t("preview.finished")}${t("preview.played2")}</div>`
+            + `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">`
+            + (!isLive ? `<a class="btn btn-primary btn-sm" href="report.html?league=${esc(cleanSlug)}&id=${esc(id)}&date=${esc(ymd)}">📝 Read Match Report</a>` : "")
+            + `<a class="btn btn-login btn-sm" href="match.html?league=${esc(cleanSlug)}&id=${esc(id)}&date=${esc(ymd)}">⚡ Match Centre</a>`
+            + `<a class="btn btn-login btn-sm" href="index.html">&larr; Back to Scores</a>`
+            + `</div>`;
         return;
     }
     box.innerHTML = `<p class="loading-note">${t("preview.loading")}</p>`;
@@ -482,8 +739,8 @@ async function bootPreview() {
     const venueCity = (comp.venue && comp.venue.address && comp.venue.address.city) || "";
     const venue = [venueFull, venueCity].filter(Boolean).join(", ");
     const [rows, formEvents] = await Promise.all([
-        fetchPreviewTable(league),
-        fetchFormEvents(league, lastFormDates(new Date(), 5, 3))
+        fetchPreviewTable(cleanSlug),
+        fetchFormEvents(cleanSlug, lastFormDates(new Date(), 5, 3))
     ]);
     const hr = matchTeamRow(H, rows), ar = matchTeamRow(A, rows);
     const mkSide = (T, row) => ({
@@ -499,7 +756,7 @@ async function bootPreview() {
     a.scorer = previewTopScorer(ac);
     const oddsFav = oddsFavourite(previewOdds(comp));
     const pv = buildPreview({
-        seed: `${league}:${id}`, leagueName,
+        seed: `${cleanSlug}:${id}`, leagueName,
         venue, venueShort: venueFull || "home",
         home: h, away: a, oddsFav
     });
@@ -544,6 +801,11 @@ async function bootPreview() {
     box.innerHTML = `<span class="league-tag">${esc(leagueName)}</span> <span class="league-tag">${t("preview.tag")}</span>`
         + `<h1 style="margin-top:10px;">${esc(pv.headline)}</h1>`
         + `<p class="legal-updated">${esc(formatKickoffLong(ev.date))} · ${esc(countdownText(ev.date, Date.now()))}${venue ? ` · ${esc(venue)}` : ""}</p>`
+        + `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px 0;">`
+        + `<a class="btn btn-login btn-sm" href="match.html?league=${esc(cleanSlug)}&id=${esc(id)}&date=${esc(date || ymdFromISO(ev.date))}">⚡ Match Centre</a>`
+        + `<a class="btn btn-login btn-sm" href="standings.html?league=${esc(cleanSlug)}">📊 Table</a>`
+        + `<a class="btn btn-login btn-sm" href="previews.html">📰 All Previews</a>`
+        + `</div>`
         + `<p class="preview-standfirst">${esc(pv.standfirst)}</p>`
         + pv.paragraphs.map((p) => `<p class="preview-p">${esc(p)}</p>`).join("")
         + `<div class="form-cols">${formColHTML(h.name, h.code, h.logo, h.form)}${formColHTML(a.name, a.code, a.logo, a.form)}</div>`
@@ -552,7 +814,7 @@ async function bootPreview() {
         + `<div class="pick">${esc(pv.verdict.pick)}</div><p>${esc(pv.verdict.reason)}</p></div>`
         + `<p class="preview-note">Auto-generated by ScoreHub from fixtures, league tables and recent results — original content, written by our template engine, not a journalist. The verdict is a stats-based lean for fun, not betting advice. Data: ESPN.</p>`
         + `<p class="preview-note">Fancy a go yourself? <a href="predictions.html" style="color:var(--primary);">Make your prediction →</a></p>`
-        + shareSectionHTML();
+        + (typeof shareSectionHTML === "function" ? shareSectionHTML() : "");
     wirePreviewShare(H, A, ev, leagueName, pv);
 }
 

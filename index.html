@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
     <meta name="theme-color" content="#07090e">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
@@ -338,6 +338,7 @@
                         <span data-i18n="action.watch">Watch Live</span>
                     </button>
                     <a class="btn btn-ghost-icon" id="spotlight-story-btn" hidden><span>📰 Preview</span></a>
+                    <a class="btn btn-ghost-icon" id="spotlight-highlights-btn" hidden target="_blank" rel="noopener"><span>🎥 Highlights</span></a>
                     <button class="btn btn-ghost-icon" id="share-match-btn" title="Share this match" data-i18n-title="sh.title">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                         <span>Share</span>
@@ -371,11 +372,11 @@
             </div>
         </section>
 
-        <!-- HIGHLIGHTS STRIP (Live API Mode) -->
+        <!-- HIGHLIGHTS STRIP -->
         <section class="highlights-strip" id="highlights-strip" hidden>
             <div class="highlights-header">
-                <h3>🎥 Latest Highlights</h3>
-                <span class="highlights-subtitle">Video highlights from worldwide leagues</span>
+                <h3 data-i18n="highlights.title">🎥 Latest Highlights</h3>
+                <span class="highlights-subtitle" data-i18n="highlights.sub">Video highlights from worldwide leagues</span>
             </div>
             <div class="highlights-track" id="highlights-track"></div>
         </section>
@@ -867,6 +868,7 @@
                             </div>
                             <div class="player-controls">
                                 <button class="btn btn-control" id="play-pause-btn">Pause Stream</button>
+                                <a class="btn btn-control" id="watch-modal-highlights-btn" href="#" target="_blank" rel="noopener" hidden>🎥 Highlights</a>
                                 <span class="stream-stat" id="stream-viewers-count">👁️ 84,392 Watching</span>
                                 <span class="stream-stat" id="watch-broadcast-info" title="TV/stream broadcast">📺 —</span>
                                 <span class="stream-stat">🔊 HD Stereo</span>
