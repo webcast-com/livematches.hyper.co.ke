@@ -546,6 +546,7 @@ const addCalendarBtn = document.getElementById("add-calendar-btn");
 const closeWatchModal = document.getElementById("close-watch-modal");
 const searchInput = document.getElementById("search-input");
 const searchResults = document.getElementById("search-results");
+const searchClearBtn = document.getElementById("search-clear-btn");
 const notificationBtn = document.getElementById("notification-btn");
 const notificationDropdown = document.getElementById("notification-dropdown");
 const navHome = document.getElementById("nav-home");
@@ -3815,38 +3816,70 @@ function initEventHandlers() {
     });
 
     // Search filter input logic
-    searchInput.addEventListener("input", () => {
+    let selectedSearchIndex = -1;
+
+    const updateSearchClearVisibility = () => {
+        if (searchClearBtn && searchInput) {
+            searchClearBtn.hidden = !searchInput.value;
+        }
+    };
+
+    if (searchClearBtn) {
+        searchClearBtn.addEventListener("click", () => {
+            if (searchInput) {
+                searchInput.value = "";
+                searchInput.focus();
+            }
+            if (searchResults) {
+                searchResults.style.display = "none";
+                searchResults.innerHTML = "";
+            }
+            selectedSearchIndex = -1;
+            updateSearchClearVisibility();
+        });
+    }
+
+    const renderSearchResults = () => {
+        if (!searchInput || !searchResults) return;
         const query = searchInput.value.toLowerCase().trim();
+        updateSearchClearVisibility();
+
         if (query.length < 2) {
             searchResults.style.display = "none";
+            selectedSearchIndex = -1;
             return;
         }
         
         const searchable = (isApiMode && apiMatches.length) ? apiMatches : MOCK_MATCHES;
         const matches = searchable.filter((m) => {
-            return m.homeTeam.toLowerCase().includes(query) ||
-                   m.awayTeam.toLowerCase().includes(query) ||
-                   m.league.toLowerCase().includes(query);
+            return (m.homeTeam && m.homeTeam.toLowerCase().includes(query)) ||
+                   (m.awayTeam && m.awayTeam.toLowerCase().includes(query)) ||
+                   (m.league && m.league.toLowerCase().includes(query));
         });
         
         searchResults.innerHTML = "";
+        selectedSearchIndex = -1;
         
         if (matches.length === 0) {
-            searchResults.innerHTML = `<div style="padding: 10px 16px; font-size: 12px; color: var(--text-muted);">${t("search.none")}</div>`;
+            const noneText = (typeof t === "function" ? t("search.none") : "No results found") || "No results found";
+            searchResults.innerHTML = `<div class="search-empty-state"><span class="search-empty-icon">&#128269;</span><span>${escHtml(noneText)}</span></div>`;
         } else {
-            matches.forEach((m) => {
+            matches.slice(0, 10).forEach((m, idx) => {
                 const item = document.createElement("div");
                 item.className = "search-item";
+                item.setAttribute("role", "option");
+                item.setAttribute("data-index", String(idx));
                 item.innerHTML = `
-                    <div>
-                        <div class="item-title">${escHtml(m.homeTeam)} vs ${escHtml(m.awayTeam)}</div>
-                        <div class="item-desc">${escHtml(m.league)} \u00b7 ${escHtml(m.time)}</div>
+                    <div class="search-item-info">
+                        <div class="item-title">${escHtml(m.homeTeam)} <span class="search-vs">vs</span> ${escHtml(m.awayTeam)}</div>
+                        <div class="item-desc">${escHtml(m.league)} &middot; ${escHtml(m.time || "")}</div>
                     </div>
-                    <span class="search-sport-badge">${escHtml(m.sport)}</span>
+                    <span class="search-sport-badge">${escHtml(m.sport || "Soccer")}</span>
                 `;
                 item.addEventListener("click", () => {
                     searchInput.value = "";
                     searchResults.style.display = "none";
+                    updateSearchClearVisibility();
                     searchInput.blur();
                     openMatchPage(m);
                 });
@@ -3855,7 +3888,42 @@ function initEventHandlers() {
         }
         
         searchResults.style.display = "block";
-    });
+    };
+
+    if (searchInput) {
+        searchInput.addEventListener("input", renderSearchResults);
+        searchInput.addEventListener("focus", () => {
+            if (searchInput.value.trim().length >= 2) {
+                renderSearchResults();
+            }
+        });
+        searchInput.addEventListener("keydown", (e) => {
+            if (!searchResults || searchResults.style.display === "none") return;
+            const items = searchResults.querySelectorAll(".search-item");
+            if (!items.length) return;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                selectedSearchIndex = (selectedSearchIndex + 1) % items.length;
+                items.forEach((it, idx) => it.classList.toggle("is-selected", idx === selectedSearchIndex));
+                items[selectedSearchIndex].scrollIntoView({ block: "nearest" });
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                selectedSearchIndex = (selectedSearchIndex - 1 + items.length) % items.length;
+                items.forEach((it, idx) => it.classList.toggle("is-selected", idx === selectedSearchIndex));
+                items[selectedSearchIndex].scrollIntoView({ block: "nearest" });
+            } else if (e.key === "Enter") {
+                if (items.length > 0) {
+                    e.preventDefault();
+                    const targetIdx = selectedSearchIndex >= 0 ? selectedSearchIndex : 0;
+                    items[targetIdx].click();
+                }
+            } else if (e.key === "Escape") {
+                searchResults.style.display = "none";
+                searchInput.blur();
+            }
+        });
+    }
     
     // Click outside to close notifications & search results
     document.addEventListener("click", (e) => {
@@ -3919,9 +3987,9 @@ function initEventHandlers() {
 
     // Reset drawer state when resizing up to desktop + keep search hint in sync
     const syncSearchPlaceholder = () => {
-        searchInput.placeholder = window.innerWidth <= 480
-            ? "Search teams, matches..."
-            : "Search teams, matches, leagues...";
+        if (!searchInput) return;
+        const localized = (typeof t === "function" ? t("search.ph") : null) || "Search teams, matches, leagues...";
+        searchInput.placeholder = localized;
     };
     window.addEventListener("resize", () => {
         if (window.innerWidth > 992) closeMobileNav();
