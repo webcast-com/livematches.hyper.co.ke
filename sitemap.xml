@@ -9,6 +9,8 @@
   <url><loc>https://livematches.hyper.co.ke/story.html</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://livematches.hyper.co.ke/previews.html</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/news.html</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/highlights.html</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://livematches.hyper.co.ke/transfers.html</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/predictions.html</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/shop.html</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
@@ -35,5 +37,4 @@
   <url><loc>https://livematches.hyper.co.ke/match.html?league=eng.1&amp;id=example&amp;date=20260514</loc><changefreq>always</changefreq><priority>0.9</priority></url>
   <url><loc>https://livematches.hyper.co.ke/preview.html?league=eng.1&amp;id=example&amp;date=20260514</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://livematches.hyper.co.ke/report.html?league=eng.1&amp;id=example&amp;date=20260514</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://livematches.hyper.co.ke/story.html</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
 </urlset>

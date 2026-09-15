@@ -9,8 +9,12 @@ Allow: /standings.html
 Allow: /previews.html
 Allow: /transfers.html
 Allow: /predictions.html
+Allow: /news.html
+Allow: /highlights.html
 Allow: /shop.html
 Allow: /about.html
+Allow: /privacy.html
+Allow: /terms.html
 Disallow: /offline.html
 # Hand-written endpoint samples for developers, not content
 Disallow: /testdata/

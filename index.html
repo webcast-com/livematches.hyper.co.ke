@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
     <meta name="theme-color" content="#07090e">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
@@ -71,37 +71,41 @@
                 
                 <nav class="main-nav" id="main-nav">
                     <ul>
-                        <li><a href="#" class="nav-link active" id="nav-home">Home</a></li>
-                        <li><a href="#" class="nav-link" id="nav-live">Live Scores</a></li>
-                        <li><a href="#" class="nav-link" id="nav-fixtures">Fixtures</a></li>
-                        <li><a href="#" class="nav-link" id="nav-leagues">Leagues</a></li>
-                        <li><a href="#" class="nav-link" id="nav-news">News</a></li>
-                        <li><a href="#" class="nav-link" id="nav-teams">Teams</a></li>
-                        <li><a href="#" class="nav-link" id="nav-stats">Stats</a></li>
+                        <li><a href="index.html" class="nav-link active" id="nav-home" data-i18n="nav.home">Home</a></li>
+                        <li><a href="predictions.html" class="nav-link" id="nav-predictions" data-i18n="nav.predictions">Predictions</a></li>
+                        <li><a href="news.html" class="nav-link" id="nav-news" data-i18n="nav.news">News</a></li>
+                        <li><a href="highlights.html" class="nav-link" id="nav-highlights" data-i18n="nav.highlights">Highlights</a></li>
+                        <li><a href="previews.html" class="nav-link" id="nav-previews" data-i18n="nav.previews">Previews</a></li>
+                        <li><a href="transfers.html" class="nav-link" id="nav-transfers" data-i18n="nav.transfers">Transfers</a></li>
+                        <li><a href="shop.html" class="nav-link" id="nav-shop" data-i18n="nav.shop">Shop</a></li>
+                        <li><a href="standings.html" class="nav-link" id="nav-standings" data-i18n="nav.standings">Standings</a></li>
                         <li class="dropdown">
                             <a href="#" class="nav-link dropdown-toggle"><span data-i18n="nav.more">More</span> <span class="arrow-down"></span></a>
                             <ul class="dropdown-menu">
-                                <li><a href="standings.html">📊 Standings</a></li>
-                                <li><a href="previews.html">🔮 Previews</a></li>
-                                <li><a href="predictions.html">🎯 Predictions</a></li>
-                                <li><a href="transfers.html">💰 Transfers</a></li>
-                                <li><a href="shop.html">🛍️ Shop</a></li>
+                                <li><a href="#live" id="nav-live">⚡ Live Scores</a></li>
+                                <li><a href="#fixtures" id="nav-fixtures">📅 Fixtures</a></li>
+                                <li><a href="#leagues" id="nav-leagues">🏆 Leagues</a></li>
+                                <li><a href="#teams" id="nav-teams">🛡️ Teams</a></li>
+                                <li><a href="#stats" id="nav-stats">📈 Stats</a></li>
                                 <li><a href="about.html">ℹ️ About</a></li>
+                                <li><a href="privacy.html">🔒 Privacy</a></li>
+                                <li><a href="terms.html">📜 Terms</a></li>
                             </ul>
                         </li>
                     </ul>
                 </nav>
             </div>
             
+            <div class="search-container">
+                <span class="search-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
+                <input type="text" id="search-input" placeholder="Search teams, matches, leagues..." data-i18n-ph="search.ph" autocomplete="off" spellcheck="false" aria-label="Search teams, matches, leagues">
+                <button class="search-clear-btn" id="search-clear-btn" type="button" aria-label="Clear search" title="Clear search" hidden>&times;</button>
+                <div class="search-results" id="search-results" role="listbox" aria-label="Search results"></div>
+            </div>
+
             <div class="header-right">
-                <div class="search-container">
-                    <span class="search-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </span>
-                    <input type="text" id="search-input" placeholder="Search teams, matches, leagues..." data-i18n-ph="search.ph">
-                    <div class="search-results" id="search-results"></div>
-                </div>
-                
                 <div class="api-toggle-container">
                     <button class="api-mode-btn" id="api-mode-btn" title="Toggle Live API / Simulated Mode" data-i18n-title="api.buttontitle">
                         <span class="api-indicator-dot pulsing-orange" id="api-mode-indicator"></span>
@@ -112,10 +116,6 @@
                 <button class="icon-btn theme-toggle" id="theme-toggle-btn" title="Toggle Theme" data-i18n-title="theme.title">
                     <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                     <svg class="sun-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                </button>
-
-                <button class="icon-btn" id="install-btn" title="Install ScoreHub app" data-i18n-title="pwa.install" hidden>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 </button>
 
                 <button class="icon-btn lang-toggle" id="lang-toggle" title="Switch to Kiswahili" data-i18n-title="lang.toggle">
@@ -338,6 +338,7 @@
                         <span data-i18n="action.watch">Watch Live</span>
                     </button>
                     <a class="btn btn-ghost-icon" id="spotlight-story-btn" hidden><span>📰 Preview</span></a>
+                    <a class="btn btn-ghost-icon" id="spotlight-highlights-btn" hidden target="_blank" rel="noopener"><span>🎥 Highlights</span></a>
                     <button class="btn btn-ghost-icon" id="share-match-btn" title="Share this match" data-i18n-title="sh.title">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                         <span>Share</span>
@@ -371,13 +372,28 @@
             </div>
         </section>
 
-        <!-- HIGHLIGHTS STRIP (Live API Mode) -->
+        <!-- HIGHLIGHTS STRIP -->
         <section class="highlights-strip" id="highlights-strip" hidden>
             <div class="highlights-header">
-                <h3>🎥 Latest Highlights</h3>
-                <span class="highlights-subtitle">Video highlights from worldwide leagues</span>
+                <div>
+                    <h3 data-i18n="highlights.title">🎥 Latest Highlights</h3>
+                    <span class="highlights-subtitle" data-i18n="highlights.sub">Video highlights from worldwide leagues</span>
+                </div>
+                <a href="highlights.html" class="view-all-link" style="margin-left:auto;">View All &rarr;</a>
             </div>
             <div class="highlights-track" id="highlights-track"></div>
+        </section>
+
+        <!-- FEATURED NEWS SECTION (AFTER HIGHLIGHTS) -->
+        <section class="home-news-section" id="home-news-section">
+            <div class="home-news-header">
+                <div>
+                    <h3><span class="news-header-icon">📰</span> <span data-i18n="home.newstitle">Latest Football News</span></h3>
+                    <span class="home-news-subtitle" data-i18n="home.newssub">Breaking stories, transfer rumours, match reports &amp; analysis</span>
+                </div>
+                <a href="news.html" class="view-all-link" style="margin-left:auto;" data-i18n="home.newsall">View All News &rarr;</a>
+            </div>
+            <div class="home-news-grid" id="home-news-grid"></div>
         </section>
 
         <!-- MAIN LAYOUT GRID -->
@@ -388,7 +404,7 @@
                 <div class="card-box">
                     <div class="card-header-row">
                         <h3>Popular Leagues</h3>
-                        <a href="#" class="view-all-link">View All</a>
+                        <a href="standings.html" class="view-all-link">View All &rarr;</a>
                     </div>
                     <div class="leagues-list" id="leagues-list">
                         <div class="league-row" data-league-id="EPL">
@@ -545,7 +561,7 @@
                         </table>
                     </div>
                     <div class="view-full-table-row">
-                        <a href="#" class="view-all-link">View Full Table &rarr;</a>
+                        <a href="standings.html" class="view-all-link" id="view-full-table-btn">View Full Table &rarr;</a>
                     </div>
                 </div>
                 
@@ -575,7 +591,7 @@
                 <div class="card-box">
                     <div class="card-header-row">
                         <h3>Latest News</h3>
-                        <a href="#" class="view-all-link">View All</a>
+                        <a href="news.html" class="view-all-link">View All &rarr;</a>
                     </div>
                     <div class="news-list" id="news-container">
                         <!-- News items dynamically generated by JS -->
@@ -681,12 +697,13 @@
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="index.html">Home</a></li>
-                        <li><a href="index.html#live">Live Scores</a></li>
-                        <li><a href="index.html#fixtures">Fixtures</a></li>
-                        <li><a href="index.html#news">News</a></li>
-                        <li><a href="index.html#teams">Teams</a></li>
-                        <li><a href="standings.html">Standings</a></li>
+                        <li><a href="predictions.html">Predictions</a></li>
+                        <li><a href="news.html">News</a></li>
+                        <li><a href="highlights.html">Highlights</a></li>
                         <li><a href="previews.html">Previews</a></li>
+                        <li><a href="transfers.html">Transfers</a></li>
+                        <li><a href="shop.html">Shop</a></li>
+                        <li><a href="standings.html">Standings</a></li>
                     </ul>
                 </div>
                 
@@ -720,12 +737,12 @@
                             <p>Get the latest scores and updates on your mobile device.</p>
 
                             <div class="app-badges">
-                                <a href="#" class="download-badge badge-google-play">
+                                <button type="button" class="download-badge badge-google-play" id="install-google-play" title="Install ScoreHub app" data-i18n-title="pwa.install" aria-label="Get it on Google Play">
                                     <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>GET IT ON</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>Google Play</text></svg>" alt="Google Play">
-                                </a>
-                                <a href="#" class="download-badge badge-app-store">
+                                </button>
+                                <button type="button" class="download-badge badge-app-store" id="install-app-store" title="Install ScoreHub app" data-i18n-title="pwa.install" aria-label="Download on the App Store">
                                     <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 135 40' width='135' height='40'><rect width='135' height='40' rx='6' fill='%230b0e14' stroke='%2338bdf8' stroke-width='1'/><text x='15' y='18' fill='%23fff' font-family='sans-serif' font-size='8'>Download on the</text><text x='15' y='32' fill='%23fff' font-family='sans-serif' font-weight='bold' font-size='12'>App Store</text></svg>" alt="App Store">
-                                </a>
+                                </button>
                             </div>
                         </div>
 
@@ -867,6 +884,7 @@
                             </div>
                             <div class="player-controls">
                                 <button class="btn btn-control" id="play-pause-btn">Pause Stream</button>
+                                <a class="btn btn-control" id="watch-modal-highlights-btn" href="highlights.html" target="_blank" rel="noopener" hidden>🎥 Highlights</a>
                                 <span class="stream-stat" id="stream-viewers-count">👁️ 84,392 Watching</span>
                                 <span class="stream-stat" id="watch-broadcast-info" title="TV/stream broadcast">📺 —</span>
                                 <span class="stream-stat">🔊 HD Stereo</span>

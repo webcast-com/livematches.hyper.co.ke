@@ -6,22 +6,21 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <title>Live Match Centre - Score & Stats | ScoreHub</title>
+    <title>Football News - Latest Stories & Headlines | ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="ScoreHub">
-    <meta property="og:title" content="Live Match Centre - Score & Stats | ScoreHub">
-    <meta property="og:description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Live Match Centre - Score & Stats | ScoreHub">
-    <meta name="twitter:description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
     <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
-    <meta name="description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
-    <meta name="keywords" content="live match, football live score, match stats, lineups, commentary, ScoreHub">
-    <link rel="canonical" href="https://livematches.hyper.co.ke/match.html">
-    <meta property="og:url" content="https://livematches.hyper.co.ke/match.html">
+    <meta name="description" content="Latest football news, breaking stories, match reports, transfers and tactical analysis across Premier League, Champions League and worldwide leagues on ScoreHub.">
+    <meta name="keywords" content="football news, soccer news, premier league news, champions league news, ScoreHub">
+    <link rel="canonical" href="https://livematches.hyper.co.ke/news.html">
+    <meta property="og:title" content="Football News - Latest Stories & Headlines | ScoreHub">
+    <meta property="og:description" content="Latest football news, breaking stories, match reports, transfers and tactical analysis across Premier League, Champions League and worldwide leagues on ScoreHub.">
+    <meta property="og:url" content="https://livematches.hyper.co.ke/news.html">
     <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Football News - Latest Stories & Headlines | ScoreHub">
+    <meta name="twitter:description" content="Latest football news, breaking stories, match reports, transfers and tactical analysis across Premier League, Champions League and worldwide leagues on ScoreHub.">
     <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <script type="application/ld+json" id="org-jsonld">{"@context":"https://schema.org","@type":"Organization","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","logo":"https://livematches.hyper.co.ke/icon-512.png","sameAs":["https://livematches.hyper.co.ke/"]}</script>
     <script type="application/ld+json" id="website-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","potentialAction":{"@type":"SearchAction","target":"https://livematches.hyper.co.ke/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
@@ -40,7 +39,7 @@
             <nav class="legal-nav" aria-label="Page navigation">
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
-                <a href="news.html" class="legal-nav-link" data-i18n="nav.news">News</a>
+                <a href="news.html" class="legal-nav-link active" data-i18n="nav.news">News</a>
                 <a href="highlights.html" class="legal-nav-link" data-i18n="nav.highlights">Highlights</a>
                 <a href="previews.html" class="legal-nav-link" data-i18n="nav.previews">Previews</a>
                 <a href="transfers.html" class="legal-nav-link" data-i18n="nav.transfers">Transfers</a>
@@ -52,8 +51,27 @@
             </div>
         </header>
 
-        <main class="card legal-card" id="match-body">
-            <p class="loading-note">Loading match centre…</p>
+        <main class="card legal-card">
+            <h1 data-i18n="news.hubtitle">Football News</h1>
+            <p class="legal-updated" data-i18n="news.hubsub">Breaking news, tactical insights, and match stories across top leagues worldwide.</p>
+            <input class="shop-search" id="news-search" type="search" placeholder="Search news stories, teams, players…" aria-label="Search news" style="margin-top:12px;">
+            <div class="chip-row" id="news-chips">
+                <button class="standings-tab active" data-league="All">All</button>
+                <button class="standings-tab" data-league="EPL">Premier League</button>
+                <button class="standings-tab" data-league="LaLiga">La Liga</button>
+                <button class="standings-tab" data-league="SerieA">Serie A</button>
+                <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
+                <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
+                <button class="standings-tab" data-league="UCL">Champions League</button>
+            </div>
+            <div id="news-list" class="news-hub-list">
+                <p class="loading-note">Loading latest news…</p>
+            </div>
+            <div id="news-error" class="window-strip" hidden>
+                Couldn't connect to live news feed.
+                <button id="news-retry" class="btn btn-primary btn-sm" style="margin-left:8px;">Retry</button>
+            </div>
+            <p class="transfer-src">Stories &amp; photography via ESPN. Stories open directly here on ScoreHub.</p>
         </main>
 
         <footer class="legal-footer">
@@ -71,10 +89,7 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="share.js"></script>
-    <script src="match.js"></script>
     <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="news.js"></script>
 </body>
 </html>

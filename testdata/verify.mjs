@@ -209,6 +209,34 @@ check('parseStandings() stays a flat array (homepage-widget shape)', () => {
     assert(Array.isArray(rows) && rows.length === 5, `expected 5 rows, got ${rows && rows.length}`);
 });
 
+check('match.js parseTable() keeps both MLS conferences', () => {
+    const matchCtx = vm.createContext({ window: {}, console, document: { addEventListener: () => {} } });
+    vm.runInContext(readText('../match.js') + '; globalThis.__parseTable = parseTable;', matchCtx);
+    const rows = matchCtx.__parseTable(standings);
+    assert(Array.isArray(rows) && rows.length === 5, `expected 5 rows across conferences, got ${rows.length}`);
+});
+
+check('preview.js parsePreviewTable() keeps both MLS conferences', () => {
+    const prevCtx = vm.createContext({ window: {}, console, document: { addEventListener: () => {} } });
+    vm.runInContext(readText('../preview.js') + '; globalThis.__parsePreviewTable = parsePreviewTable;', prevCtx);
+    const rows = prevCtx.__parsePreviewTable(standings);
+    assert(Array.isArray(rows) && rows.length === 5, `expected 5 rows across conferences, got ${rows.length}`);
+});
+
+check('report.js parseReportTable() keeps both MLS conferences', () => {
+    const repCtx = vm.createContext({ window: {}, console, document: { addEventListener: () => {} } });
+    vm.runInContext(readText('../report.js') + '; globalThis.__parseReportTable = parseReportTable;', repCtx);
+    const rows = repCtx.__parseReportTable(standings);
+    assert(Array.isArray(rows) && rows.length === 5, `expected 5 rows across conferences, got ${rows.length}`);
+});
+
+check('previews.js parseHubTable() keeps both MLS conferences', () => {
+    const hubCtx = vm.createContext({ window: {}, console, document: { addEventListener: () => {} } });
+    vm.runInContext(readText('../previews.js') + '; globalThis.__parseHubTable = parseHubTable;', hubCtx);
+    const rows = hubCtx.__parseHubTable(standings);
+    assert(Array.isArray(rows) && rows.length === 5, `expected 5 rows across conferences, got ${rows.length}`);
+});
+
 check('single-table and nested payloads still yield one table', () => {
     const one = { children: [{ name: 'English Premier League', standings: { entries: [{ stats: [{ name: 'rank', displayValue: '1' }, { name: 'points', displayValue: '89' }], team: { displayName: 'Arsenal' } }] } }] };
     assert(parseStandingsGroups(one).length === 1, 'the common one-table payload produced ' + parseStandingsGroups(one).length + ' tables');
@@ -248,6 +276,169 @@ check('standings.html has one chip per league and no orphan chips', () => {
     const missing = known.filter((c) => !codes.includes(c));
     assert(!missing.length, `leagues with no chip: ${missing.join(', ')}`);
     assert(codes.filter((c) => c === 'EPL').length === 1 && html.includes('standings-tab active" data-league="EPL"'), 'the default EPL chip lost its active state');
+});
+
+check('sitemap.xml has no duplicate URLs', () => {
+    const sitemap = readText('../sitemap.xml');
+    const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    const seen = new Set();
+    const dups = [];
+    for (const loc of locs) {
+        if (seen.has(loc)) dups.push(loc);
+        seen.add(loc);
+    }
+    assert(!dups.length, `duplicate URLs found in sitemap: ${dups.join(', ')}`);
+});
+
+check('every file in sw.js PRECACHE exists on disk', () => {
+    const sw = readText('../sw.js');
+    const match = sw.match(/const PRECACHE = \[([\s\S]*?)\];/);
+    assert(match, 'could not find PRECACHE in sw.js');
+    const items = [...match[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
+    for (const item of items) {
+        if (item === './') continue;
+        const filePath = path.join(ROOT, item);
+        assert(fs.existsSync(filePath), `file in sw.js PRECACHE does not exist: ${item}`);
+    }
+});
+
+check('highlights i18n keys are present in en and sw', () => {
+    const i18nCtx = vm.createContext({ window: {} });
+    vm.runInContext(readText('../i18n.js') + '; globalThis.__STR = STR;', i18nCtx);
+    const STR = i18nCtx.__STR;
+    const requiredKeys = ['highlights.title', 'highlights.sub', 'highlights.watch', 'card.highlights', 'action.centre'];
+    for (const k of requiredKeys) {
+        assert(STR.en[k], `missing ${k} in STR.en`);
+        assert(STR.sw[k], `missing ${k} in STR.sw`);
+    }
+});
+
+check('MOCK_HIGHLIGHTS is defined and valid in app.js', () => {
+    const appText = readText('../app.js');
+    assert(appText.includes('const MOCK_HIGHLIGHTS = ['), 'MOCK_HIGHLIGHTS array missing');
+    assert(appText.includes('Arsenal vs Chelsea'), 'MOCK_HIGHLIGHTS content missing');
+});
+
+check('matchHighlightUrl builds valid YouTube search links across files', () => {
+    const files = ['../match.js', '../report.js', '../previews.js'];
+    for (const f of files) {
+        const ctx = vm.createContext({ window: {}, console, document: { addEventListener: () => {} } });
+        vm.runInContext(readText(f) + '; globalThis.__matchHighlightUrl = matchHighlightUrl;', ctx);
+        const url = ctx.__matchHighlightUrl('Arsenal', 'Chelsea', 'Premier League');
+        assert(url.startsWith('https://www.youtube.com/results?search_query='), `unexpected url from ${f}: ${url}`);
+        assert(url.includes('Arsenal') && url.includes('Chelsea'), `url does not encode teams from ${f}: ${url}`);
+    }
+});
+
+check('highlightLinkHTML generates YouTube links exclusively for finished fixtures', () => {
+    const mockEl = {
+        addEventListener: () => {},
+        classList: { add: () => {}, remove: () => {}, contains: () => false, toggle: () => {} },
+        style: {},
+        setAttribute: () => {},
+        getAttribute: () => null,
+        appendChild: () => {},
+        querySelectorAll: () => []
+    };
+    const ctx = vm.createContext({
+        window: {},
+        document: {
+            getElementById: () => mockEl,
+            querySelector: () => mockEl,
+            querySelectorAll: () => [],
+            addEventListener: () => {},
+            documentElement: mockEl,
+            createElement: () => mockEl
+        },
+        console,
+        localStorage: { getItem: () => null, setItem: () => {} },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {},
+        setTimeout: () => {},
+        LANG: 'en',
+        t: (k) => k === 'card.highlights' ? 'Highlights' : k
+    });
+    vm.runInContext(readText('../app.js') + '; globalThis.__highlightLinkHTML = highlightLinkHTML;', ctx);
+    const ftMatch = { status: 'finished', time: 'FT', homeTeam: 'Arsenal', awayTeam: 'Chelsea', league: 'Premier League' };
+    const liveMatch = { status: 'live', time: "65'", homeTeam: 'Arsenal', awayTeam: 'Chelsea', league: 'Premier League' };
+    const schedMatch = { status: 'scheduled', time: '20:00', homeTeam: 'Arsenal', awayTeam: 'Chelsea', league: 'Premier League' };
+
+    const ftLink = ctx.__highlightLinkHTML(ftMatch);
+    assert(ftLink.includes('https://www.youtube.com/results?search_query=Arsenal%20vs%20Chelsea%20highlights%20Premier%20League'), 'FT match highlight link missing or incorrect');
+    assert(ftLink.includes('target="_blank"'), 'FT match highlight link must open in new tab');
+    assert(ctx.__highlightLinkHTML(liveMatch) === '', 'live match must not show highlight link');
+    assert(ctx.__highlightLinkHTML(schedMatch) === '', 'scheduled match must not show highlight link');
+});
+
+check('every football league in app.js is mapped in PREVIEW_LEAGUES, REPORT_LEAGUES, and MATCH_LEAGUES', () => {
+    const mockEl = { addEventListener: () => {}, querySelector: () => null, querySelectorAll: () => [] };
+    const appCtx = vm.createContext({
+        window: {},
+        document: { getElementById: () => mockEl, querySelector: () => mockEl, querySelectorAll: () => [], addEventListener: () => {}, documentElement: mockEl, createElement: () => mockEl },
+        console,
+        localStorage: { getItem: () => null, setItem: () => {} },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {},
+        LANG: 'en', t: (k) => k
+    });
+    vm.runInContext(readText('../app.js') + '; globalThis.__LEAGUE_NAMES = LEAGUE_NAMES;', appCtx);
+    const footballSlugs = Object.entries(appCtx.__LEAGUE_NAMES)
+        .filter(([k, v]) => v.sport === 'football')
+        .map(([k]) => k.replace(/^soccer\//, ''));
+
+    const prevCtx = vm.createContext({ window: {}, document: { addEventListener: () => {} } });
+    vm.runInContext(readText('../preview.js') + '; globalThis.__PREVIEW_LEAGUES = PREVIEW_LEAGUES;', prevCtx);
+
+    const repCtx = vm.createContext({ window: {}, document: { addEventListener: () => {} } });
+    vm.runInContext(readText('../report.js') + '; globalThis.__REPORT_LEAGUES = REPORT_LEAGUES;', repCtx);
+
+    const matchCtx = vm.createContext({ window: {}, document: { addEventListener: () => {} } });
+    vm.runInContext(readText('../match.js') + '; globalThis.__MATCH_LEAGUES = MATCH_LEAGUES;', matchCtx);
+
+    assert(footballSlugs.length > 40, `expected at least 40 football leagues, got ${footballSlugs.length}`);
+    for (const slug of footballSlugs) {
+        assert(prevCtx.__PREVIEW_LEAGUES[slug], `PREVIEW_LEAGUES missing ${slug}`);
+        assert(repCtx.__REPORT_LEAGUES[slug], `REPORT_LEAGUES missing ${slug}`);
+        assert(matchCtx.__MATCH_LEAGUES[slug], `MATCH_LEAGUES missing ${slug}`);
+    }
+});
+
+check('canPreviewMatch accepts scheduled football fixtures across leagues and rejects live/finished/non-football', () => {
+    const mockEl = { addEventListener: () => {}, querySelector: () => null, querySelectorAll: () => [] };
+    const ctx = vm.createContext({
+        window: {},
+        document: { getElementById: () => mockEl, querySelector: () => mockEl, querySelectorAll: () => [], addEventListener: () => {}, documentElement: mockEl, createElement: () => mockEl },
+        console,
+        localStorage: { getItem: () => null, setItem: () => {} },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {},
+        LANG: 'en', t: (k) => k
+    });
+    vm.runInContext(readText('../app.js') + '; globalThis.__exports = { canPreviewMatch, canReportMatch, previewLinkHTML, reportLinkHTML };', ctx);
+    const { canPreviewMatch, canReportMatch, previewLinkHTML, reportLinkHTML } = ctx.__exports;
+
+    const schedEPL = { espnEventId: '1001', leagueSlug: 'soccer/eng.1', date: '2026-09-18T19:00:00Z', sport: 'football', status: 'scheduled' };
+    const schedUCL = { espnEventId: '1002', leagueSlug: 'soccer/uefa.champions', date: '2026-09-19T20:00:00Z', sport: 'football', status: 'scheduled' };
+    const liveEPL = { espnEventId: '1003', leagueSlug: 'soccer/eng.1', date: '2026-09-15T15:00:00Z', sport: 'football', status: 'live', time: "55'" };
+    const ftEPL = { espnEventId: '1004', leagueSlug: 'soccer/eng.1', date: '2026-09-15T12:00:00Z', sport: 'football', status: 'finished', time: 'FT' };
+    const schedNBA = { espnEventId: '2001', leagueSlug: 'basketball/nba', date: '2026-09-18T19:00:00Z', sport: 'basketball', status: 'scheduled' };
+
+    assert(canPreviewMatch(schedEPL), 'schedEPL should be previewable');
+    assert(canPreviewMatch(schedUCL), 'schedUCL should be previewable');
+    assert(!canPreviewMatch(liveEPL), 'live fixture should not be previewable');
+    assert(!canPreviewMatch(ftEPL), 'finished fixture should not be previewable');
+    assert(!canPreviewMatch(schedNBA), 'basketball fixture should not be previewable');
+
+    assert(canReportMatch(ftEPL), 'ftEPL should be reportable');
+    assert(!canReportMatch(liveEPL), 'live fixture should not be reportable');
+    assert(!canReportMatch(schedEPL), 'scheduled fixture should not be reportable');
+    assert(!canReportMatch(schedNBA), 'basketball fixture should not be reportable');
+
+    const prevHtml = ctx.__exports.previewLinkHTML(schedEPL);
+    assert(prevHtml.includes('preview.html?league=eng.1&id=1001&date=20260918'), `preview URL malformed: ${prevHtml}`);
+
+    const repHtml = ctx.__exports.reportLinkHTML(ftEPL);
+    assert(repHtml.includes('report.html?league=eng.1&id=1004&date=20260915'), `report URL malformed: ${repHtml}`);
 });
 
 /* ------------------------------------------------------------------ report */

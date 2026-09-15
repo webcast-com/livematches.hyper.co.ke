@@ -88,12 +88,18 @@ function relatedPick(articles, currentId, teamIds, n) {
 }
 
 function storyYmd(d) {
+    const valid = d && !isNaN(d.getTime()) ? d : new Date();
     const p = (n) => String(n).padStart(2, "0");
-    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+    return valid.getFullYear() + p(valid.getMonth() + 1) + p(valid.getDate());
 }
 
 function storyShiftYmd(ymd, delta) {
-    const d = new Date(parseInt(ymd.slice(0, 4), 10), parseInt(ymd.slice(4, 6), 10) - 1, parseInt(ymd.slice(6, 8), 10));
+    if (!ymd || ymd.length < 8) return storyYmd(new Date());
+    const y = parseInt(ymd.slice(0, 4), 10);
+    const m = parseInt(ymd.slice(4, 6), 10) - 1;
+    const dNum = parseInt(ymd.slice(6, 8), 10);
+    if (isNaN(y) || isNaN(m) || isNaN(dNum)) return storyYmd(new Date());
+    const d = new Date(y, m, dNum);
     d.setDate(d.getDate() + delta);
     return storyYmd(d);
 }
@@ -107,7 +113,8 @@ function storyTeamLogo(team) {
 
 async function fetchStoryEvent(league, eventId, published) {
     if (!league || !eventId) return null;
-    const base = storyYmd(new Date(published));
+    const pubDate = published && !isNaN(new Date(published).getTime()) ? new Date(published) : new Date();
+    const base = storyYmd(pubDate);
     const days = [base, storyShiftYmd(base, -1), storyShiftYmd(base, 1)];
     for (const day of days) {
         try {

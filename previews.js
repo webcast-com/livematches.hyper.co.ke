@@ -10,7 +10,48 @@ const HUB_LEAGUES = [
     { code: "SerieA", slug: "ita.1", name: "Serie A" },
     { code: "Bundesliga", slug: "ger.1", name: "Bundesliga" },
     { code: "Ligue1", slug: "fra.1", name: "Ligue 1" },
-    { code: "UCL", slug: "uefa.champions", name: "Champions League" }
+    { code: "UCL", slug: "uefa.champions", name: "Champions League" },
+    { code: "UEL", slug: "uefa.europa", name: "Europa League" },
+    { code: "UECL", slug: "uefa.europa.conf", name: "Europa Conference League" },
+    { code: "FAC", slug: "eng.fa", name: "FA Cup" },
+    { code: "EFLC", slug: "eng.league_cup", name: "Carabao Cup" },
+    { code: "CDR", slug: "esp.copa_del_rey", name: "Copa del Rey" },
+    { code: "DFB", slug: "ger.dfb_pokal", name: "DFB-Pokal" },
+    { code: "COPPA", slug: "ita.coppa_italia", name: "Coppa Italia" },
+    { code: "ENG2", slug: "eng.2", name: "Championship" },
+    { code: "MLS", slug: "usa.1", name: "Major League Soccer" },
+    { code: "LigaMX", slug: "mex.1", name: "Liga MX" },
+    { code: "Brasileirao", slug: "bra.1", name: "Brasileirão Série A" },
+    { code: "ARG", slug: "arg.1", name: "Liga Profesional" },
+    { code: "LIB", slug: "conmebol.libertadores", name: "Copa Libertadores" },
+    { code: "Eredivisie", slug: "ned.1", name: "Eredivisie" },
+    { code: "PrimeiraLiga", slug: "por.1", name: "Primeira Liga" },
+    { code: "BEL", slug: "bel.1", name: "Belgian Pro League" },
+    { code: "SuperLig", slug: "tur.1", name: "Süper Lig" },
+    { code: "SCO", slug: "sco.1", name: "Scottish Premiership" },
+    { code: "SaudiPro", slug: "sau.1", name: "Saudi Pro League" },
+    { code: "J1", slug: "jpn.1", name: "J1 League" },
+    { code: "AUS", slug: "aus.1", name: "A-League" }
+];
+
+function cleanLeagueSlug(slug) {
+    if (!slug) return "eng.1";
+    let s = String(slug).trim();
+    if (s.startsWith("soccer/")) s = s.slice(7);
+    const codeMap = {
+        EPL: "eng.1", LaLiga: "esp.1", SerieA: "ita.1", UCL: "uefa.champions",
+        Bundesliga: "ger.1", Ligue1: "fra.1", MLS: "usa.1"
+    };
+    return codeMap[s] || s;
+}
+
+const SIM_HUB_MATCHES = [
+    { id: "fb-5", slug: "fra.1", code: "Ligue1", leagueName: "Ligue 1", date: new Date(Date.now() + 3600000).toISOString(), home: { name: "Paris Saint-Germain", code: "PSG", logo: "" }, away: { name: "Lille", code: "LIL", logo: "" }, hPos: 1, aPos: 4, score: 5, venue: "Parc des Princes", hs: null, as: null, big: true },
+    { id: "fb-6", slug: "ger.1", code: "Bundesliga", leagueName: "Bundesliga", date: new Date(Date.now() + 7200000).toISOString(), home: { name: "Bayern Munich", code: "FCB", logo: "" }, away: { name: "Bayer Leverkusen", code: "LEV", logo: "" }, hPos: 2, aPos: 1, score: 3, venue: "Allianz Arena", hs: null, as: null, big: true },
+    { id: "fb-1", slug: "uefa.champions", code: "UCL", leagueName: "UEFA Champions League", date: new Date(Date.now() - 3600000).toISOString(), home: { name: "Arsenal", code: "ARS", logo: "" }, away: { name: "Chelsea", code: "CHE", logo: "" }, hPos: 2, aPos: 5, score: 7, venue: "Emirates Stadium", hs: 2, as: 1 },
+    { id: "fb-2", slug: "eng.1", code: "EPL", leagueName: "Premier League", date: new Date(Date.now() - 7200000).toISOString(), home: { name: "Manchester City", code: "MCI", logo: "" }, away: { name: "Newcastle United", code: "NEW", logo: "" }, hPos: 1, aPos: 6, score: 7, venue: "Etihad Stadium", hs: 1, as: 0 },
+    { id: "fb-3", slug: "esp.1", code: "LaLiga", leagueName: "La Liga", date: new Date(Date.now() - 10800000).toISOString(), home: { name: "Real Madrid", code: "RMA", logo: "" }, away: { name: "Barcelona", code: "BAR", logo: "" }, hPos: 1, aPos: 2, score: 3, venue: "Santiago Bernabéu", hs: 3, as: 2 },
+    { id: "fb-4", slug: "ita.1", code: "SerieA", leagueName: "Serie A", date: new Date(Date.now() - 14400000).toISOString(), home: { name: "Inter Milan", code: "INT", logo: "" }, away: { name: "Juventus", code: "JUV", logo: "" }, hPos: 1, aPos: 3, score: 4, venue: "San Siro", hs: 2, as: 0 }
 ];
 
 function hubNorm(s) {
@@ -30,16 +71,25 @@ function hubMatchRow(t, rows) {
     return null;
 }
 
+function extractStandingsEntries(node, out) {
+    if (!node || typeof node !== "object") return out;
+    if (node.standings && Array.isArray(node.standings.entries)) {
+        out.push(...node.standings.entries);
+        return out;
+    }
+    if (Array.isArray(node.children)) node.children.forEach((c) => extractStandingsEntries(c, out));
+    return out;
+}
+
 function parseHubTable(data) {
-    if (!data || !Array.isArray(data.children) || !data.children.length) return [];
-    const child = data.children[0] || {};
-    const node = child.standings || (child.children && child.children[0] && child.children[0].standings) || null;
-    if (!node || !Array.isArray(node.entries)) return [];
-    return node.entries.map((entry, i) => {
+    if (!data || typeof data !== "object") return [];
+    const entries = extractStandingsEntries(data, []);
+    return entries.map((entry, i) => {
         const team = entry.team || {};
         const rankStat = (entry.stats || []).find((x) => x && x.name === "rank");
+        const rankVal = rankStat ? (rankStat.value != null ? rankStat.value : rankStat.displayValue) : null;
         return {
-            rank: (rankStat && parseInt(rankStat.value, 10)) || (i + 1),
+            rank: parseInt(rankVal, 10) || (i + 1),
             team: team.displayName || team.shortDisplayName || team.name || "?",
             abbrev: team.abbreviation || ""
         };
@@ -64,10 +114,14 @@ function hubYmd(iso) {
     return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
 }
 
+function safeLocale() {
+    try { return typeof appLocale === "function" ? appLocale() : undefined; } catch (e) { return undefined; }
+}
+
 function hubKickoff(iso) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(appLocale(), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(safeLocale(), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
 function esc(s) {
@@ -132,6 +186,11 @@ function hubLogoImg(logo) {
     return logo ? `<img class="pred-logo" src="${esc(logo)}" alt="" loading="lazy" onerror="this.remove()">` : "";
 }
 
+function matchHighlightUrl(homeTeam, awayTeam, leagueName) {
+    const q = `${homeTeam || ""} vs ${awayTeam || ""} highlights ${leagueName || ""}`.trim();
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+}
+
 function hubCardHTML(m, kind) {
     const isReport = kind === "report";
     const href = isReport
@@ -142,18 +201,22 @@ function hubCardHTML(m, kind) {
     const sub = isReport
         ? `<span class="hub-score">FT ${esc(m.hs)}–${esc(m.as)}</span>`
         : `${posLine}${posLine && m.venue ? " · " : ""}${esc(m.venue)}`;
+    const hlBtn = isReport
+        ? `<a class="hub-link hub-highlight-link" href="${matchHighlightUrl(m.home.name, m.away.name, m.code)}" target="_blank" rel="noopener" style="color:#ff4b4b;">🎥 Highlights</a>`
+        : "";
     return `<div class="hub-card"><div class="hub-main">`
         + `<div class="pred-meta"><span class="league-tag">${esc(m.code)}</span><span>${esc(hubKickoff(m.date))}</span>`
         + (!isReport && m.big ? ` <span class="big-tag">${t("hub.bigmatch")}</span>` : "") + `</div>`
         + `<div class="hub-teams">${hubLogoImg(m.home.logo)}<span>${esc(m.home.name)}</span>`
         + `<span class="hub-vs">vs</span><span>${esc(m.away.name)}</span>${hubLogoImg(m.away.logo)}</div>`
         + `<div class="hub-sub">${sub}</div>`
-        + `</div><a class="hub-link" href="${href}">${link}</a></div>`;
+        + `</div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><a class="hub-link" href="${href}">${link}</a>${hlBtn}</div></div>`;
 }
 
 async function fetchHubBoard(slug) {
     try {
-        const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?limit=100`);
+        const clean = cleanLeagueSlug(slug);
+        const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${clean}/scoreboard?limit=100`);
         if (!r.ok) return [];
         const j = await r.json();
         return (j && Array.isArray(j.events)) ? j.events : [];
@@ -161,7 +224,8 @@ async function fetchHubBoard(slug) {
 }
 
 async function fetchHubTable(slug) {
-    const path = `/apis/v2/sports/soccer/${slug}/standings?region=us&lang=en&contentorigin=espn`;
+    const clean = cleanLeagueSlug(slug);
+    const path = `/apis/v2/sports/soccer/${clean}/standings?region=us&lang=en&contentorigin=espn`;
     const urls = [`https://site.web.api.espn.com${path}`, `https://site.api.espn.com${path}`];
     for (const u of urls) {
         try {
@@ -199,6 +263,15 @@ async function bootHub() {
     err.hidden = true;
     const boards = await Promise.all(HUB_LEAGUES.map((L) => fetchHubBoard(L.slug)));
     if (!boards.some((b) => b.length)) {
+        const simBig = SIM_HUB_MATCHES.filter((m) => m.big && !m.hs);
+        const simReps = SIM_HUB_MATCHES.filter((m) => m.hs != null);
+        const simAll = SIM_HUB_MATCHES.filter((m) => !m.big && !m.hs);
+        if (simBig.length || simReps.length) {
+            bigBox.innerHTML = simBig.map((m) => hubCardHTML(m, "preview")).join("");
+            repBox.innerHTML = simReps.map((m) => hubCardHTML(m, "report")).join("");
+            allBox.innerHTML = simAll.length ? simAll.map((m) => hubCardHTML(m, "preview")).join("") : `<p class="loading-note">${t("hub.nomore")}</p>`;
+            return;
+        }
         bigBox.innerHTML = ""; repBox.innerHTML = ""; allBox.innerHTML = "";
         err.hidden = false;
         return;

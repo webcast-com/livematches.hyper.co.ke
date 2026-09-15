@@ -22,6 +22,21 @@ const MOCK_MATCHES = [
         time: "72'",
         status: "live",
         favorites: false,
+        odds: { provider: "ESPN BET", home: -125, draw: 275, away: 320, overUnder: 2.5, overOdds: 1.85, underOdds: 1.95, bttsYes: 1.70, bttsNo: 2.10 },
+        lineups: {
+            home: [
+                { name: "David Raya", pos: "G" }, { name: "Ben White", pos: "D" }, { name: "William Saliba", pos: "D" },
+                { name: "Gabriel Magalhães", pos: "D" }, { name: "Jurriën Timber", pos: "D" }, { name: "Thomas Partey", pos: "M" },
+                { name: "Declan Rice", pos: "M" }, { name: "Martin Ødegaard", pos: "M" }, { name: "Bukayo Saka", pos: "F" },
+                { name: "Gabriel Martinelli", pos: "F" }, { name: "Kai Havertz", pos: "F" }
+            ],
+            away: [
+                { name: "Robert Sánchez", pos: "G" }, { name: "Malo Gusto", pos: "D" }, { name: "Wesley Fofana", pos: "D" },
+                { name: "Levi Colwill", pos: "D" }, { name: "Marc Cucurella", pos: "D" }, { name: "Moisés Caicedo", pos: "M" },
+                { name: "Roméo Lavia", pos: "M" }, { name: "Cole Palmer", pos: "M" }, { name: "Noni Madueke", pos: "F" },
+                { name: "Pedro Neto", pos: "F" }, { name: "Nicolas Jackson", pos: "F" }
+            ]
+        },
         stats: {
             possession: 55, // Home team %
             shots: 8,
@@ -53,6 +68,21 @@ const MOCK_MATCHES = [
         time: "68'",
         status: "live",
         favorites: false,
+        odds: { provider: "ESPN BET", home: -250, draw: 380, away: 600, overUnder: 3.5, overOdds: 2.10, underOdds: 1.72, bttsYes: 1.80, bttsNo: 1.95 },
+        lineups: {
+            home: [
+                { name: "Ederson", pos: "G" }, { name: "Kyle Walker", pos: "D" }, { name: "Rúben Dias", pos: "D" },
+                { name: "Manuel Akanji", pos: "D" }, { name: "Josko Gvardiol", pos: "D" }, { name: "Rodri", pos: "M" },
+                { name: "Mateo Kovacic", pos: "M" }, { name: "Kevin De Bruyne", pos: "M" }, { name: "Bernardo Silva", pos: "M" },
+                { name: "Phil Foden", pos: "F" }, { name: "Erling Haaland", pos: "F" }
+            ],
+            away: [
+                { name: "Nick Pope", pos: "G" }, { name: "Kieran Trippier", pos: "D" }, { name: "Fabian Schär", pos: "D" },
+                { name: "Dan Burn", pos: "D" }, { name: "Lewis Hall", pos: "D" }, { name: "Bruno Guimarães", pos: "M" },
+                { name: "Sandro Tonali", pos: "M" }, { name: "Joelinton", pos: "M" }, { name: "Anthony Gordon", pos: "F" },
+                { name: "Harvey Barnes", pos: "F" }, { name: "Alexander Isak", pos: "F" }
+            ]
+        },
         stats: {
             possession: 62,
             shots: 11,
@@ -84,6 +114,21 @@ const MOCK_MATCHES = [
         time: "71'",
         status: "live",
         favorites: false,
+        odds: { provider: "ESPN BET", home: 140, draw: 260, away: 175, overUnder: 2.5, overOdds: 1.65, underOdds: 2.20, bttsYes: 1.55, bttsNo: 2.35 },
+        lineups: {
+            home: [
+                { name: "Marc-André ter Stegen", pos: "G" }, { name: "Jules Koundé", pos: "D" }, { name: "Pau Cubarsí", pos: "D" },
+                { name: "Iñigo Martínez", pos: "D" }, { name: "Alejandro Balde", pos: "D" }, { name: "Marc Casadó", pos: "M" },
+                { name: "Pedri", pos: "M" }, { name: "Dani Olmo", pos: "M" }, { name: "Lamine Yamal", pos: "F" },
+                { name: "Raphinha", pos: "F" }, { name: "Robert Lewandowski", pos: "F" }
+            ],
+            away: [
+                { name: "Thibaut Courtois", pos: "G" }, { name: "Dani Carvajal", pos: "D" }, { name: "Éder Militão", pos: "D" },
+                { name: "Antonio Rüdiger", pos: "D" }, { name: "Ferland Mendy", pos: "D" }, { name: "Aurélien Tchouaméni", pos: "M" },
+                { name: "Federico Valverde", pos: "M" }, { name: "Jude Bellingham", pos: "M" }, { name: "Rodrygo", pos: "F" },
+                { name: "Kylian Mbappé", pos: "F" }, { name: "Vinícius Júnior", pos: "F" }
+            ]
+        },
         stats: {
             possession: 42,
             shots: 6,
@@ -115,6 +160,21 @@ const MOCK_MATCHES = [
         time: "65'",
         status: "live",
         favorites: false,
+        odds: { provider: "ESPN BET", home: 190, draw: 240, away: 135, overUnder: 2.5, overOdds: 1.80, underOdds: 2.00, bttsYes: 1.65, bttsNo: 2.20 },
+        lineups: {
+            home: [
+                { name: "Mike Maignan", pos: "G" }, { name: "Emerson Royal", pos: "D" }, { name: "Fikayo Tomori", pos: "D" },
+                { name: "Strahinja Pavlovic", pos: "D" }, { name: "Theo Hernández", pos: "D" }, { name: "Youssouf Fofana", pos: "M" },
+                { name: "Tijjani Reijnders", pos: "M" }, { name: "Christian Pulisic", pos: "M" }, { name: "Ruben Loftus-Cheek", pos: "M" },
+                { name: "Rafael Leão", pos: "F" }, { name: "Álvaro Morata", pos: "F" }
+            ],
+            away: [
+                { name: "Yann Sommer", pos: "G" }, { name: "Benjamin Pavard", pos: "D" }, { name: "Francesco Acerbi", pos: "D" },
+                { name: "Alessandro Bastoni", pos: "D" }, { name: "Denzel Dumfries", pos: "M" }, { name: "Nicolò Barella", pos: "M" },
+                { name: "Hakan Çalhanoglu", pos: "M" }, { name: "Henrikh Mkhitaryan", pos: "M" }, { name: "Federico Dimarco", pos: "M" },
+                { name: "Marcus Thuram", pos: "F" }, { name: "Lautaro Martínez", pos: "F" }
+            ]
+        },
         stats: {
             possession: 47,
             shots: 7,
@@ -146,6 +206,21 @@ const MOCK_MATCHES = [
         time: "70'",
         status: "live",
         favorites: false,
+        odds: { provider: "ESPN BET", home: -210, draw: 340, away: 500, overUnder: 2.5, overOdds: 1.68, underOdds: 2.15, bttsYes: 1.78, bttsNo: 1.98 },
+        lineups: {
+            home: [
+                { name: "Gianluigi Donnarumma", pos: "G" }, { name: "Achraf Hakimi", pos: "D" }, { name: "Marquinhos", pos: "D" },
+                { name: "Willian Pacho", pos: "D" }, { name: "Lucas Beraldo", pos: "D" }, { name: "Warren Zaïre-Emery", pos: "M" },
+                { name: "Vitinha", pos: "M" }, { name: "João Neves", pos: "M" }, { name: "Ousmane Dembélé", pos: "F" },
+                { name: "Bradley Barcola", pos: "F" }, { name: "Marco Asensio", pos: "F" }
+            ],
+            away: [
+                { name: "Lucas Chevalier", pos: "G" }, { name: "Tiago Santos", pos: "D" }, { name: "Bafodé Diakité", pos: "D" },
+                { name: "Alexsandro", pos: "D" }, { name: "Gabriel Gudmundsson", pos: "D" }, { name: "Benjamin André", pos: "M" },
+                { name: "Angel Gomes", pos: "M" }, { name: "Edon Zhegrova", pos: "M" }, { name: "Rémy Cabella", pos: "M" },
+                { name: "Osame Sahraoui", pos: "F" }, { name: "Jonathan David", pos: "F" }
+            ]
+        },
         stats: {
             possession: 58,
             shots: 9,
@@ -177,6 +252,21 @@ const MOCK_MATCHES = [
         time: "71'",
         status: "live",
         favorites: false,
+        odds: { provider: "ESPN BET", home: -135, draw: 310, away: 300, overUnder: 3.5, overOdds: 2.05, underOdds: 1.75, bttsYes: 1.48, bttsNo: 2.55 },
+        lineups: {
+            home: [
+                { name: "Manuel Neuer", pos: "G" }, { name: "Konrad Laimer", pos: "D" }, { name: "Dayot Upamecano", pos: "D" },
+                { name: "Kim Min-jae", pos: "D" }, { name: "Alphonso Davies", pos: "D" }, { name: "Joshua Kimmich", pos: "M" },
+                { name: "Aleksandar Pavlovic", pos: "M" }, { name: "Michael Olise", pos: "M" }, { name: "Jamal Musiala", pos: "M" },
+                { name: "Serge Gnabry", pos: "F" }, { name: "Harry Kane", pos: "F" }
+            ],
+            away: [
+                { name: "Lukás Hrádecký", pos: "G" }, { name: "Edmond Tapsoba", pos: "D" }, { name: "Jonathan Tah", pos: "D" },
+                { name: "Piero Hincapié", pos: "D" }, { name: "Jeremie Frimpong", pos: "M" }, { name: "Granit Xhaka", pos: "M" },
+                { name: "Robert Andrich", pos: "M" }, { name: "Álex Grimaldo", pos: "M" }, { name: "Martin Terrier", pos: "M" },
+                { name: "Florian Wirtz", pos: "F" }, { name: "Victor Boniface", pos: "F" }
+            ]
+        },
         stats: {
             possession: 51,
             shots: 8,
@@ -341,6 +431,7 @@ const MOCK_NEWS = [
         category: "Transfer News",
         title: "Official: Mbappé signs new blockbuster deal with Real Madrid",
         time: "15m ago",
+        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #243b55, #141e30)"
     },
     {
@@ -348,6 +439,7 @@ const MOCK_NEWS = [
         category: "Premier League",
         title: "Arsenal extend lead at the top after impressive win against Chelsea",
         time: "1h ago",
+        image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #8a2387, #e94057, #f27121)"
     },
     {
@@ -355,6 +447,7 @@ const MOCK_NEWS = [
         category: "UCL",
         title: "Champions League final bracket confirmed: road to Munich final",
         time: "2h ago",
+        image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #11998e, #38ef7d)"
     },
     {
@@ -362,25 +455,83 @@ const MOCK_NEWS = [
         category: "Injury News",
         title: "Salah returns to full team training ahead of weekend clash",
         time: "3h ago",
+        image: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #ff007f, #7f00ff)"
     }
 ];
 
 const MOCK_SCORERS = [
-    { rank: 1, name: "Erling Haaland", club: "Man City", goals: 21 },
-    { rank: 2, name: "Kylian Mbappé", club: "PSG", goals: 18 },
-    { rank: 3, name: "Harry Kane", club: "Bayern Munich", goals: 17 },
-    { rank: 4, name: "Lautaro Martínez", club: "Inter Milan", goals: 16 },
-    { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15 }
+    { rank: 1, name: "Erling Haaland", club: "Man City", goals: 21, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/196631.png&w=96&h=70&cb=1" },
+    { rank: 2, name: "Kylian Mbappé", club: "Real Madrid", goals: 18, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/215443.png&w=96&h=70&cb=1" },
+    { rank: 3, name: "Harry Kane", club: "Bayern Munich", goals: 17, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/169187.png&w=96&h=70&cb=1" },
+    { rank: 4, name: "Lautaro Martínez", club: "Inter Milan", goals: 16, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/226297.png&w=96&h=70&cb=1" },
+    { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/173515.png&w=96&h=70&cb=1" }
 ];
 
 // Same row shape (`goals` holds the assist count) so the renderer is shared
 const MOCK_ASSISTS = [
-    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13 },
-    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12 },
-    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11 },
-    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10 },
-    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10 }
+    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/342971.png&w=96&h=70&cb=1" },
+    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/173515.png&w=96&h=70&cb=1" },
+    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/208882.png&w=96&h=70&cb=1" },
+    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/291471.png&w=96&h=70&cb=1" },
+    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/261899.png&w=96&h=70&cb=1" }
+];
+
+const MOCK_HIGHLIGHTS = [
+    {
+        id: "mock-hl-1",
+        title: "Arsenal vs Chelsea 2-1: Late Saka winner seals thrilling London derby",
+        league: "eng.1",
+        category: "Premier League",
+        time: "2h ago",
+        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.youtube.com/results?search_query=Arsenal+vs+Chelsea+highlights"
+    },
+    {
+        id: "mock-hl-2",
+        title: "Real Madrid vs Barcelona 3-2: Bellingham stoppage-time decider",
+        league: "esp.1",
+        category: "La Liga",
+        time: "4h ago",
+        image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.youtube.com/results?search_query=Real+Madrid+vs+Barcelona+highlights"
+    },
+    {
+        id: "mock-hl-3",
+        title: "Bayern Munich vs Dortmund 4-1: Kane hat-trick in Der Klassiker",
+        league: "ger.1",
+        category: "Bundesliga",
+        time: "1d ago",
+        image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.youtube.com/results?search_query=Bayern+Munich+vs+Dortmund+highlights"
+    },
+    {
+        id: "mock-hl-4",
+        title: "PSG vs Marseille 2-0: Dembélé masterclass dominates Le Classique",
+        league: "fra.1",
+        category: "Ligue 1",
+        time: "1d ago",
+        image: "https://images.unsplash.com/photo-1489944445391-11dd35574549?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.youtube.com/results?search_query=PSG+vs+Marseille+highlights"
+    },
+    {
+        id: "mock-hl-5",
+        title: "Inter Milan vs AC Milan 1-0: Martínez derby strike sends San Siro wild",
+        league: "ita.1",
+        category: "Serie A",
+        time: "2d ago",
+        image: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.youtube.com/results?search_query=Inter+vs+AC+Milan+highlights"
+    },
+    {
+        id: "mock-hl-6",
+        title: "Man City vs Liverpool 2-2: Haaland and Salah trade goals in epic clash",
+        league: "eng.1",
+        category: "Premier League",
+        time: "2d ago",
+        image: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.youtube.com/results?search_query=Man+City+vs+Liverpool+highlights"
+    }
 ];
 
 // --- APP STATE ---
@@ -389,12 +540,15 @@ const store = {
     get(key, fallback) {
         try {
             const raw = localStorage.getItem(key);
-            return raw === null ? fallback : JSON.parse(raw);
+            if (raw === null) return fallback;
+            try { return JSON.parse(raw); } catch { return raw; }
         } catch { return fallback; }
     },
     set(key, value) {
-        try { localStorage.setItem(key, JSON.stringify(value)); }
-        catch { /* storage unavailable — stay in-memory */ }
+        try {
+            const val = typeof value === "string" ? value : JSON.stringify(value);
+            localStorage.setItem(key, val);
+        } catch { /* storage unavailable — stay in-memory */ }
     }
 };
 const FAVS_KEY = "scorehub-favs-v1";
@@ -486,6 +640,7 @@ const addCalendarBtn = document.getElementById("add-calendar-btn");
 const closeWatchModal = document.getElementById("close-watch-modal");
 const searchInput = document.getElementById("search-input");
 const searchResults = document.getElementById("search-results");
+const searchClearBtn = document.getElementById("search-clear-btn");
 const notificationBtn = document.getElementById("notification-btn");
 const notificationDropdown = document.getElementById("notification-dropdown");
 const navHome = document.getElementById("nav-home");
@@ -1347,12 +1502,11 @@ function setApiMode(enable, opts = {}) {
         if (badge) badge.textContent = "54 Matches Live Now";
         if (statNum) statNum.textContent = "54";
 
-        // Restore the simulated extras (standings / news / scorers)
+        // Restore the simulated extras (standings / news / scorers / highlights)
         usingLiveCommentary = false;
         scoreDeltas.clear();
         liveHighlights = null;
-        const hs = document.getElementById("highlights-strip");
-        if (hs) hs.hidden = true;
+        renderHighlights();
         renderStandings();
         renderNews();
         renderScorers();
@@ -1451,6 +1605,28 @@ async function resolveCoreRefDisplayName(ref, field = "displayName") {
             validate: d => !!(d && typeof d === "object" && (d.id || d.displayName || d.name))
         });
         return data[field] || data.displayName || data.shortDisplayName || data.name || null;
+    } catch (err) {
+        return null;
+    }
+}
+
+// Resolve a core-API athlete ref ($ref) to an object with { id, name, image }
+async function resolveCoreRefAthlete(ref) {
+    if (!ref || !ref.$ref) return null;
+    try {
+        const url = new URL(ref.$ref.replace(/^http:/, "https:"));
+        const data = await fetchESPNPath(url.pathname + url.search, {
+            host: url.hostname,
+            validate: d => !!(d && typeof d === "object" && (d.id || d.displayName || d.name))
+        });
+        if (!data) return null;
+        const id = data.id ? String(data.id) : null;
+        const name = data.displayName || data.shortDisplayName || data.name || null;
+        let image = (data.headshot && data.headshot.href) || null;
+        if (!image && id) {
+            image = `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${id}.png&w=96&h=70&cb=1`;
+        }
+        return { id, name, image };
     } catch (err) {
         return null;
     }
@@ -1606,14 +1782,17 @@ async function loadLiveScorers(leagueKey, category = "goals") {
 
     const top = goalsCat.leaders.slice(0, 5);
     const rows = await Promise.all(top.map(async (leader, i) => {
-        const [name, club] = await Promise.all([
-            resolveCoreRefDisplayName(leader.athlete),
+        const [athlete, club] = await Promise.all([
+            resolveCoreRefAthlete(leader.athlete),
             resolveCoreRefDisplayName(leader.team)
         ]);
+        const name = (athlete && athlete.name) || `Player ${i + 1}`;
+        const image = (athlete && athlete.image) || null;
         return {
             rank: i + 1,
-            name: name || `Player ${i + 1}`,
+            name,
             club: club || "",
+            image,
             goals: Math.round(leader.value || 0) || parseInt(leader.displayValue, 10) || 0
         };
     }));
@@ -1624,8 +1803,16 @@ async function loadLiveScorers(leagueKey, category = "goals") {
 function scorersFromMatches() {
     const pool = [];
     apiMatches.forEach(m => {
-        if (m.topScorers && m.topScorers.home) pool.push({ name: m.topScorers.home.name, club: m.homeTeam, goals: m.topScorers.home.goals });
-        if (m.topScorers && m.topScorers.away) pool.push({ name: m.topScorers.away.name, club: m.awayTeam, goals: m.topScorers.away.goals });
+        if (m.topScorers && m.topScorers.home) {
+            const h = m.topScorers.home;
+            const img = h.athleteId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${h.athleteId}.png&w=96&h=70&cb=1` : (h.image || null);
+            pool.push({ name: h.name, club: m.homeTeam, goals: h.goals, image: img });
+        }
+        if (m.topScorers && m.topScorers.away) {
+            const a = m.topScorers.away;
+            const img = a.athleteId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${a.athleteId}.png&w=96&h=70&cb=1` : (a.image || null);
+            pool.push({ name: a.name, club: m.awayTeam, goals: a.goals, image: img });
+        }
     });
     const seen = new Set();
     const unique = pool.filter(p => {
@@ -1799,7 +1986,9 @@ function timelineMinuteValue(min) {
 }
 
 function escHtml(s) {
-    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function renderTimeline(match, data) {
@@ -1849,14 +2038,26 @@ function extractLineupPlayers(data, side) {
     if (!data) return [];
     // Path 1: dedicated lineups block (present for some soccer summaries)
     const lu = Array.isArray(data.lineups) ? data.lineups.find(t => (t.homeAway || t.homeaway || "").toLowerCase() === side) : null;
-    const luAthletes = lu && (lu.athletes || lu.players || lu.roster);
+    const luAthletes = lu && (lu.athletes || lu.players || lu.roster || lu.lineup);
     if (Array.isArray(luAthletes) && luAthletes.length) {
         return luAthletes.slice(0, 18).map(a => ({
-            name: a.displayName || a.name || a.shortName || "?",
-            pos: (a.position && (a.position.abbreviation || a.position.name)) || ""
+            name: a.displayName || a.name || a.shortName || (a.athlete && (a.athlete.displayName || a.athlete.shortName)) || "?",
+            pos: (a.position && (a.position.abbreviation || a.position.name)) || (a.athlete && a.athlete.position && (a.athlete.position.abbreviation || a.athlete.position.name)) || ""
         }));
     }
-    // Path 2: boxscore player stats (used players with stats)
+    // Path 2: rosters block
+    const rosters = Array.isArray(data.rosters) ? data.rosters : [];
+    if (rosters.length) {
+        const rNode = rosters.find(t => (t.homeAway || t.homeaway || "").toLowerCase() === side) || rosters[side === "home" ? 0 : 1];
+        const rAthletes = rNode && (rNode.roster || rNode.athletes || rNode.players);
+        if (Array.isArray(rAthletes) && rAthletes.length) {
+            return rAthletes.slice(0, 18).map(a => ({
+                name: (a.athlete && (a.athlete.displayName || a.athlete.shortName)) || a.displayName || a.name || "?",
+                pos: (a.position && (a.position.abbreviation || a.position.name)) || (a.athlete && a.athlete.position && a.athlete.position.abbreviation) || ""
+            }));
+        }
+    }
+    // Path 3: boxscore player stats (used players with stats)
     const teams = data.boxscore && Array.isArray(data.boxscore.players) ? data.boxscore.players : [];
     const node = teams.find(t => (t.homeAway || "").toLowerCase() === side) || teams[side === "home" ? 0 : 1];
     const stats = node && Array.isArray(node.statistics) ? node.statistics : [];
@@ -1880,8 +2081,12 @@ function extractLineupPlayers(data, side) {
 function renderLineups(match, data) {
     const grid = document.getElementById("lineups-grid");
     if (!grid || !match) return;
-    const home = extractLineupPlayers(data, "home");
-    const away = extractLineupPlayers(data, "away");
+    let home = extractLineupPlayers(data, "home");
+    let away = extractLineupPlayers(data, "away");
+    if (!home.length && !away.length && match.lineups) {
+        home = match.lineups.home || [];
+        away = match.lineups.away || [];
+    }
     if (!home.length && !away.length) {
         grid.innerHTML = `<div class="timeline-empty" style="grid-column: 1 / -1;">${t("mc.nolineups")}</div>`;
         return;
@@ -1964,6 +2169,20 @@ async function refreshLiveMatchCentre() {
         renderLineups(match, data);
         renderPitchShots(match, data);
         if (applySummaryStats(match, data)) renderStatsBars(match);
+        const st = getMatchStatusInfo(match);
+        const titleEl = document.getElementById("watch-modal-title");
+        if (titleEl) {
+            titleEl.textContent = `${st.isFinished ? "Match Centre" : "Live Match Centre"} — ${match.homeTeam} vs ${match.awayTeam}`;
+        }
+        const hlModalBtn = document.getElementById("watch-modal-highlights-btn");
+        if (hlModalBtn) {
+            if (st.isFinished) {
+                hlModalBtn.hidden = false;
+                hlModalBtn.href = matchHighlightUrl(match.homeTeam, match.awayTeam, match.league);
+            } else {
+                hlModalBtn.hidden = true;
+            }
+        }
     } catch (err) {
         // keep last known state
     }
@@ -2192,6 +2411,23 @@ function renderStandings() {
     });
 }
 
+function scorerAvatarHTML(r) {
+    const init = initials(r.name);
+    if (!r.image) {
+        return `<div class="player-avatar-mini scorer-avatar"><span class="avatar-initials">${init}</span></div>`;
+    }
+    const safeSrc = escHtml(r.image);
+    const safeName = escHtml(r.name);
+    return `
+        <div class="player-avatar-mini scorer-avatar">
+            <img class="scorer-headshot" src="${safeSrc}" alt="${safeName}" loading="lazy"
+                 onload="var p=this.parentElement; if(p){var s=p.querySelector('.avatar-initials'); if(s) s.style.display='none';}"
+                 onerror="this.style.display='none'; var p=this.parentElement; if(p){var s=p.querySelector('.avatar-initials'); if(s) s.style.display='flex';}" />
+            <span class="avatar-initials">${init}</span>
+        </div>
+    `;
+}
+
 // Render Top Scorers / Top Assists (ESPN leaders in Live API mode, mock data otherwise)
 function renderScorers() {
     const listEl = document.getElementById("scorers-list");
@@ -2212,10 +2448,10 @@ function renderScorers() {
         <div class="scorer-row">
             <div class="scorer-rank-info">
                 <span class="rank-num">${r.rank}</span>
-                <div class="player-avatar-mini">${initials(r.name)}</div>
+                ${scorerAvatarHTML(r)}
                 <div class="player-meta">
-                    <span class="player-name">${r.name}</span>
-                    <span class="player-club">${r.club}</span>
+                    <span class="player-name">${escHtml(r.name)}</span>
+                    <span class="player-club">${escHtml(r.club)}</span>
                 </div>
             </div>
             <span class="goals-count">${r.goals}</span>
@@ -2225,60 +2461,118 @@ function renderScorers() {
 
 // Render News
 function renderNews() {
-    newsContainer.innerHTML = "";
     const useLive = isApiMode && liveNews && liveNews.length;
     const list = useLive ? liveNews : MOCK_NEWS;
 
-    list.forEach((news) => {
-        const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
-        const card = document.createElement(useLive ? "a" : "div");
-        card.className = "news-card" + (isVideo ? " has-video" : "");
-        if (useLive) {
-            // Videos open their source page (usually ESPN) in a new tab; text news uses in-app story page
-            if (isVideo) {
-                card.href = news.link || "https://www.espn.com/soccer/";
-                card.target = "_blank";
-                card.rel = "noopener";
+    if (newsContainer) {
+        newsContainer.innerHTML = "";
+        list.forEach((news) => {
+            const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
+            const card = document.createElement(useLive ? "a" : "div");
+            card.className = "news-card" + (isVideo ? " has-video" : "");
+            if (useLive) {
+                // Videos open their source page (usually ESPN) in a new tab; text news uses in-app story page
+                if (isVideo) {
+                    card.href = news.link || "https://www.espn.com/soccer/";
+                    card.target = "_blank";
+                    card.rel = "noopener";
+                } else {
+                    card.href = "story.html";
+                    card.addEventListener("click", () => {
+                        try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+                    });
+                }
             } else {
-                card.href = "story.html";
+                card.style.cursor = "pointer";
                 card.addEventListener("click", () => {
-                    try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+                    try { sessionStorage.setItem("scorehub-story", JSON.stringify(news)); } catch (e) {}
+                    window.location.href = "story.html";
                 });
             }
-        }
-        const thumbStyle = news.image
-            ? `background-image: url('${news.image}');`
-            : `background: ${news.grad}`;
-        card.innerHTML = `
-            <div class="news-thumb" style="${thumbStyle}">${isVideo ? '<span class="news-video-badge">▶</span>' : ''}</div>
-            <div class="news-meta">
-                <span class="news-category-badge">${news.category}${isVideo ? ' · 🎥 Highlight' : ''}</span>
-                <h4 class="news-title">${news.title}</h4>
-                <span class="news-time">${news.time}${news.leagueSlug ? ' · ' + (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : ''}</span>
-            </div>
-        `;
-        newsContainer.appendChild(card);
-    });
+            const thumbStyle = news.image
+                ? `background-image: url('${news.image}');`
+                : `background: ${news.grad};`;
+            card.innerHTML = `
+                <div class="news-thumb" style="${thumbStyle}">${isVideo ? '<span class="news-video-badge">▶</span>' : ''}</div>
+                <div class="news-meta">
+                    <span class="news-category-badge">${news.category}${isVideo ? ' · 🎥 Highlight' : ''}</span>
+                    <h4 class="news-title">${news.title}</h4>
+                    <span class="news-time">${news.time}${news.leagueSlug ? ' · ' + (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : ''}</span>
+                </div>
+            `;
+            newsContainer.appendChild(card);
+        });
+    }
+
+    // Also populate featured news grid right after highlights on the homepage
+    const homeGrid = document.getElementById("home-news-grid");
+    if (homeGrid) {
+        homeGrid.innerHTML = "";
+        const featuredItems = list.slice(0, 4);
+        featuredItems.forEach((news) => {
+            const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
+            const card = document.createElement(useLive ? "a" : "div");
+            card.className = "home-news-card" + (isVideo ? " has-video" : "");
+            if (useLive) {
+                if (isVideo) {
+                    card.href = news.link || "https://www.espn.com/soccer/";
+                    card.target = "_blank";
+                    card.rel = "noopener";
+                } else {
+                    card.href = "story.html";
+                    card.addEventListener("click", () => {
+                        try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+                    });
+                }
+            } else {
+                card.style.cursor = "pointer";
+                card.addEventListener("click", () => {
+                    try { sessionStorage.setItem("scorehub-story", JSON.stringify(news)); } catch (e) {}
+                    window.location.href = "story.html";
+                });
+            }
+
+            const thumbStyle = news.image
+                ? `background-image: url('${news.image}');`
+                : `background: ${news.grad || "linear-gradient(135deg, #00f2fe, #4facfe)"};`;
+            const leagueLabel = news.leagueSlug ? (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : '';
+
+            card.innerHTML = `
+                <div class="home-news-thumb" style="${thumbStyle}">
+                    ${isVideo ? '<span class="news-video-badge">▶</span>' : ''}
+                </div>
+                <div class="home-news-body">
+                    <div class="home-news-meta">
+                        <span class="news-category-badge">${escHtml(news.category)}${isVideo ? ' · 🎥 Video' : ''}</span>
+                        <span class="home-news-time">${escHtml(news.time)}${leagueLabel ? ' · ' + escHtml(leagueLabel) : ''}</span>
+                    </div>
+                    <h4 class="home-news-title">${escHtml(news.title)}</h4>
+                </div>
+            `;
+            homeGrid.appendChild(card);
+        });
+    }
 }
 
 function renderHighlights() {
     const strip = document.getElementById("highlights-strip");
     const track = document.getElementById("highlights-track");
     if (!strip || !track) return;
-    if (!isApiMode || !liveHighlights || !liveHighlights.length) {
+    const items = (isApiMode && liveHighlights && liveHighlights.length) ? liveHighlights : MOCK_HIGHLIGHTS;
+    if (!items || !items.length) {
         strip.hidden = true;
         return;
     }
     strip.hidden = false;
     track.innerHTML = "";
-    liveHighlights.forEach(item => {
+    items.forEach(item => {
         const a = document.createElement("a");
         a.className = "highlight-card";
-        a.href = item.link || "https://www.espn.com/soccer/";
+        a.href = item.link || "https://www.youtube.com";
         a.target = "_blank";
         a.rel = "noopener";
         const thumbStyle = item.image ? `background-image: url('${item.image.replace(/'/g, "%27")}');` : `background: var(--bg-card-solid);`;
-        const leagueLabel = item.league ? (LEAGUE_NAMES['soccer/'+item.league] ? LEAGUE_NAMES['soccer/'+item.league].name : item.league) : item.category;
+        const leagueLabel = item.league ? (LEAGUE_NAMES['soccer/'+item.league] ? LEAGUE_NAMES['soccer/'+item.league].name : item.league) : (item.category || "Football");
         const safeTitle = (item.title || "").replace(/</g, "&lt;");
         a.innerHTML = `
             <div class="highlight-thumb" style="${thumbStyle}">
@@ -2287,12 +2581,12 @@ function renderHighlights() {
             <div class="highlight-meta">
                 <span class="highlight-league">${leagueLabel}</span>
                 <span class="highlight-title">${safeTitle}</span>
-                <span class="news-time">${item.time}</span>
+                <span class="news-time">${item.time || ""}</span>
             </div>
         `;
         track.appendChild(a);
     });
-    try { updateHighlightsSEO(liveHighlights); } catch (e) {}
+    try { updateHighlightsSEO(items); } catch (e) {}
     initHighlightsDrag();
 }
 
@@ -2323,7 +2617,7 @@ function initHighlightsDrag() {
             setTimeout(() => { delete track.dataset.suppressClick; }, 300);
         }
     };
-    track.addEventListener("mousedown", (e) => { start(e.clientX); e.preventDefault(); });
+    track.addEventListener("mousedown", (e) => start(e.clientX));
     window.addEventListener("mousemove", (e) => move(e.clientX));
     window.addEventListener("mouseup", end);
     track.addEventListener("click", (e) => { if (track.dataset.suppressClick === "1") { e.preventDefault(); e.stopPropagation(); } }, true);
@@ -2573,10 +2867,26 @@ function matchYmd(iso) {
     return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
 }
 
+function cleanLeagueSlug(slug) {
+    if (!slug) return "eng.1";
+    let s = String(slug).trim();
+    if (s.startsWith("soccer/")) s = s.slice(7);
+    const codeMap = {
+        EPL: "eng.1", LaLiga: "esp.1", SerieA: "ita.1", UCL: "uefa.champions",
+        Bundesliga: "ger.1", Ligue1: "fra.1", MLS: "usa.1"
+    };
+    return codeMap[s] || s;
+}
+
 function matchPageUrl(m) {
-    if (m && m.leagueSlug && m.espnEventId && m.date) {
+    if (!m) return "match.html";
+    const slug = cleanLeagueSlug(m.leagueSlug || m.leagueId || "football");
+    if (m.espnEventId && m.date) {
         const ymd = matchYmd(m.date);
-        if (ymd) return `match.html?league=${encodeURIComponent(m.leagueSlug)}&id=${encodeURIComponent(m.espnEventId)}&date=${ymd}`;
+        if (ymd) return `match.html?league=${encodeURIComponent(slug)}&id=${encodeURIComponent(m.espnEventId)}&date=${ymd}`;
+    }
+    if (m.id) {
+        return `match.html?league=${encodeURIComponent(slug)}&id=${encodeURIComponent(m.id)}`;
     }
     return `match.html`;
 }
@@ -2586,23 +2896,41 @@ function openMatchPage(m) {
 }
 
 function canPreviewMatch(m) {
-    return !!(isApiMode && m && m.sport === "football" && m.espnEventId && m.leagueSlug && m.date
-        && matchYmd(m.date) && new Date(m.date).getTime() > Date.now());
+    if (!m) return false;
+    if (m.sport && m.sport !== "football") return false;
+    const st = getMatchStatusInfo(m);
+    if (st.isLive || st.isHT || st.isFinished) return false;
+    if (m.espnEventId && m.leagueSlug && m.date && matchYmd(m.date)) return true;
+    if (m.id) return true;
+    return false;
 }
 
 function previewLinkHTML(m) {
     if (!canPreviewMatch(m)) return "";
-    return `<a class="stat-capsule preview-link" href="preview.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match preview">📰 Preview</a>`;
+    const slug = cleanLeagueSlug(m.leagueSlug || m.leagueId || "eng.1");
+    const id = m.espnEventId || m.id;
+    const ymd = matchYmd(m.date) || "";
+    const dParam = ymd ? `&date=${encodeURIComponent(ymd)}` : "";
+    return `<a class="stat-capsule preview-link" href="preview.html?league=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}${dParam}" data-match-id="${escHtml(m.id || id)}" title="Read the ScoreHub match preview">📰 Preview</a>`;
 }
 
 function canReportMatch(m) {
-    return !!(isApiMode && m && m.sport === "football" && m.espnEventId && m.leagueSlug && m.date
-        && matchYmd(m.date) && m.halftimeScore);
+    if (!m) return false;
+    if (m.sport && m.sport !== "football") return false;
+    const st = getMatchStatusInfo(m);
+    if (!st.isFinished) return false;
+    if (m.espnEventId && m.leagueSlug && m.date && matchYmd(m.date)) return true;
+    if (m.id) return true;
+    return false;
 }
 
 function reportLinkHTML(m) {
     if (!canReportMatch(m)) return "";
-    return `<a class="stat-capsule report-link" href="report.html?league=${m.leagueSlug}&id=${m.espnEventId}&date=${matchYmd(m.date)}" title="Read the ScoreHub match report">📝 Report</a>`;
+    const slug = cleanLeagueSlug(m.leagueSlug || m.leagueId || "eng.1");
+    const id = m.espnEventId || m.id;
+    const ymd = matchYmd(m.date) || "";
+    const dParam = ymd ? `&date=${encodeURIComponent(ymd)}` : "";
+    return `<a class="stat-capsule report-link" href="report.html?league=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}${dParam}" data-match-id="${escHtml(m.id || id)}" title="Read the ScoreHub match report">📝 Report</a>`;
 }
 
 // --- STORY OF THE WEEK (auto-pick the most interesting match) ---
@@ -2669,7 +2997,7 @@ function storyPosOf(m, tables) {
 }
 
 function pickStoryOfWeek(matches, tables) {
-    const fins = (matches || []).filter((m) => isApiMode && m.sport === "football" && m.espnEventId && m.leagueSlug && m.halftimeScore);
+    const fins = (matches || []).filter((m) => canReportMatch(m));
     const ups = (matches || []).filter((m) => canPreviewMatch(m));
     let bestFin = null;
     fins.forEach((m) => {
@@ -2745,11 +3073,19 @@ function updateStoryTag() {
         if (match && canPreviewMatch(match)) {
             btn.hidden = false;
             btn.innerHTML = "<span>" + t("story.previewbtn") + "</span>";
-            btn.href = `preview.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
+            const slug = cleanLeagueSlug(match.leagueSlug || match.leagueId || "eng.1");
+            const id = match.espnEventId || match.id;
+            const ymd = matchYmd(match.date) || "";
+            btn.href = `preview.html?league=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}${ymd ? `&date=${encodeURIComponent(ymd)}` : ""}`;
+            btn.onclick = () => { try { sessionStorage.setItem("scorehub-match", JSON.stringify(match)); } catch (e) {} };
         } else if (match && canReportMatch(match)) {
             btn.hidden = false;
             btn.innerHTML = "<span>" + t("story.reportbtn") + "</span>";
-            btn.href = `report.html?league=${match.leagueSlug}&id=${match.espnEventId}&date=${matchYmd(match.date)}`;
+            const slug = cleanLeagueSlug(match.leagueSlug || match.leagueId || "eng.1");
+            const id = match.espnEventId || match.id;
+            const ymd = matchYmd(match.date) || "";
+            btn.href = `report.html?league=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}${ymd ? `&date=${encodeURIComponent(ymd)}` : ""}`;
+            btn.onclick = () => { try { sessionStorage.setItem("scorehub-match", JSON.stringify(match)); } catch (e) {} };
         } else {
             btn.hidden = true;
         }
@@ -2762,6 +3098,7 @@ function getMatchStatusInfo(match) {
     const isHT = timeStr === "HT" || timeStr.includes("HT") || htScore === "HT" || timeStr.includes("Half");
     const isLive = match.status === "live" && !isHT;
     const isFinished = !isLive && !isHT && (
+        match.status === "finished" || match.completed ||
         timeStr === "FT" || timeStr.includes("FT") || htScore.includes("FT") || htScore === "Ended" ||
         timeStr.toLowerCase().includes("ended") || timeStr.toLowerCase().includes("full")
     );
@@ -2774,6 +3111,24 @@ function getMatchStatusInfo(match) {
     else if (isFinished) { label = "FT"; cls = "status-ft"; priority = 2; }
     else { label = timeStr || "TODAY"; cls = "status-today"; priority = 3; }
     return { isLive, isHT, isFinished, isToday, label, cls, priority };
+}
+
+function canHighlightMatch(m) {
+    if (!m) return false;
+    const st = getMatchStatusInfo(m);
+    return !!st.isFinished;
+}
+
+function matchHighlightUrl(homeTeam, awayTeam, leagueName) {
+    const q = `${homeTeam || ""} vs ${awayTeam || ""} highlights ${leagueName || ""}`.trim();
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+}
+
+function highlightLinkHTML(m) {
+    if (!canHighlightMatch(m)) return "";
+    const url = matchHighlightUrl(m.homeTeam, m.awayTeam, m.league);
+    const hlText = (typeof t === "function") ? t("card.highlights") : "Highlights";
+    return `<a class="stat-capsule highlight-link" href="${url}" target="_blank" rel="noopener" title="Watch ${escHtml(m.homeTeam)} vs ${escHtml(m.awayTeam)} highlights on YouTube">🎥 ${hlText}</a>`;
 }
 
 function formatMatchDate(iso) {
@@ -2926,6 +3281,7 @@ function renderMatches() {
                         <span class="stat-capsule status-capsule ${st.cls}">${st.isLive ? '🔴 LIVE' : st.isHT ? '🟠 HT' : st.isFinished ? '⚫ FT' : '🔵 ' + st.label}</span>
                         ${previewLinkHTML(match)}
                         ${reportLinkHTML(match)}
+                        ${highlightLinkHTML(match)}
                         ${oddsCapsulesHTML(match)}
                         ${(st.isLive || st.isHT || st.isFinished) ? `<span class="stat-capsule">⚽ ${(match.homeScore||0) + (match.awayScore||0)} Goals</span>` : ""}
                         ${(st.isLive || st.isHT) && match.stats.possession && match.stats.possession !== "—" && match.stats.possession !== 0
@@ -2941,9 +3297,22 @@ function renderMatches() {
             `;
             
             card.addEventListener("click", (e) => {
-                if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link")) return;
+                if (e.target.closest(".btn-star-fav") || e.target.closest(".preview-link") || e.target.closest(".report-link") || e.target.closest(".highlight-link")) return;
                 openMatchPage(match);
             });
+
+            const prevLink = card.querySelector(".preview-link");
+            if (prevLink) {
+                prevLink.addEventListener("click", () => {
+                    try { sessionStorage.setItem("scorehub-match", JSON.stringify(match)); } catch (e) {}
+                });
+            }
+            const repLink = card.querySelector(".report-link");
+            if (repLink) {
+                repLink.addEventListener("click", () => {
+                    try { sessionStorage.setItem("scorehub-match", JSON.stringify(match)); } catch (e) {}
+                });
+            }
             
             const favBtn = card.querySelector(".btn-star-fav");
             favBtn.addEventListener("click", () => {
@@ -3019,6 +3388,33 @@ function setSpotlightMatch(id) {
     
     // Render Stats Progress Bars
     renderStatsBars(match);
+
+    // Update live status pill & spotlight highlights button
+    const st = getMatchStatusInfo(match);
+    const pill = document.querySelector(".spotlight-header .live-status-pill");
+    if (pill) {
+        const dot = pill.querySelector(".live-dot-pulse");
+        if (dot) dot.style.display = st.isLive ? "" : "none";
+        const text = pill.querySelector(".live-text");
+        if (text) text.textContent = st.isLive ? t("badge.live") : st.isHT ? "HT" : st.isFinished ? "FT" : (st.label || "UPCOMING");
+        pill.className = `live-status-pill ${st.cls}`;
+    }
+
+    const watchSpan = document.querySelector("#watch-live-btn span");
+    if (watchSpan) {
+        watchSpan.textContent = st.isFinished ? t("action.centre") : t("action.watch");
+    }
+
+    const hlBtn = document.getElementById("spotlight-highlights-btn");
+    if (hlBtn) {
+        if (st.isFinished) {
+            hlBtn.hidden = false;
+            hlBtn.href = matchHighlightUrl(match.homeTeam, match.awayTeam, match.league);
+            hlBtn.innerHTML = `<span>🎥 ${t("card.highlights")}</span>`;
+        } else {
+            hlBtn.hidden = true;
+        }
+    }
 
     // Fill the stats card with real boxscore numbers when in API mode (debounced + cached)
     if (isApiMode) scheduleSummaryFetch(match);
@@ -3125,10 +3521,20 @@ function showNotification(message, isToast = false) {
         const item = document.createElement("div");
         item.className = "notification-item unread";
         item.innerHTML = `
-            <div class="item-title">${message}</div>
+            <div class="item-title">${escHtml(message)}</div>
             <div class="item-time">Just Now</div>
         `;
         list.prepend(item);
+    }
+
+    // System Notification API (permission-gated, per Roadmap Phase 1.8)
+    if (typeof Notification !== "undefined" && Notification.permission === "granted" && (message.startsWith("GOAL") || isToast)) {
+        try {
+            new Notification("ScoreHub", {
+                body: message,
+                icon: "icon-192.png"
+            });
+        } catch (e) {}
     }
 
     // Show a dismissing toast for important API / goal events
@@ -3479,16 +3885,26 @@ function initEventHandlers() {
         commList.innerHTML = `<p><strong>[Live]</strong> Connecting to match feed...</p>`;
 
         const match = (isApiMode ? apiMatches : MOCK_MATCHES).find(m => m.id === spotlightMatchId);
+        const st = match ? getMatchStatusInfo(match) : { isFinished: false };
         const titleEl = document.getElementById("watch-modal-title");
         const broadcastEl = document.getElementById("watch-broadcast-info");
+        const hlModalBtn = document.getElementById("watch-modal-highlights-btn");
 
         if (titleEl) {
             titleEl.textContent = match
-                ? `Live Match Centre — ${match.homeTeam} vs ${match.awayTeam}`
+                ? `${st.isFinished ? "Match Centre" : "Live Match Centre"} — ${match.homeTeam} vs ${match.awayTeam}`
                 : "Live Match Broadcast";
         }
         if (broadcastEl) {
             broadcastEl.textContent = (match && match.broadcast) ? `📺 ${match.broadcast}` : "📺 No broadcast info";
+        }
+        if (hlModalBtn) {
+            if (match && st.isFinished) {
+                hlModalBtn.hidden = false;
+                hlModalBtn.href = matchHighlightUrl(match.homeTeam, match.awayTeam, match.league);
+            } else {
+                hlModalBtn.hidden = true;
+            }
         }
 
         resetMatchCentreTabs();
@@ -3617,38 +4033,70 @@ function initEventHandlers() {
     });
 
     // Search filter input logic
-    searchInput.addEventListener("input", () => {
+    let selectedSearchIndex = -1;
+
+    const updateSearchClearVisibility = () => {
+        if (searchClearBtn && searchInput) {
+            searchClearBtn.hidden = !searchInput.value;
+        }
+    };
+
+    if (searchClearBtn) {
+        searchClearBtn.addEventListener("click", () => {
+            if (searchInput) {
+                searchInput.value = "";
+                searchInput.focus();
+            }
+            if (searchResults) {
+                searchResults.style.display = "none";
+                searchResults.innerHTML = "";
+            }
+            selectedSearchIndex = -1;
+            updateSearchClearVisibility();
+        });
+    }
+
+    const renderSearchResults = () => {
+        if (!searchInput || !searchResults) return;
         const query = searchInput.value.toLowerCase().trim();
+        updateSearchClearVisibility();
+
         if (query.length < 2) {
             searchResults.style.display = "none";
+            selectedSearchIndex = -1;
             return;
         }
         
         const searchable = (isApiMode && apiMatches.length) ? apiMatches : MOCK_MATCHES;
         const matches = searchable.filter((m) => {
-            return m.homeTeam.toLowerCase().includes(query) ||
-                   m.awayTeam.toLowerCase().includes(query) ||
-                   m.league.toLowerCase().includes(query);
+            return (m.homeTeam && m.homeTeam.toLowerCase().includes(query)) ||
+                   (m.awayTeam && m.awayTeam.toLowerCase().includes(query)) ||
+                   (m.league && m.league.toLowerCase().includes(query));
         });
         
         searchResults.innerHTML = "";
+        selectedSearchIndex = -1;
         
         if (matches.length === 0) {
-            searchResults.innerHTML = `<div style="padding: 10px 16px; font-size: 12px; color: var(--text-muted);">${t("search.none")}</div>`;
+            const noneText = (typeof t === "function" ? t("search.none") : "No results found") || "No results found";
+            searchResults.innerHTML = `<div class="search-empty-state"><span class="search-empty-icon">&#128269;</span><span>${escHtml(noneText)}</span></div>`;
         } else {
-            matches.forEach((m) => {
+            matches.slice(0, 10).forEach((m, idx) => {
                 const item = document.createElement("div");
                 item.className = "search-item";
+                item.setAttribute("role", "option");
+                item.setAttribute("data-index", String(idx));
                 item.innerHTML = `
-                    <div>
-                        <div class="item-title">${escHtml(m.homeTeam)} vs ${escHtml(m.awayTeam)}</div>
-                        <div class="item-desc">${escHtml(m.league)} \u00b7 ${escHtml(m.time)}</div>
+                    <div class="search-item-info">
+                        <div class="item-title">${escHtml(m.homeTeam)} <span class="search-vs">vs</span> ${escHtml(m.awayTeam)}</div>
+                        <div class="item-desc">${escHtml(m.league)} &middot; ${escHtml(m.time || "")}</div>
                     </div>
-                    <span class="search-sport-badge">${escHtml(m.sport)}</span>
+                    <span class="search-sport-badge">${escHtml(m.sport || "Soccer")}</span>
                 `;
                 item.addEventListener("click", () => {
                     searchInput.value = "";
                     searchResults.style.display = "none";
+                    updateSearchClearVisibility();
                     searchInput.blur();
                     openMatchPage(m);
                 });
@@ -3657,7 +4105,42 @@ function initEventHandlers() {
         }
         
         searchResults.style.display = "block";
-    });
+    };
+
+    if (searchInput) {
+        searchInput.addEventListener("input", renderSearchResults);
+        searchInput.addEventListener("focus", () => {
+            if (searchInput.value.trim().length >= 2) {
+                renderSearchResults();
+            }
+        });
+        searchInput.addEventListener("keydown", (e) => {
+            if (!searchResults || searchResults.style.display === "none") return;
+            const items = searchResults.querySelectorAll(".search-item");
+            if (!items.length) return;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                selectedSearchIndex = (selectedSearchIndex + 1) % items.length;
+                items.forEach((it, idx) => it.classList.toggle("is-selected", idx === selectedSearchIndex));
+                items[selectedSearchIndex].scrollIntoView({ block: "nearest" });
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                selectedSearchIndex = (selectedSearchIndex - 1 + items.length) % items.length;
+                items.forEach((it, idx) => it.classList.toggle("is-selected", idx === selectedSearchIndex));
+                items[selectedSearchIndex].scrollIntoView({ block: "nearest" });
+            } else if (e.key === "Enter") {
+                if (items.length > 0) {
+                    e.preventDefault();
+                    const targetIdx = selectedSearchIndex >= 0 ? selectedSearchIndex : 0;
+                    items[targetIdx].click();
+                }
+            } else if (e.key === "Escape") {
+                searchResults.style.display = "none";
+                searchInput.blur();
+            }
+        });
+    }
     
     // Click outside to close notifications & search results
     document.addEventListener("click", (e) => {
@@ -3673,6 +4156,9 @@ function initEventHandlers() {
     notificationBtn.addEventListener("click", () => {
         notificationDropdown.classList.toggle("active");
         document.querySelector(".notification-badge").classList.remove("active");
+        if (typeof Notification !== "undefined" && Notification.permission === "default") {
+            Notification.requestPermission().catch(() => {});
+        }
     });
 
     // Mobile navigation drawer (hamburger)
@@ -3718,9 +4204,9 @@ function initEventHandlers() {
 
     // Reset drawer state when resizing up to desktop + keep search hint in sync
     const syncSearchPlaceholder = () => {
-        searchInput.placeholder = window.innerWidth <= 480
-            ? "Search teams, matches..."
-            : "Search teams, matches, leagues...";
+        if (!searchInput) return;
+        const localized = (typeof t === "function" ? t("search.ph") : null) || "Search teams, matches, leagues...";
+        searchInput.placeholder = localized;
     };
     window.addEventListener("resize", () => {
         if (window.innerWidth > 992) closeMobileNav();
@@ -3817,6 +4303,10 @@ function initEventHandlers() {
     });
 
     if (navNews) navNews.addEventListener("click", (e) => {
+        const href = navNews.getAttribute("href") || "";
+        if (href.includes("news.html")) {
+            return; // Allow navigation to news.html
+        }
         e.preventDefault();
         setActiveNav(navNews);
         scrollToEl(".sidebar-news");
@@ -3918,6 +4408,11 @@ function initEventHandlers() {
         if (hash === "live") { setFilter("live"); setActiveNav(navLive); scrollToEl(".live-scores-section"); }
         else if (hash === "fixtures") { setFilter("today"); setActiveNav(navFixtures); scrollToEl(".live-scores-section"); }
         else if (hash === "news") { setActiveNav(navNews); scrollToEl(".sidebar-news"); }
+        else if (hash === "highlights") {
+            const strip = document.getElementById("highlights-strip");
+            if (strip) strip.hidden = false;
+            scrollToEl("#highlights-strip");
+        }
         else if (hash === "teams") { setActiveNav(navTeams); scrollToEl(".standings-card"); }
         else if (hash === "leagues") { setActiveNav(navLeagues); scrollToEl(".sidebar-leagues"); }
         else if (hash.indexOf("league-") === 0) {
@@ -3989,6 +4484,7 @@ function init() {
     
     // Initial Render
     renderTicker();
+    renderHighlights();
     renderStandings();
     renderScorers();
     renderNews();
@@ -4042,14 +4538,15 @@ function updateHighlightsSEO(highlights) {
         if (!window.SEO || !highlights || !highlights.length) return;
         // Set VideoObject for first highlight as example
         const first = highlights[0];
-        if (first && first.video) {
+        const videoUrl = first && (first.link || first.video);
+        if (first && videoUrl) {
             SEO.videoObject({
                 name: first.title || 'Football Highlight',
-                description: first.description || 'Watch latest football highlights',
-                thumbnailUrl: first.thumb || first.image || 'https://livematches.hyper.co.ke/icon-512.png',
-                uploadDate: first.date || new Date().toISOString(),
-                contentUrl: first.video,
-                embedUrl: first.video
+                description: (first.raw && first.raw.description) || first.title || 'Watch latest football highlights',
+                thumbnailUrl: first.image || first.thumb || 'https://livematches.hyper.co.ke/icon-512.png',
+                uploadDate: (first.raw && first.raw.published) || first.date || new Date().toISOString(),
+                contentUrl: videoUrl,
+                embedUrl: videoUrl
             });
         }
     } catch(e) {}
@@ -4065,4 +4562,5 @@ window.__rerenderLang = function () {
     try { renderScorers(); } catch (e) {}
     try { renderHighlights(); } catch (e) {}
     try { updateStoryTag(); } catch (e) {}
+    try { if (spotlightMatchId) setSpotlightMatch(spotlightMatchId); } catch (e) {}
 };
