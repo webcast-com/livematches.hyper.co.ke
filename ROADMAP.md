@@ -157,3 +157,5 @@ experience; the backend only adds sync + out-of-band alerts.
   - Synchronized primary header navigation on `index.html` and secondary page navbars (`.legal-nav`) across all 12 secondary pages (`predictions.html`, `previews.html`, `news.html`, `highlights.html`, `transfers.html`, `shop.html`, `standings.html`, `match.html`, `story.html`, `report.html`, `about.html`, `privacy.html`, `terms.html`).
   - Replaced dead `href="#"` links on "View All" (News), "View Full Table" (Standings), and Popular Leagues with direct functional URLs to `news.html` and `standings.html`.
   - Registered all new pages and scripts in `sw.js` (bumped to `SW_VERSION = 'v3'`), `sitemap.xml`, and `robots.txt`, and added full EN/SW translations in `i18n.js`.
+  - Added dedicated Predictions Hero Banner (`.pred-hero-banner`) with description of free daily football predictions and CTA button ("Check Today's Predictions") linking directly to `https://livescoredashboard2.vercel.app`.
+  - Added featured News section (`.home-news-section`) immediately following the Highlights strip on the homepage (`index.html`), showing top football headlines with direct on-site story reading.

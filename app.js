@@ -431,6 +431,7 @@ const MOCK_NEWS = [
         category: "Transfer News",
         title: "Official: Mbappé signs new blockbuster deal with Real Madrid",
         time: "15m ago",
+        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #243b55, #141e30)"
     },
     {
@@ -438,6 +439,7 @@ const MOCK_NEWS = [
         category: "Premier League",
         title: "Arsenal extend lead at the top after impressive win against Chelsea",
         time: "1h ago",
+        image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #8a2387, #e94057, #f27121)"
     },
     {
@@ -445,6 +447,7 @@ const MOCK_NEWS = [
         category: "UCL",
         title: "Champions League final bracket confirmed: road to Munich final",
         time: "2h ago",
+        image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #11998e, #38ef7d)"
     },
     {
@@ -452,6 +455,7 @@ const MOCK_NEWS = [
         category: "Injury News",
         title: "Salah returns to full team training ahead of weekend clash",
         time: "3h ago",
+        image: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #ff007f, #7f00ff)"
     }
 ];
@@ -2457,40 +2461,97 @@ function renderScorers() {
 
 // Render News
 function renderNews() {
-    newsContainer.innerHTML = "";
     const useLive = isApiMode && liveNews && liveNews.length;
     const list = useLive ? liveNews : MOCK_NEWS;
 
-    list.forEach((news) => {
-        const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
-        const card = document.createElement(useLive ? "a" : "div");
-        card.className = "news-card" + (isVideo ? " has-video" : "");
-        if (useLive) {
-            // Videos open their source page (usually ESPN) in a new tab; text news uses in-app story page
-            if (isVideo) {
-                card.href = news.link || "https://www.espn.com/soccer/";
-                card.target = "_blank";
-                card.rel = "noopener";
+    if (newsContainer) {
+        newsContainer.innerHTML = "";
+        list.forEach((news) => {
+            const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
+            const card = document.createElement(useLive ? "a" : "div");
+            card.className = "news-card" + (isVideo ? " has-video" : "");
+            if (useLive) {
+                // Videos open their source page (usually ESPN) in a new tab; text news uses in-app story page
+                if (isVideo) {
+                    card.href = news.link || "https://www.espn.com/soccer/";
+                    card.target = "_blank";
+                    card.rel = "noopener";
+                } else {
+                    card.href = "story.html";
+                    card.addEventListener("click", () => {
+                        try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+                    });
+                }
             } else {
-                card.href = "story.html";
+                card.style.cursor = "pointer";
                 card.addEventListener("click", () => {
-                    try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+                    try { sessionStorage.setItem("scorehub-story", JSON.stringify(news)); } catch (e) {}
+                    window.location.href = "story.html";
                 });
             }
-        }
-        const thumbStyle = news.image
-            ? `background-image: url('${news.image}');`
-            : `background: ${news.grad}`;
-        card.innerHTML = `
-            <div class="news-thumb" style="${thumbStyle}">${isVideo ? '<span class="news-video-badge">▶</span>' : ''}</div>
-            <div class="news-meta">
-                <span class="news-category-badge">${news.category}${isVideo ? ' · 🎥 Highlight' : ''}</span>
-                <h4 class="news-title">${news.title}</h4>
-                <span class="news-time">${news.time}${news.leagueSlug ? ' · ' + (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : ''}</span>
-            </div>
-        `;
-        newsContainer.appendChild(card);
-    });
+            const thumbStyle = news.image
+                ? `background-image: url('${news.image}');`
+                : `background: ${news.grad};`;
+            card.innerHTML = `
+                <div class="news-thumb" style="${thumbStyle}">${isVideo ? '<span class="news-video-badge">▶</span>' : ''}</div>
+                <div class="news-meta">
+                    <span class="news-category-badge">${news.category}${isVideo ? ' · 🎥 Highlight' : ''}</span>
+                    <h4 class="news-title">${news.title}</h4>
+                    <span class="news-time">${news.time}${news.leagueSlug ? ' · ' + (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : ''}</span>
+                </div>
+            `;
+            newsContainer.appendChild(card);
+        });
+    }
+
+    // Also populate featured news grid right after highlights on the homepage
+    const homeGrid = document.getElementById("home-news-grid");
+    if (homeGrid) {
+        homeGrid.innerHTML = "";
+        const featuredItems = list.slice(0, 4);
+        featuredItems.forEach((news) => {
+            const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
+            const card = document.createElement(useLive ? "a" : "div");
+            card.className = "home-news-card" + (isVideo ? " has-video" : "");
+            if (useLive) {
+                if (isVideo) {
+                    card.href = news.link || "https://www.espn.com/soccer/";
+                    card.target = "_blank";
+                    card.rel = "noopener";
+                } else {
+                    card.href = "story.html";
+                    card.addEventListener("click", () => {
+                        try { sessionStorage.setItem("scorehub-story", JSON.stringify(news.raw || news)); } catch (e) {}
+                    });
+                }
+            } else {
+                card.style.cursor = "pointer";
+                card.addEventListener("click", () => {
+                    try { sessionStorage.setItem("scorehub-story", JSON.stringify(news)); } catch (e) {}
+                    window.location.href = "story.html";
+                });
+            }
+
+            const thumbStyle = news.image
+                ? `background-image: url('${news.image}');`
+                : `background: ${news.grad || "linear-gradient(135deg, #00f2fe, #4facfe)"};`;
+            const leagueLabel = news.leagueSlug ? (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : '';
+
+            card.innerHTML = `
+                <div class="home-news-thumb" style="${thumbStyle}">
+                    ${isVideo ? '<span class="news-video-badge">▶</span>' : ''}
+                </div>
+                <div class="home-news-body">
+                    <div class="home-news-meta">
+                        <span class="news-category-badge">${escHtml(news.category)}${isVideo ? ' · 🎥 Video' : ''}</span>
+                        <span class="home-news-time">${escHtml(news.time)}${leagueLabel ? ' · ' + escHtml(leagueLabel) : ''}</span>
+                    </div>
+                    <h4 class="home-news-title">${escHtml(news.title)}</h4>
+                </div>
+            `;
+            homeGrid.appendChild(card);
+        });
+    }
 }
 
 function renderHighlights() {
