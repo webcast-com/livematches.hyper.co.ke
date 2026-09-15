@@ -71,22 +71,25 @@
                 
                 <nav class="main-nav" id="main-nav">
                     <ul>
-                        <li><a href="#" class="nav-link active" id="nav-home">Home</a></li>
-                        <li><a href="#" class="nav-link" id="nav-live">Live Scores</a></li>
-                        <li><a href="#" class="nav-link" id="nav-fixtures">Fixtures</a></li>
-                        <li><a href="#" class="nav-link" id="nav-leagues">Leagues</a></li>
-                        <li><a href="#" class="nav-link" id="nav-news">News</a></li>
-                        <li><a href="#" class="nav-link" id="nav-teams">Teams</a></li>
-                        <li><a href="#" class="nav-link" id="nav-stats">Stats</a></li>
+                        <li><a href="index.html" class="nav-link active" id="nav-home" data-i18n="nav.home">Home</a></li>
+                        <li><a href="predictions.html" class="nav-link" id="nav-predictions" data-i18n="nav.predictions">Predictions</a></li>
+                        <li><a href="news.html" class="nav-link" id="nav-news" data-i18n="nav.news">News</a></li>
+                        <li><a href="highlights.html" class="nav-link" id="nav-highlights" data-i18n="nav.highlights">Highlights</a></li>
+                        <li><a href="previews.html" class="nav-link" id="nav-previews" data-i18n="nav.previews">Previews</a></li>
+                        <li><a href="transfers.html" class="nav-link" id="nav-transfers" data-i18n="nav.transfers">Transfers</a></li>
+                        <li><a href="shop.html" class="nav-link" id="nav-shop" data-i18n="nav.shop">Shop</a></li>
+                        <li><a href="standings.html" class="nav-link" id="nav-standings" data-i18n="nav.standings">Standings</a></li>
                         <li class="dropdown">
                             <a href="#" class="nav-link dropdown-toggle"><span data-i18n="nav.more">More</span> <span class="arrow-down"></span></a>
                             <ul class="dropdown-menu">
-                                <li><a href="standings.html">📊 Standings</a></li>
-                                <li><a href="previews.html">🔮 Previews</a></li>
-                                <li><a href="predictions.html">🎯 Predictions</a></li>
-                                <li><a href="transfers.html">💰 Transfers</a></li>
-                                <li><a href="shop.html">🛍️ Shop</a></li>
+                                <li><a href="#live" id="nav-live">⚡ Live Scores</a></li>
+                                <li><a href="#fixtures" id="nav-fixtures">📅 Fixtures</a></li>
+                                <li><a href="#leagues" id="nav-leagues">🏆 Leagues</a></li>
+                                <li><a href="#teams" id="nav-teams">🛡️ Teams</a></li>
+                                <li><a href="#stats" id="nav-stats">📈 Stats</a></li>
                                 <li><a href="about.html">ℹ️ About</a></li>
+                                <li><a href="privacy.html">🔒 Privacy</a></li>
+                                <li><a href="terms.html">📜 Terms</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -372,8 +375,11 @@
         <!-- HIGHLIGHTS STRIP -->
         <section class="highlights-strip" id="highlights-strip" hidden>
             <div class="highlights-header">
-                <h3 data-i18n="highlights.title">🎥 Latest Highlights</h3>
-                <span class="highlights-subtitle" data-i18n="highlights.sub">Video highlights from worldwide leagues</span>
+                <div>
+                    <h3 data-i18n="highlights.title">🎥 Latest Highlights</h3>
+                    <span class="highlights-subtitle" data-i18n="highlights.sub">Video highlights from worldwide leagues</span>
+                </div>
+                <a href="highlights.html" class="view-all-link" style="margin-left:auto;">View All &rarr;</a>
             </div>
             <div class="highlights-track" id="highlights-track"></div>
         </section>
@@ -386,7 +392,7 @@
                 <div class="card-box">
                     <div class="card-header-row">
                         <h3>Popular Leagues</h3>
-                        <a href="#" class="view-all-link">View All</a>
+                        <a href="standings.html" class="view-all-link">View All &rarr;</a>
                     </div>
                     <div class="leagues-list" id="leagues-list">
                         <div class="league-row" data-league-id="EPL">
@@ -543,7 +549,7 @@
                         </table>
                     </div>
                     <div class="view-full-table-row">
-                        <a href="#" class="view-all-link">View Full Table &rarr;</a>
+                        <a href="standings.html" class="view-all-link" id="view-full-table-btn">View Full Table &rarr;</a>
                     </div>
                 </div>
                 
@@ -573,7 +579,7 @@
                 <div class="card-box">
                     <div class="card-header-row">
                         <h3>Latest News</h3>
-                        <a href="#" class="view-all-link">View All</a>
+                        <a href="news.html" class="view-all-link">View All &rarr;</a>
                     </div>
                     <div class="news-list" id="news-container">
                         <!-- News items dynamically generated by JS -->
@@ -679,12 +685,13 @@
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="index.html">Home</a></li>
-                        <li><a href="index.html#live">Live Scores</a></li>
-                        <li><a href="index.html#fixtures">Fixtures</a></li>
-                        <li><a href="index.html#news">News</a></li>
-                        <li><a href="index.html#teams">Teams</a></li>
-                        <li><a href="standings.html">Standings</a></li>
+                        <li><a href="predictions.html">Predictions</a></li>
+                        <li><a href="news.html">News</a></li>
+                        <li><a href="highlights.html">Highlights</a></li>
                         <li><a href="previews.html">Previews</a></li>
+                        <li><a href="transfers.html">Transfers</a></li>
+                        <li><a href="shop.html">Shop</a></li>
+                        <li><a href="standings.html">Standings</a></li>
                     </ul>
                 </div>
                 
@@ -865,7 +872,7 @@
                             </div>
                             <div class="player-controls">
                                 <button class="btn btn-control" id="play-pause-btn">Pause Stream</button>
-                                <a class="btn btn-control" id="watch-modal-highlights-btn" href="#" target="_blank" rel="noopener" hidden>🎥 Highlights</a>
+                                <a class="btn btn-control" id="watch-modal-highlights-btn" href="highlights.html" target="_blank" rel="noopener" hidden>🎥 Highlights</a>
                                 <span class="stream-stat" id="stream-viewers-count">👁️ 84,392 Watching</span>
                                 <span class="stream-stat" id="watch-broadcast-info" title="TV/stream broadcast">📺 —</span>
                                 <span class="stream-stat">🔊 HD Stereo</span>

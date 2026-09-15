@@ -6,22 +6,21 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <title>Live Match Centre - Score & Stats | ScoreHub</title>
+    <title>Match Highlights - Goals, Recaps & Videos | ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="ScoreHub">
-    <meta property="og:title" content="Live Match Centre - Score & Stats | ScoreHub">
-    <meta property="og:description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Live Match Centre - Score & Stats | ScoreHub">
-    <meta name="twitter:description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
     <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
-    <meta name="description" content="Live football match centre with real-time scores, stats, commentary, timeline, lineups and highlights. Follow every moment on ScoreHub.">
-    <meta name="keywords" content="live match, football live score, match stats, lineups, commentary, ScoreHub">
-    <link rel="canonical" href="https://livematches.hyper.co.ke/match.html">
-    <meta property="og:url" content="https://livematches.hyper.co.ke/match.html">
+    <meta name="description" content="Watch the latest football highlights, goals, recaps and videos from Premier League, La Liga, Champions League, Serie A, and world football on ScoreHub.">
+    <meta name="keywords" content="football highlights, soccer highlights, match goals, premier league highlights, champions league highlights, ScoreHub">
+    <link rel="canonical" href="https://livematches.hyper.co.ke/highlights.html">
+    <meta property="og:title" content="Match Highlights - Goals, Recaps & Videos | ScoreHub">
+    <meta property="og:description" content="Watch the latest football highlights, goals, recaps and videos from Premier League, La Liga, Champions League, Serie A, and world football on ScoreHub.">
+    <meta property="og:url" content="https://livematches.hyper.co.ke/highlights.html">
     <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Match Highlights - Goals, Recaps & Videos | ScoreHub">
+    <meta name="twitter:description" content="Watch the latest football highlights, goals, recaps and videos from Premier League, La Liga, Champions League, Serie A, and world football on ScoreHub.">
     <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <script type="application/ld+json" id="org-jsonld">{"@context":"https://schema.org","@type":"Organization","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","logo":"https://livematches.hyper.co.ke/icon-512.png","sameAs":["https://livematches.hyper.co.ke/"]}</script>
     <script type="application/ld+json" id="website-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","potentialAction":{"@type":"SearchAction","target":"https://livematches.hyper.co.ke/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
@@ -41,7 +40,7 @@
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
                 <a href="news.html" class="legal-nav-link" data-i18n="nav.news">News</a>
-                <a href="highlights.html" class="legal-nav-link" data-i18n="nav.highlights">Highlights</a>
+                <a href="highlights.html" class="legal-nav-link active" data-i18n="nav.highlights">Highlights</a>
                 <a href="previews.html" class="legal-nav-link" data-i18n="nav.previews">Previews</a>
                 <a href="transfers.html" class="legal-nav-link" data-i18n="nav.transfers">Transfers</a>
                 <a href="shop.html" class="legal-nav-link" data-i18n="nav.shop">Shop</a>
@@ -52,8 +51,27 @@
             </div>
         </header>
 
-        <main class="card legal-card" id="match-body">
-            <p class="loading-note">Loading match centre…</p>
+        <main class="card legal-card">
+            <h1 data-i18n="highlights.hubtitle">Match Highlights</h1>
+            <p class="legal-updated" data-i18n="highlights.hubsub">Watch the best goals, extended match highlights and post-game reviews from worldwide competitions.</p>
+            <input class="shop-search" id="highlights-search" type="search" placeholder="Search highlights by team (e.g. Arsenal, Real Madrid)…" aria-label="Search highlights" style="margin-top:12px;">
+            <div class="chip-row" id="highlights-chips">
+                <button class="standings-tab active" data-league="All">All</button>
+                <button class="standings-tab" data-league="EPL">Premier League</button>
+                <button class="standings-tab" data-league="LaLiga">La Liga</button>
+                <button class="standings-tab" data-league="SerieA">Serie A</button>
+                <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
+                <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
+                <button class="standings-tab" data-league="UCL">Champions League</button>
+            </div>
+            <div id="highlights-grid" class="highlights-hub-grid">
+                <p class="loading-note">Loading match highlights…</p>
+            </div>
+            <div id="highlights-error" class="window-strip" hidden>
+                Couldn't load live highlights.
+                <button id="highlights-retry" class="btn btn-primary btn-sm" style="margin-left:8px;">Retry</button>
+            </div>
+            <p class="transfer-src">Video streams &amp; highlights hosted via official broadcaster channels on YouTube.</p>
         </main>
 
         <footer class="legal-footer">
@@ -71,10 +89,7 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="share.js"></script>
-    <script src="match.js"></script>
     <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="highlights.js"></script>
 </body>
 </html>

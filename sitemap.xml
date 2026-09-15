@@ -9,6 +9,8 @@
   <url><loc>https://livematches.hyper.co.ke/story.html</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://livematches.hyper.co.ke/previews.html</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/news.html</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/highlights.html</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://livematches.hyper.co.ke/transfers.html</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/predictions.html</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/shop.html</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>

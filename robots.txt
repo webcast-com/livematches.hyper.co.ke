@@ -9,6 +9,8 @@ Allow: /standings.html
 Allow: /previews.html
 Allow: /transfers.html
 Allow: /predictions.html
+Allow: /news.html
+Allow: /highlights.html
 Allow: /shop.html
 Allow: /about.html
 Allow: /privacy.html

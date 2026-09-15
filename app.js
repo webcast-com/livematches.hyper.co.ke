@@ -457,20 +457,20 @@ const MOCK_NEWS = [
 ];
 
 const MOCK_SCORERS = [
-    { rank: 1, name: "Erling Haaland", club: "Man City", goals: 21 },
-    { rank: 2, name: "Kylian Mbappé", club: "PSG", goals: 18 },
-    { rank: 3, name: "Harry Kane", club: "Bayern Munich", goals: 17 },
-    { rank: 4, name: "Lautaro Martínez", club: "Inter Milan", goals: 16 },
-    { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15 }
+    { rank: 1, name: "Erling Haaland", club: "Man City", goals: 21, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/196631.png&w=96&h=70&cb=1" },
+    { rank: 2, name: "Kylian Mbappé", club: "Real Madrid", goals: 18, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/215443.png&w=96&h=70&cb=1" },
+    { rank: 3, name: "Harry Kane", club: "Bayern Munich", goals: 17, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/169187.png&w=96&h=70&cb=1" },
+    { rank: 4, name: "Lautaro Martínez", club: "Inter Milan", goals: 16, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/226297.png&w=96&h=70&cb=1" },
+    { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/173515.png&w=96&h=70&cb=1" }
 ];
 
 // Same row shape (`goals` holds the assist count) so the renderer is shared
 const MOCK_ASSISTS = [
-    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13 },
-    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12 },
-    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11 },
-    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10 },
-    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10 }
+    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/342971.png&w=96&h=70&cb=1" },
+    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/173515.png&w=96&h=70&cb=1" },
+    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/208882.png&w=96&h=70&cb=1" },
+    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/291471.png&w=96&h=70&cb=1" },
+    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/261899.png&w=96&h=70&cb=1" }
 ];
 
 const MOCK_HIGHLIGHTS = [
@@ -1606,6 +1606,28 @@ async function resolveCoreRefDisplayName(ref, field = "displayName") {
     }
 }
 
+// Resolve a core-API athlete ref ($ref) to an object with { id, name, image }
+async function resolveCoreRefAthlete(ref) {
+    if (!ref || !ref.$ref) return null;
+    try {
+        const url = new URL(ref.$ref.replace(/^http:/, "https:"));
+        const data = await fetchESPNPath(url.pathname + url.search, {
+            host: url.hostname,
+            validate: d => !!(d && typeof d === "object" && (d.id || d.displayName || d.name))
+        });
+        if (!data) return null;
+        const id = data.id ? String(data.id) : null;
+        const name = data.displayName || data.shortDisplayName || data.name || null;
+        let image = (data.headshot && data.headshot.href) || null;
+        if (!image && id) {
+            image = `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${id}.png&w=96&h=70&cb=1`;
+        }
+        return { id, name, image };
+    } catch (err) {
+        return null;
+    }
+}
+
 // Standings via the site.web apis/v2 endpoint (the old site/v2 path returns an empty object)
 async function loadLiveStandings(leagueKey) {
     const slug = STANDINGS_TAB_SLUGS[leagueKey];
@@ -1756,14 +1778,17 @@ async function loadLiveScorers(leagueKey, category = "goals") {
 
     const top = goalsCat.leaders.slice(0, 5);
     const rows = await Promise.all(top.map(async (leader, i) => {
-        const [name, club] = await Promise.all([
-            resolveCoreRefDisplayName(leader.athlete),
+        const [athlete, club] = await Promise.all([
+            resolveCoreRefAthlete(leader.athlete),
             resolveCoreRefDisplayName(leader.team)
         ]);
+        const name = (athlete && athlete.name) || `Player ${i + 1}`;
+        const image = (athlete && athlete.image) || null;
         return {
             rank: i + 1,
-            name: name || `Player ${i + 1}`,
+            name,
             club: club || "",
+            image,
             goals: Math.round(leader.value || 0) || parseInt(leader.displayValue, 10) || 0
         };
     }));
@@ -1774,8 +1799,16 @@ async function loadLiveScorers(leagueKey, category = "goals") {
 function scorersFromMatches() {
     const pool = [];
     apiMatches.forEach(m => {
-        if (m.topScorers && m.topScorers.home) pool.push({ name: m.topScorers.home.name, club: m.homeTeam, goals: m.topScorers.home.goals });
-        if (m.topScorers && m.topScorers.away) pool.push({ name: m.topScorers.away.name, club: m.awayTeam, goals: m.topScorers.away.goals });
+        if (m.topScorers && m.topScorers.home) {
+            const h = m.topScorers.home;
+            const img = h.athleteId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${h.athleteId}.png&w=96&h=70&cb=1` : (h.image || null);
+            pool.push({ name: h.name, club: m.homeTeam, goals: h.goals, image: img });
+        }
+        if (m.topScorers && m.topScorers.away) {
+            const a = m.topScorers.away;
+            const img = a.athleteId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${a.athleteId}.png&w=96&h=70&cb=1` : (a.image || null);
+            pool.push({ name: a.name, club: m.awayTeam, goals: a.goals, image: img });
+        }
     });
     const seen = new Set();
     const unique = pool.filter(p => {
@@ -2374,6 +2407,23 @@ function renderStandings() {
     });
 }
 
+function scorerAvatarHTML(r) {
+    const init = initials(r.name);
+    if (!r.image) {
+        return `<div class="player-avatar-mini scorer-avatar"><span class="avatar-initials">${init}</span></div>`;
+    }
+    const safeSrc = escHtml(r.image);
+    const safeName = escHtml(r.name);
+    return `
+        <div class="player-avatar-mini scorer-avatar">
+            <img class="scorer-headshot" src="${safeSrc}" alt="${safeName}" loading="lazy"
+                 onload="var p=this.parentElement; if(p){var s=p.querySelector('.avatar-initials'); if(s) s.style.display='none';}"
+                 onerror="this.style.display='none'; var p=this.parentElement; if(p){var s=p.querySelector('.avatar-initials'); if(s) s.style.display='flex';}" />
+            <span class="avatar-initials">${init}</span>
+        </div>
+    `;
+}
+
 // Render Top Scorers / Top Assists (ESPN leaders in Live API mode, mock data otherwise)
 function renderScorers() {
     const listEl = document.getElementById("scorers-list");
@@ -2394,10 +2444,10 @@ function renderScorers() {
         <div class="scorer-row">
             <div class="scorer-rank-info">
                 <span class="rank-num">${r.rank}</span>
-                <div class="player-avatar-mini">${initials(r.name)}</div>
+                ${scorerAvatarHTML(r)}
                 <div class="player-meta">
-                    <span class="player-name">${r.name}</span>
-                    <span class="player-club">${r.club}</span>
+                    <span class="player-name">${escHtml(r.name)}</span>
+                    <span class="player-club">${escHtml(r.club)}</span>
                 </div>
             </div>
             <span class="goals-count">${r.goals}</span>
@@ -4192,6 +4242,10 @@ function initEventHandlers() {
     });
 
     if (navNews) navNews.addEventListener("click", (e) => {
+        const href = navNews.getAttribute("href") || "";
+        if (href.includes("news.html")) {
+            return; // Allow navigation to news.html
+        }
         e.preventDefault();
         setActiveNav(navNews);
         scrollToEl(".sidebar-news");
