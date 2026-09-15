@@ -16,7 +16,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Match Report - Result, Goals, Stats | ScoreHub">
     <meta name="twitter:description" content="Full-time match report with goals, red cards, stats, timeline and what next. Original auto-generated report on ScoreHub.">
-    <script>(function(){try{if(localStorage.getItem("scorehub-theme")==="light"){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
     <meta name="description" content="Full-time match report with goals, red cards, stats, timeline and what next. Original auto-generated report on ScoreHub.">
     <meta name="keywords" content="match report, football result, goals, stats, ScoreHub">
     <link rel="canonical" href="https://livematches.hyper.co.ke/report.html">
@@ -35,10 +35,21 @@
 </head>
 <body>
     <div class="app-container legal-page">
-        <div class="legal-header">
+        <header class="legal-header">
             <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
-            <a class="btn btn-primary" href="index.html">&larr; Back to Scores</a>
-        </div>
+            <nav class="legal-nav" aria-label="Page navigation">
+                <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
+                <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
+                <a href="index.html#news" class="legal-nav-link" data-i18n="nav.news">News</a>
+                <a href="previews.html" class="legal-nav-link active" data-i18n="nav.previews">Previews</a>
+                <a href="transfers.html" class="legal-nav-link" data-i18n="nav.transfers">Transfers</a>
+                <a href="shop.html" class="legal-nav-link" data-i18n="nav.shop">Shop</a>
+                <a href="index.html#highlights" class="legal-nav-link" data-i18n="nav.highlights">Highlights</a>
+            </nav>
+            <div class="legal-actions">
+                <a class="btn btn-primary btn-sm" href="index.html">&larr; Back to Scores</a>
+            </div>
+        </header>
 
         <main class="card legal-card" id="report-body">
             <p class="loading-note">Writing up the match&hellip;</p>

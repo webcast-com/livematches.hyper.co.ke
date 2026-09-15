@@ -22,12 +22,18 @@ function scorePrediction(ph, pa, rh, ra) {
 }
 
 function ymdOf(d) {
+    const valid = d && !isNaN(d.getTime()) ? d : new Date();
     const p = (n) => String(n).padStart(2, "0");
-    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+    return valid.getFullYear() + p(valid.getMonth() + 1) + p(valid.getDate());
 }
 
 function shiftYmd(ymd, delta) {
-    const d = new Date(parseInt(ymd.slice(0, 4), 10), parseInt(ymd.slice(4, 6), 10) - 1, parseInt(ymd.slice(6, 8), 10));
+    if (!ymd || ymd.length < 8) return ymdOf(new Date());
+    const y = parseInt(ymd.slice(0, 4), 10);
+    const m = parseInt(ymd.slice(4, 6), 10) - 1;
+    const dNum = parseInt(ymd.slice(6, 8), 10);
+    if (isNaN(y) || isNaN(m) || isNaN(dNum)) return ymdOf(new Date());
+    const d = new Date(y, m, dNum);
     d.setDate(d.getDate() + delta);
     return ymdOf(d);
 }
@@ -130,10 +136,12 @@ function isLocked(f) {
 
 function fixtureCardHTML(f) {
     const saved = predStore[f.id] || {};
-    const locked = isLocked(f);
+    const locked = isLocked(f) || saved.settled;
     const ph = saved.ph != null ? saved.ph : "";
     const pa = saved.pa != null ? saved.pa : "";
-    const status = locked
+    const status = saved.settled
+        ? `<span class="saved">Settled (${saved.points || 0} pts)</span>`
+        : locked
         ? (saved.ph != null && saved.pa != null ? t("pred.lockedset") : t("pred.lockedko"))
         : (saved.ph != null && saved.pa != null ? `<span class="saved">${t("pred.saved")}</span>` : t("pred.tap"));
     return `<div class="pred-card" data-id="${esc(f.id)}">`
@@ -184,15 +192,24 @@ function onPredChange(e) {
 
 async function fetchScoreboardDay(league, ymd) {
     const tries = [ymd, shiftYmd(ymd, -1), shiftYmd(ymd, 1)];
-    for (const t of tries) {
+    const seen = new Set();
+    const all = [];
+    for (const tryYmd of tries) {
         try {
-            const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/scoreboard?dates=${t}&limit=100`);
+            const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/scoreboard?dates=${tryYmd}&limit=100`);
             if (!r.ok) continue;
             const j = await r.json();
-            if (j && Array.isArray(j.events) && j.events.length) return j.events;
+            if (j && Array.isArray(j.events)) {
+                for (const ev of j.events) {
+                    if (ev && ev.id && !seen.has(String(ev.id))) {
+                        seen.add(String(ev.id));
+                        all.push(ev);
+                    }
+                }
+            }
         } catch (e) { /* try next day bucket */ }
     }
-    return [];
+    return all;
 }
 
 async function settlePredictions() {
@@ -322,6 +339,11 @@ async function bootPredictions() {
         if (!confirm("Reset all predictions and points?")) return;
         predStore = {};
         saveStoreData(predStore);
+        const sim = document.getElementById("pred-simulate");
+        if (sim) {
+            sim.disabled = false;
+            sim.textContent = "Simulate Remaining";
+        }
         renderFixtures();
         renderResults();
     });
