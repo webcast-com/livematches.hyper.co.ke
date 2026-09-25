@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
     <meta name="theme-color" content="#07090e">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <meta name="description" content="ScoreHub - Live football scores worldwide: Premier League, LaLiga, Serie A, Bundesliga, Champions League, 50+ leagues, fixtures, standings, highlights & news.">
+    <meta name="description" content="ScoreHub - Live football scores worldwide: Premier League, LaLiga, Serie A, Bundesliga, Champions League, 120+ leagues, fixtures, standings, highlights & news.">
     <meta name="keywords" content="live scores, football, soccer, Premier League, LaLiga, Serie A, Bundesliga, Champions League, live football, fixtures, standings, highlights, soccer news">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <link rel="canonical" href="https://livematches.hyper.co.ke.vercel.app/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="ScoreHub">
     <meta property="og:title" content="ScoreHub - Every Score. Every Moment. Live Football Worldwide">
-    <meta property="og:description" content="Live football scores worldwide: 50+ leagues including EPL, LaLiga, UCL, Serie A. Real-time fixtures, standings, highlights, previews & news.">
+    <meta property="og:description" content="Live football scores worldwide: 120+ leagues including EPL, LaLiga, UCL, Serie A. Real-time fixtures, standings, highlights, previews & news.">
     <meta property="og:url" content="https://livematches.hyper.co.ke.vercel.app/">
     <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <meta property="og:image:width" content="512">
@@ -23,7 +23,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@ScoreHub">
     <meta name="twitter:title" content="ScoreHub - Every Score. Every Moment. Live Football Worldwide">
-    <meta name="twitter:description" content="Live football scores worldwide: 50+ leagues, fixtures, standings, highlights & news. Every score, every moment.">
+    <meta name="twitter:description" content="Live football scores worldwide: 120+ leagues, fixtures, standings, highlights & news. Every score, every moment.">
     <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="author" content="ScoreHub">
@@ -39,8 +39,10 @@
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
-    <script defer src="/_vercel/insights/script.js"></script>
-    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <!-- Vercel Analytics is injected at runtime by analytics.js (esm.sh SDK, with
+         /_vercel/insights/script.js as its fallback). The two /_vercel script tags
+         that used to sit here 404 on every non-Vercel host and logged two console
+         errors per page load, so they are no longer requested up front. -->
     <script type="module" src="analytics.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
      crossorigin="anonymous"></script>
@@ -500,6 +502,48 @@
                             </div>
                             <span class="teams-count">32 Teams</span>
                         </div>
+                        <div class="league-row" data-league-id="LIGAMX">
+                            <div class="league-info">
+                                <span class="league-flag">🇲🇽</span>
+                                <span class="league-name">Liga MX</span>
+                            </div>
+                            <span class="teams-count">18 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="ARG">
+                            <div class="league-info">
+                                <span class="league-flag">🇦🇷</span>
+                                <span class="league-name">Liga Profesional</span>
+                            </div>
+                            <span class="teams-count">30 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="BEL">
+                            <div class="league-info">
+                                <span class="league-flag">🇧🇪</span>
+                                <span class="league-name">Belgian Pro League</span>
+                            </div>
+                            <span class="teams-count">16 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="J1">
+                            <div class="league-info">
+                                <span class="league-flag">🇯🇵</span>
+                                <span class="league-name">J1 League</span>
+                            </div>
+                            <span class="teams-count">20 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="LIB">
+                            <div class="league-info">
+                                <span class="league-flag">🏆</span>
+                                <span class="league-name">Copa Libertadores</span>
+                            </div>
+                            <span class="teams-count">32 Teams</span>
+                        </div>
+                        <div class="league-row" data-league-id="RSA">
+                            <div class="league-info">
+                                <span class="league-flag">🇿🇦</span>
+                                <span class="league-name">South African Premiership</span>
+                            </div>
+                            <span class="teams-count">16 Teams</span>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -550,6 +594,9 @@
                             <button class="standings-tab" data-standing-league="UCL">UCL</button>
                             <button class="standings-tab" data-standing-league="Bundesliga">Bundesliga</button>
                             <button class="standings-tab" data-standing-league="Ligue1">Ligue 1</button>
+                            <button class="standings-tab" data-standing-league="ERE">Eredivisie</button>
+                            <button class="standings-tab" data-standing-league="ARG">Argentina</button>
+                            <button class="standings-tab" data-standing-league="RSA">SA PSL</button>
                         </div>
                     </div>
                     

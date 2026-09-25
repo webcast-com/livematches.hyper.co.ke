@@ -9,18 +9,18 @@
     <title>League Standings - Table & Stats | ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
-    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
-    <meta name="description" content="Live league standings for Premier League, LaLiga, Serie A, Bundesliga, Champions League and 50+ leagues worldwide on ScoreHub.">
+    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
+    <meta name="description" content="Live league standings for Premier League, LaLiga, Serie A, Bundesliga, Champions League and 120+ leagues worldwide on ScoreHub.">
     <meta name="keywords" content="standings, league table, Premier League table, LaLiga, ScoreHub">
     <link rel="canonical" href="https://livematches.hyper.co.ke/standings.html">
     <meta property="og:title" content="League Standings - Table & Stats | ScoreHub">
-    <meta property="og:description" content="Live league standings for Premier League, LaLiga, Serie A, Bundesliga, Champions League and 50+ leagues worldwide on ScoreHub.">
+    <meta property="og:description" content="Live league standings for Premier League, LaLiga, Serie A, Bundesliga, Champions League and 120+ leagues worldwide on ScoreHub.">
     <meta property="og:url" content="https://livematches.hyper.co.ke/standings.html">
     <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="League Standings - Table & Stats | ScoreHub">
-    <meta name="twitter:description" content="Live league standings for Premier League, LaLiga, Serie A, Bundesliga, Champions League and 50+ leagues worldwide on ScoreHub.">
+    <meta name="twitter:description" content="Live league standings for Premier League, LaLiga, Serie A, Bundesliga, Champions League and 120+ leagues worldwide on ScoreHub.">
     <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
     <script type="application/ld+json" id="org-jsonld">{"@context":"https://schema.org","@type":"Organization","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","logo":"https://livematches.hyper.co.ke/icon-512.png","sameAs":["https://livematches.hyper.co.ke/"]}</script>
     <script type="application/ld+json" id="website-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","potentialAction":{"@type":"SearchAction","target":"https://livematches.hyper.co.ke/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
@@ -28,8 +28,10 @@
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
-    <script defer src="/_vercel/insights/script.js"></script>
-    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <!-- Vercel Analytics is injected at runtime by analytics.js (esm.sh SDK, with
+         /_vercel/insights/script.js as its fallback). The two /_vercel script tags
+         that used to sit here 404 on every non-Vercel host and logged two console
+         errors per page load, so they are no longer requested up front. -->
     <script type="module" src="analytics.js"></script>
 </head>
 <body>
@@ -68,6 +70,21 @@
                 <button class="standings-tab" data-league="PrimeiraLiga">Primeira Liga</button>
                 <button class="standings-tab" data-league="SuperLig">S&uuml;per Lig</button>
                 <button class="standings-tab" data-league="SaudiPro">Saudi Pro League</button>
+                <button class="standings-tab" data-league="BEL">Belgian Pro League</button>
+                <button class="standings-tab" data-league="ARG">Liga Profesional</button>
+                <button class="standings-tab" data-league="J1">J1 League</button>
+                <button class="standings-tab" data-league="SCO">Scottish Premiership</button>
+                <button class="standings-tab" data-league="URU">Liga AUF Uruguaya</button>
+                <button class="standings-tab" data-league="CHN">Chinese Super League</button>
+                <button class="standings-tab" data-league="RSA">South African Premiership</button>
+                <button class="standings-tab" data-league="NGA">Nigeria Professional League</button>
+                <button class="standings-tab" data-league="GHA">Ghana Premier League</button>
+                <button class="standings-tab" data-league="IRL">League of Ireland Premier Division</button>
+                <button class="standings-tab" data-league="ROU">Liga I Romania</button>
+                <button class="standings-tab" data-league="PER">Liga 1 de Per&uacute;</button>
+                <button class="standings-tab" data-league="DEN">Danish Superliga</button>
+                <button class="standings-tab" data-league="SWE">Allsvenskan</button>
+                <button class="standings-tab" data-league="NOR">Eliteserien</button>
             </div>
             <div id="standings-table">
                 <p class="loading-note">Loading table&hellip;</p>
