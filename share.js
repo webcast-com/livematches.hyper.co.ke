@@ -48,6 +48,13 @@ function fitFont(ctx, text, maxWidth, base, weight) {
 function drawShareCard(canvas, data) {
     if (!canvas || !canvas.getContext) return false;
     const ctx = canvas.getContext("2d");
+    // getContext returns null when a 2d context cannot be created — a canvas
+    // blocked by a privacy/fingerprint-resistance setting, a zero-sized canvas,
+    // or one already bound to another context type. match.js calls this midway
+    // through renderSimMatch(), so an unguarded ctx threw here and aborted the
+    // rest of the match centre render. The share card is decoration: bail out
+    // quietly instead of taking the page down with it.
+    if (!ctx) return false;
     const W = canvas.width, H = canvas.height;
     const bg = ctx.createLinearGradient(0, 0, W, H);
     bg.addColorStop(0, "#0b1526");

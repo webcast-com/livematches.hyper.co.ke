@@ -135,7 +135,7 @@ function renderHighlightsGrid() {
         return `
             <div class="highlight-hub-card">
                 <a href="${hlUrl}" target="_blank" rel="noopener" class="highlight-hub-thumb" aria-label="Watch ${title}">
-                    <img src="${img}" alt="${title}" loading="lazy" onerror="this.src='icon-512.png';" />
+                    <img src="${img}" alt="${title}" loading="lazy" class="${item.imageIsCrest ? "is-crest" : ""}" onerror="this.src='icon-512.png';" />
                     <span class="highlight-hub-play">&#9658;</span>
                 </a>
                 <div class="highlight-hub-info">
@@ -180,6 +180,11 @@ async function fetchLiveHighlights() {
                         const homeScore = home.score || "0";
                         const awayScore = away.score || "0";
                         const dateStr = e.date ? new Date(e.date).toLocaleDateString() : "Recent";
+                        // ESPN scoreboards carry no match photo, so the best image
+                        // available for a live highlight is the home club's crest:
+                        // a square, transparent PNG. Flagged so the card can display
+                        // it whole instead of cropping it to a band.
+                        const crest = (home.team && home.team.logo) || "";
 
                         return {
                             id: e.id,
@@ -190,7 +195,8 @@ async function fetchLiveHighlights() {
                             leagueCode: l.code,
                             leagueName: l.name,
                             time: dateStr,
-                            image: (home.team && home.team.logo) || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+                            image: crest || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+                            imageIsCrest: !!crest,
                             link: matchHighlightUrl(homeName, awayName, l.name)
                         };
                     });
