@@ -31,7 +31,22 @@
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=ned.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=por.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=tur.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://livematches.hyper.co.ke/standings.html?league=sau.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=ksa.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=bel.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=arg.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=jpn.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=sco.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=uru.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=chn.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=rsa.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=nga.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=gha.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=irl.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=rou.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=per.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=den.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=swe.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=nor.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
 
   <!-- Example Match Centre URLs (pattern - crawlers discover via JS links) -->
   <url><loc>https://livematches.hyper.co.ke/match.html?league=eng.1&amp;id=example&amp;date=20260514</loc><changefreq>always</changefreq><priority>0.9</priority></url>

@@ -22,7 +22,22 @@ const STANDINGS_LEAGUES = [
     { code: "Eredivisie", slug: "ned.1", name: "Eredivisie" },
     { code: "PrimeiraLiga", slug: "por.1", name: "Primeira Liga" },
     { code: "SuperLig", slug: "tur.1", name: "S\u00fcper Lig" },
-    { code: "SaudiPro", slug: "sau.1", name: "Saudi Pro League" }
+    { code: "SaudiPro", slug: "ksa.1", name: "Saudi Pro League" },
+    { code: "BEL", slug: "bel.1", name: "Belgian Pro League" },
+    { code: "ARG", slug: "arg.1", name: "Liga Profesional" },
+    { code: "J1", slug: "jpn.1", name: "J1 League" },
+    { code: "SCO", slug: "sco.1", name: "Scottish Premiership" },
+    { code: "URU", slug: "uru.1", name: "Liga AUF Uruguaya" },
+    { code: "CHN", slug: "chn.1", name: "Chinese Super League" },
+    { code: "RSA", slug: "rsa.1", name: "South African Premiership" },
+    { code: "NGA", slug: "nga.1", name: "Nigeria Professional League" },
+    { code: "GHA", slug: "gha.1", name: "Ghana Premier League" },
+    { code: "IRL", slug: "irl.1", name: "League of Ireland Premier Division" },
+    { code: "ROU", slug: "rou.1", name: "Liga I Romania" },
+    { code: "PER", slug: "per.1", name: "Liga 1 de Per\xfa" },
+    { code: "DEN", slug: "den.1", name: "Danish Superliga" },
+    { code: "SWE", slug: "swe.1", name: "Allsvenskan" },
+    { code: "NOR", slug: "nor.1", name: "Eliteserien" },
 ];
 
 function standingStat(entry, names) {

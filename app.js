@@ -598,7 +598,10 @@ const STANDINGS_TAB_SLUGS = {
     SerieA: "ita.1",
     UCL: "uefa.champions",
     Bundesliga: "ger.1",
-    Ligue1: "fra.1"
+    Ligue1: "fra.1",
+    ERE: "ned.1",
+    ARG: "arg.1",
+    RSA: "rsa.1"
 };
 
 // --- DOM ELEMENTS ---
@@ -692,25 +695,57 @@ const ESPN_ENDPOINTS = {
         // Americas
         "soccer/usa.1", "soccer/mex.1", "soccer/bra.1", "soccer/arg.1",
         // Asia / Middle East / Oceania
-        "soccer/jpn.1", "soccer/aus.1", "soccer/sau.1",
+        "soccer/jpn.1", "soccer/aus.1", "soccer/ksa.1",
         // Continental tournaments
         "soccer/uefa.champions", "soccer/uefa.europa", "soccer/uefa.europa.conf",
         "soccer/uefa.euro", "soccer/uefa.nations", "soccer/fifa.world",
         "soccer/conmebol.libertadores", "soccer/conmebol.sudamericana",
-        "soccer/fifa.club_world"
+        "soccer/fifa.cwc",
+        // Added coverage
+        "soccer/eng.4", "soccer/eng.5", "soccer/eng.w.1",
+        "soccer/esp.w.1", "soccer/fra.w.1", "soccer/ned.w.1",
+        "soccer/aus.w.1", "soccer/irl.1", "soccer/cyp.1",
+        "soccer/rou.1", "soccer/per.1", "soccer/uru.1",
+        "soccer/par.1", "soccer/ecu.1", "soccer/bol.1",
+        "soccer/ven.1", "soccer/bra.2", "soccer/usa.usl.1",
+        "soccer/rsa.1", "soccer/nga.1", "soccer/gha.1",
+        "soccer/chn.1", "soccer/tha.1", "soccer/mys.1",
+        "soccer/idn.1", "soccer/fifa.friendly", "soccer/fifa.intercontinental_cup",
+        "soccer/fifa.world.u20", "soccer/fifa.world.u17", "soccer/fifa.olympics",
+        "soccer/fifa.w.olympics", "soccer/fifa.worldq.uefa", "soccer/fifa.worldq.caf",
+        "soccer/fifa.worldq.afc", "soccer/fifa.worldq.concacaf", "soccer/fifa.worldq.conmebol",
+        "soccer/uefa.europa.conf_qual", "soccer/uefa.super_cup", "soccer/uefa.weuro",
+        "soccer/uefa.euro_u21", "soccer/uefa.w.nations", "soccer/caf.nations",
+        "soccer/caf.nations_qual", "soccer/caf.champions", "soccer/caf.confed",
+        "soccer/conmebol.america", "soccer/conmebol.recopa", "soccer/concacaf.gold",
+        "soccer/concacaf.nations.league", "soccer/concacaf.leagues.cup", "soccer/campeones.cup",
+        "soccer/afc.asian.cup", "soccer/afc.cup", "soccer/eng.charity",
+        "soccer/esp.super_cup", "soccer/ger.super_cup", "soccer/ita.super_cup",
+        "soccer/fra.super_cup", "soccer/ned.cup", "soccer/por.taca.portugal",
+        "soccer/sco.tennents", "soccer/sco.cis", "soccer/bra.copa_do_brazil",
+        "soccer/arg.copa", "soccer/usa.open", "soccer/ksa.kings.cup",
     ],
     basketball: [
         "basketball/nba", "basketball/wnba", "basketball/euroleague",
-        "basketball/mens-college-basketball", "basketball/womens-college-basketball"
+        "basketball/mens-college-basketball", "basketball/womens-college-basketball",
+        // Added coverage
+        "basketball/nbl", "basketball/nba-development"
     ],
     tennis: [
         "tennis/atp", "tennis/wta"
     ],
     baseball: [
-        "baseball/mlb", "baseball/college-baseball"
+        "baseball/mlb", "baseball/college-baseball",
+        // Added coverage
+        "baseball/college-softball", "baseball/world-baseball-classic", "baseball/caribbean-series",
+        "baseball/mexican-winter-league", "baseball/dominican-winter-league", "baseball/olympics-baseball",
+        "baseball/llb"
     ],
     icehockey: [
-        "hockey/nhl"
+        "hockey/nhl",
+        // Added coverage
+        "hockey/mens-college-hockey", "hockey/womens-college-hockey", "hockey/hockey-world-cup",
+        "hockey/olympics-mens-ice-hockey", "hockey/olympics-womens-ice-hockey"
     ],
     rugby: [
         "rugby/premiership", "rugby/6-nations", "rugby/rugby-world-cup"
@@ -721,14 +756,17 @@ const ESPN_ENDPOINTS = {
     all: [
         // Football top + continental + US
         "soccer/eng.1", "soccer/esp.1", "soccer/ger.1", "soccer/ita.1", "soccer/fra.1",
-        "soccer/ned.1", "soccer/por.1", "soccer/usa.1", "soccer/mex.1", "soccer/bra.1", "soccer/sau.1",
+        "soccer/ned.1", "soccer/por.1", "soccer/usa.1", "soccer/mex.1", "soccer/bra.1", "soccer/ksa.1",
         "soccer/uefa.champions", "soccer/uefa.europa", "soccer/fifa.world", "soccer/conmebol.libertadores",
         // Other sports
         "basketball/nba", "tennis/atp", "tennis/wta", "baseball/mlb", "hockey/nhl",
-        "rugby/premiership", "cricket/ipl"
+        "rugby/premiership", "cricket/ipl",
+        // Added coverage
+        "soccer/arg.1", "soccer/bel.1", "soccer/sco.1",
+        "soccer/uefa.europa.conf"
     ],
     worldwide: [
-        // 50+ soccer leagues for full worldwide coverage
+        // 120+ soccer leagues for full worldwide coverage
         "soccer/eng.1", "soccer/eng.2", "soccer/eng.3", "soccer/eng.fa", "soccer/eng.league_cup",
         "soccer/esp.1", "soccer/esp.2", "soccer/esp.copa_del_rey",
         "soccer/ger.1", "soccer/ger.2", "soccer/ger.dfb_pokal",
@@ -738,11 +776,34 @@ const ESPN_ENDPOINTS = {
         "soccer/sco.1", "soccer/sui.1", "soccer/aut.1", "soccer/den.1", "soccer/swe.1", "soccer/nor.1",
         "soccer/gre.1", "soccer/rus.1", "soccer/ukr.1",
         "soccer/usa.1", "soccer/usa.nwsl", "soccer/mex.1", "soccer/bra.1", "soccer/arg.1", "soccer/col.1", "soccer/chi.1",
-        "soccer/jpn.1", "soccer/aus.1", "soccer/ind.1", "soccer/sau.1",
+        "soccer/jpn.1", "soccer/aus.1", "soccer/ind.1", "soccer/ksa.1",
         "soccer/uefa.champions", "soccer/uefa.europa", "soccer/uefa.europa.conf",
         "soccer/uefa.euro", "soccer/uefa.euroq", "soccer/uefa.nations", "soccer/uefa.wchampions",
-        "soccer/fifa.world", "soccer/fifa.worldq", "soccer/fifa.wworld", "soccer/fifa.club_world",
-        "soccer/conmebol.libertadores", "soccer/conmebol.sudamericana", "soccer/concacaf.champions", "soccer/afc.champions"
+        "soccer/fifa.world", "soccer/fifa.worldq", "soccer/fifa.wwc", "soccer/fifa.cwc",
+        "soccer/conmebol.libertadores", "soccer/conmebol.sudamericana", "soccer/concacaf.champions", "soccer/afc.champions",
+        // Added coverage
+        "soccer/eng.4", "soccer/eng.5", "soccer/eng.w.1",
+        "soccer/esp.w.1", "soccer/fra.w.1", "soccer/ned.w.1",
+        "soccer/aus.w.1", "soccer/irl.1", "soccer/cyp.1",
+        "soccer/rou.1", "soccer/per.1", "soccer/uru.1",
+        "soccer/par.1", "soccer/ecu.1", "soccer/bol.1",
+        "soccer/ven.1", "soccer/bra.2", "soccer/usa.usl.1",
+        "soccer/rsa.1", "soccer/nga.1", "soccer/gha.1",
+        "soccer/chn.1", "soccer/tha.1", "soccer/mys.1",
+        "soccer/idn.1", "soccer/fifa.friendly", "soccer/fifa.intercontinental_cup",
+        "soccer/fifa.world.u20", "soccer/fifa.world.u17", "soccer/fifa.olympics",
+        "soccer/fifa.w.olympics", "soccer/fifa.worldq.uefa", "soccer/fifa.worldq.caf",
+        "soccer/fifa.worldq.afc", "soccer/fifa.worldq.concacaf", "soccer/fifa.worldq.conmebol",
+        "soccer/uefa.europa.conf_qual", "soccer/uefa.super_cup", "soccer/uefa.weuro",
+        "soccer/uefa.euro_u21", "soccer/uefa.w.nations", "soccer/caf.nations",
+        "soccer/caf.nations_qual", "soccer/caf.champions", "soccer/caf.confed",
+        "soccer/conmebol.america", "soccer/conmebol.recopa", "soccer/concacaf.gold",
+        "soccer/concacaf.nations.league", "soccer/concacaf.leagues.cup", "soccer/campeones.cup",
+        "soccer/afc.asian.cup", "soccer/afc.cup", "soccer/eng.charity",
+        "soccer/esp.super_cup", "soccer/ger.super_cup", "soccer/ita.super_cup",
+        "soccer/fra.super_cup", "soccer/ned.cup", "soccer/por.taca.portugal",
+        "soccer/sco.tennents", "soccer/sco.cis", "soccer/bra.copa_do_brazil",
+        "soccer/arg.copa", "soccer/usa.open", "soccer/ksa.kings.cup",
     ]
 };
 
@@ -796,7 +857,7 @@ const LEAGUE_NAMES = {
     "soccer/jpn.1":           { name: "J1 League",                 code: "J1",       sport: "football" },
     "soccer/aus.1":           { name: "A-League",                  code: "AUS",      sport: "football" },
     "soccer/ind.1":           { name: "Indian Super League",       code: "ISL",      sport: "football" },
-    "soccer/sau.1":           { name: "Saudi Pro League",          code: "SAU",      sport: "football" },
+    "soccer/ksa.1":           { name: "Saudi Pro League",          code: "SAU",      sport: "football" },
     // UEFA / FIFA / Continental
     "soccer/uefa.champions":        { name: "UEFA Champions League",   code: "UCL",      sport: "football" },
     "soccer/uefa.europa":           { name: "UEFA Europa League",      code: "UEL",      sport: "football" },
@@ -809,12 +870,79 @@ const LEAGUE_NAMES = {
     "soccer/uefa.wchampions":       { name: "Women's Champions League",code: "UWCL",     sport: "football" },
     "soccer/fifa.world":            { name: "FIFA World Cup",          code: "WC",       sport: "football" },
     "soccer/fifa.worldq":           { name: "World Cup Qualifiers",    code: "WCQ",      sport: "football" },
-    "soccer/fifa.wworld":           { name: "Women's World Cup",       code: "WWC",      sport: "football" },
-    "soccer/fifa.club_world":       { name: "Club World Cup",          code: "CWC",      sport: "football" },
+    "soccer/fifa.wwc":           { name: "Women's World Cup",       code: "WWC",      sport: "football" },
+    "soccer/fifa.cwc":       { name: "Club World Cup",          code: "CWC",      sport: "football" },
     "soccer/conmebol.libertadores": { name: "Copa Libertadores",       code: "LIB",      sport: "football" },
     "soccer/conmebol.sudamericana": { name: "Copa Sudamericana",       code: "SUD",      sport: "football" },
     "soccer/concacaf.champions":    { name: "CONCACAF Champions Cup",  code: "CCC",      sport: "football" },
     "soccer/afc.champions":         { name: "AFC Champions League",    code: "ACL",      sport: "football" },
+    "soccer/eng.4": { name: "League Two", code: "ENG4", sport: "football" },
+    "soccer/eng.5": { name: "National League", code: "ENG5", sport: "football" },
+    "soccer/eng.w.1": { name: "Women's Super League", code: "WSL", sport: "football" },
+    "soccer/esp.w.1": { name: "Liga F", code: "LIGAF", sport: "football" },
+    "soccer/fra.w.1": { name: "Première Ligue", code: "FRAW", sport: "football" },
+    "soccer/ned.w.1": { name: "Vrouwen Eredivisie", code: "NEDW", sport: "football" },
+    "soccer/aus.w.1": { name: "A-League Women", code: "AUSW", sport: "football" },
+    "soccer/irl.1": { name: "League of Ireland Premier Division", code: "IRL", sport: "football" },
+    "soccer/cyp.1": { name: "Cypriot First Division", code: "CYP", sport: "football" },
+    "soccer/rou.1": { name: "Liga I Romania", code: "ROU", sport: "football" },
+    "soccer/per.1": { name: "Liga 1 de Perú", code: "PER", sport: "football" },
+    "soccer/uru.1": { name: "Liga AUF Uruguaya", code: "URU", sport: "football" },
+    "soccer/par.1": { name: "Paraguayan Primera División", code: "PAR", sport: "football" },
+    "soccer/ecu.1": { name: "LigaPro Ecuador", code: "ECU", sport: "football" },
+    "soccer/bol.1": { name: "Bolivian Liga Profesional", code: "BOL", sport: "football" },
+    "soccer/ven.1": { name: "Venezuelan Primera División", code: "VEN", sport: "football" },
+    "soccer/bra.2": { name: "Brasileirão Série B", code: "BRA2", sport: "football" },
+    "soccer/usa.usl.1": { name: "USL Championship", code: "USL", sport: "football" },
+    "soccer/rsa.1": { name: "South African Premiership", code: "RSA", sport: "football" },
+    "soccer/nga.1": { name: "Nigeria Professional League", code: "NGA", sport: "football" },
+    "soccer/gha.1": { name: "Ghana Premier League", code: "GHA", sport: "football" },
+    "soccer/chn.1": { name: "Chinese Super League", code: "CHN", sport: "football" },
+    "soccer/tha.1": { name: "Thai League 1", code: "THA", sport: "football" },
+    "soccer/mys.1": { name: "Malaysia Super League", code: "MYS", sport: "football" },
+    "soccer/idn.1": { name: "Indonesia Super League", code: "IDN", sport: "football" },
+    "soccer/fifa.friendly": { name: "International Friendlies", code: "FRI", sport: "football" },
+    "soccer/fifa.intercontinental_cup": { name: "FIFA Intercontinental Cup", code: "INTC", sport: "football" },
+    "soccer/fifa.world.u20": { name: "FIFA U-20 World Cup", code: "U20WC", sport: "football" },
+    "soccer/fifa.world.u17": { name: "FIFA U-17 World Cup", code: "U17WC", sport: "football" },
+    "soccer/fifa.olympics": { name: "Men's Olympic Soccer", code: "MOLY", sport: "football" },
+    "soccer/fifa.w.olympics": { name: "Women's Olympic Soccer", code: "WOLY", sport: "football" },
+    "soccer/fifa.worldq.uefa": { name: "World Cup Qualifiers (UEFA)", code: "WCQU", sport: "football" },
+    "soccer/fifa.worldq.caf": { name: "World Cup Qualifiers (CAF)", code: "WQCF", sport: "football" },
+    "soccer/fifa.worldq.afc": { name: "World Cup Qualifiers (AFC)", code: "WQCA", sport: "football" },
+    "soccer/fifa.worldq.concacaf": { name: "World Cup Qualifiers (Concacaf)", code: "WQCN", sport: "football" },
+    "soccer/fifa.worldq.conmebol": { name: "World Cup Qualifiers (CONMEBOL)", code: "WQCB", sport: "football" },
+    "soccer/uefa.europa.conf_qual": { name: "Conference League Qualifying", code: "UECLQ", sport: "football" },
+    "soccer/uefa.super_cup": { name: "UEFA Super Cup", code: "USC", sport: "football" },
+    "soccer/uefa.weuro": { name: "Women's Euro", code: "WEURO", sport: "football" },
+    "soccer/uefa.euro_u21": { name: "UEFA U-21 Championship", code: "U21E", sport: "football" },
+    "soccer/uefa.w.nations": { name: "Women's Nations League", code: "WNL", sport: "football" },
+    "soccer/caf.nations": { name: "Africa Cup of Nations", code: "AFCON", sport: "football" },
+    "soccer/caf.nations_qual": { name: "AFCON Qualifiers", code: "AFCONQ", sport: "football" },
+    "soccer/caf.champions": { name: "CAF Champions League", code: "CAFCL", sport: "football" },
+    "soccer/caf.confed": { name: "CAF Confederation Cup", code: "CAFC", sport: "football" },
+    "soccer/conmebol.america": { name: "Copa América", code: "COPA", sport: "football" },
+    "soccer/conmebol.recopa": { name: "Recopa Sudamericana", code: "RECO", sport: "football" },
+    "soccer/concacaf.gold": { name: "CONCACAF Gold Cup", code: "GOLD", sport: "football" },
+    "soccer/concacaf.nations.league": { name: "CONCACAF Nations League", code: "CNL", sport: "football" },
+    "soccer/concacaf.leagues.cup": { name: "Leagues Cup", code: "LCUP", sport: "football" },
+    "soccer/campeones.cup": { name: "Campeones Cup", code: "CAMPC", sport: "football" },
+    "soccer/afc.asian.cup": { name: "AFC Asian Cup", code: "ACUP", sport: "football" },
+    "soccer/afc.cup": { name: "AFC Champions League Two", code: "ACL2", sport: "football" },
+    "soccer/eng.charity": { name: "Community Shield", code: "CS", sport: "football" },
+    "soccer/esp.super_cup": { name: "Supercopa de España", code: "SCES", sport: "football" },
+    "soccer/ger.super_cup": { name: "DFL-Supercup", code: "SCDE", sport: "football" },
+    "soccer/ita.super_cup": { name: "Supercoppa Italiana", code: "SCIT", sport: "football" },
+    "soccer/fra.super_cup": { name: "Trophée des Champions", code: "TDC", sport: "football" },
+    "soccer/ned.cup": { name: "KNVB Beker", code: "KNVB", sport: "football" },
+    "soccer/por.taca.portugal": { name: "Taça de Portugal", code: "TACA", sport: "football" },
+    "soccer/sco.tennents": { name: "Scottish Cup", code: "SCC", sport: "football" },
+    "soccer/sco.cis": { name: "Scottish League Cup", code: "SLC", sport: "football" },
+    "soccer/bra.copa_do_brazil": { name: "Copa do Brasil", code: "CDB", sport: "football" },
+    "soccer/arg.copa": { name: "Copa Argentina", code: "CAR", sport: "football" },
+    "soccer/usa.open": { name: "U.S. Open Cup", code: "USOC", sport: "football" },
+    "soccer/ksa.kings.cup": { name: "Saudi King's Cup", code: "KSC", sport: "football" },
+    // More countries, women's leagues & tournaments
     // Other sports - expanded
     "basketball/nba":               { name: "NBA",                     code: "NBA",      sport: "basketball" },
     "basketball/wnba":              { name: "WNBA",                    code: "WNBA",     sport: "basketball" },
@@ -831,7 +959,21 @@ const LEAGUE_NAMES = {
     "rugby/rugby-world-cup":        { name: "Rugby World Cup",         code: "RWC",      sport: "rugby" },
     "cricket/ipl":                  { name: "Indian Premier League",   code: "IPL",      sport: "cricket" },
     "cricket/pak-psl":              { name: "Pakistan Super League",   code: "PSL",      sport: "cricket" },
-    "cricket/eng-vitality-blast":   { name: "Vitality Blast",          code: "BLAST",    sport: "cricket" }
+    "cricket/eng-vitality-blast":   { name: "Vitality Blast",          code: "BLAST",    sport: "cricket" },
+    "basketball/nbl": { name: "NBL (Australia)", code: "NBL", sport: "basketball" },
+    "basketball/nba-development": { name: "NBA G League", code: "GL", sport: "basketball" },
+    "hockey/mens-college-hockey": { name: "NCAA Hockey", code: "NCAA-H", sport: "icehockey" },
+    "hockey/womens-college-hockey": { name: "NCAA Women's Hockey", code: "NCAA-WH", sport: "icehockey" },
+    "hockey/hockey-world-cup": { name: "Ice Hockey World Cup", code: "IHWC", sport: "icehockey" },
+    "hockey/olympics-mens-ice-hockey": { name: "Olympic Ice Hockey", code: "OIH", sport: "icehockey" },
+    "hockey/olympics-womens-ice-hockey": { name: "Olympic Women's Hockey", code: "OWIH", sport: "icehockey" },
+    "baseball/college-softball": { name: "College Softball", code: "NCAA-SB", sport: "baseball" },
+    "baseball/world-baseball-classic": { name: "World Baseball Classic", code: "WBC", sport: "baseball" },
+    "baseball/caribbean-series": { name: "Caribbean Series", code: "CSB", sport: "baseball" },
+    "baseball/mexican-winter-league": { name: "Liga Mexicana del Pacífico", code: "LMP", sport: "baseball" },
+    "baseball/dominican-winter-league": { name: "LIDOM", code: "LIDOM", sport: "baseball" },
+    "baseball/olympics-baseball": { name: "Olympic Baseball", code: "OBB", sport: "baseball" },
+    "baseball/llb": { name: "Little League World Series", code: "LLWS", sport: "baseball" },
 };
 
 // Team color palette for well-known clubs
@@ -1595,6 +1737,49 @@ function pickNewsCategory(article) {
     return "Soccer";
 }
 
+/* Does an ESPN news article carry video?
+   ESPN never sends type === "Video" for soccer: clips arrive as type "Media"
+   (or "Story"/"HeadlineNews" for written pieces) and are only identifiable by
+   their links — a video clip self-link points at /v1/video/clips/<id> and its
+   web link at /video/clip/…, while written pieces point at /v1/sports/news/.
+   The old check looked for type === "Video" (and links.api.videos, which ESPN
+   no longer returns), matched nothing, and left the homepage Highlights strip
+   permanently stuck on MOCK_HIGHLIGHTS. */
+function articleIsVideo(article) {
+    if (!article) return false;
+    if (Array.isArray(article.videos) && article.videos.length) return true;
+    const api = article.links && article.links.api;
+    if (api && api.videos) return true;
+    const hrefs = [
+        api && api.self && api.self.href,
+        article.links && article.links.web && article.links.web.href
+    ].filter(h => typeof h === "string" && h);
+    if (hrefs.some(h => /\/video\//i.test(h))) return true;
+    return article.type === "Video" || article.type === "Media";
+}
+
+/* Inline background for a card thumbnail. The remote image is painted on top of
+   a gradient so a blocked, 404ing or still-loading thumbnail still reads as a
+   styled tile — a bare background-image simply renders an empty box on failure.
+   The two layers must be comma-separated: the `background` shorthand allows only
+   one image per layer, so `background: url(..) .. , linear-gradient(..)` needs
+   background-image, where the first layer is the one drawn on top. Sizing stays
+   with the .news-thumb / .home-news-thumb / .highlight-thumb rules (cover +
+   centered). Quote characters are URL-encoded so a stray apostrophe in an ESPN
+   URL cannot break out of the style attribute. */
+function thumbBgStyle(url, fallbackGrad) {
+    const grad = fallbackGrad || "linear-gradient(135deg, #1e293b, #0b0e14)";
+    const raw = typeof url === "string" ? url.trim() : "";
+    if (!raw) return `background-image: ${grad};`;
+    const safe = raw.replace(/['"\\\s]/g, encodeURIComponent);
+    return `background-image: url('${safe}'), ${grad};`;
+}
+
+// Newest-first ordering for anything carrying an ESPN `published` timestamp
+function byPublishedDesc(a, b) {
+    return (Date.parse(b.published || b.rawPublished || 0) || 0) - (Date.parse(a.published || a.rawPublished || 0) || 0);
+}
+
 // Resolve a core-API $ref link (athlete / team) to a display name
 async function resolveCoreRefDisplayName(ref, field = "displayName") {
     if (!ref || !ref.$ref) return null;
@@ -1682,7 +1867,7 @@ async function loadLiveNews() {
                     time: timeAgoString(a.published),
                     image: (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "",
                     link: (a.links && a.links.web && a.links.web.href) || "https://www.espn.com/soccer/",
-                    hasVideo: !!(a.links && a.links.api && a.links.api.videos) || (Array.isArray(a.videos) && a.videos.length) || (a.type === "Video")
+                    hasVideo: articleIsVideo(a)
                 });
             });
         } catch (e) { /* ignore per-league failure */ }
@@ -1700,7 +1885,7 @@ async function loadLiveNews() {
             time: timeAgoString(a.published),
             image: (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "",
             link: (a.links && a.links.web && a.links.web.href) || "https://www.espn.com/soccer/",
-            hasVideo: false
+            hasVideo: articleIsVideo(a)
         }));
     }
     // De-duplicate by title and sort newest first, keep 8
@@ -1738,16 +1923,17 @@ async function loadLiveHighlights(force = false) {
                     validate: d => !!(d && Array.isArray(d.articles))
                 });
                 (data.articles || []).forEach(a => {
-                    const hasVid = (a.links && a.links.api && a.links.api.videos) || (Array.isArray(a.videos) && a.videos.length) || a.type === "Video";
-                    if (!hasVid) return;
+                    if (!articleIsVideo(a)) return;
                     const thumb = (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "";
                     const videoHref = (a.links && a.links.web && a.links.web.href) || "";
                     vids.push({
-                        id: `${slug}-${a.id}`,
+                        id: `hl-${a.id}`,
                         title: a.headline || a.description || "Highlight",
                         league: slug,
                         category: pickNewsCategory(a),
                         time: timeAgoString(a.published),
+                        rawPublished: a.published,
+                        published: a.published,
                         image: thumb,
                         link: videoHref,
                         raw: a
@@ -1755,7 +1941,18 @@ async function loadLiveHighlights(force = false) {
                 });
             } catch (e) {}
         }));
-        liveHighlights = vids.slice(0, 6);
+        // The same clip is syndicated into several league feeds, and Promise.allSettled
+        // resolves in completion order — so de-duplicate on the article id and sort
+        // newest-first before trimming, otherwise the strip shows repeats in a
+        // different order on every refresh.
+        const seen = new Set();
+        const uniq = [];
+        vids.sort(byPublishedDesc).forEach(v => {
+            if (seen.has(v.id)) return;
+            seen.add(v.id);
+            uniq.push(v);
+        });
+        liveHighlights = uniq.slice(0, 6);
         liveHighlightsAt = Date.now();
         return liveHighlights;
     } catch (e) {
@@ -2489,9 +2686,10 @@ function renderNews() {
                     window.location.href = "story.html";
                 });
             }
-            const thumbStyle = news.image
-                ? `background-image: url('${news.image}');`
-                : `background: ${news.grad};`;
+            // Live articles carry no `grad`, so the old `background: ${news.grad}`
+            // emitted the invalid `background: undefined;` and left the thumbnail
+            // as an invisible box. thumbBgStyle always supplies a real gradient.
+            const thumbStyle = thumbBgStyle(news.image, news.grad);
             card.innerHTML = `
                 <div class="news-thumb" style="${thumbStyle}">${isVideo ? '<span class="news-video-badge">▶</span>' : ''}</div>
                 <div class="news-meta">
@@ -2510,7 +2708,7 @@ function renderNews() {
         homeGrid.innerHTML = "";
         const featuredItems = list.slice(0, 4);
         featuredItems.forEach((news) => {
-            const isVideo = !!(news.hasVideo || (news.raw && (news.raw.type === "Video" || (Array.isArray(news.raw.videos) && news.raw.videos.length))));
+            const isVideo = !!(news.hasVideo || articleIsVideo(news.raw));
             const card = document.createElement(useLive ? "a" : "div");
             card.className = "home-news-card" + (isVideo ? " has-video" : "");
             if (useLive) {
@@ -2532,9 +2730,7 @@ function renderNews() {
                 });
             }
 
-            const thumbStyle = news.image
-                ? `background-image: url('${news.image}');`
-                : `background: ${news.grad || "linear-gradient(135deg, #00f2fe, #4facfe)"};`;
+            const thumbStyle = thumbBgStyle(news.image, news.grad || "linear-gradient(135deg, #00f2fe, #4facfe)");
             const leagueLabel = news.leagueSlug ? (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : '';
 
             card.innerHTML = `
@@ -2571,7 +2767,7 @@ function renderHighlights() {
         a.href = item.link || "https://www.youtube.com";
         a.target = "_blank";
         a.rel = "noopener";
-        const thumbStyle = item.image ? `background-image: url('${item.image.replace(/'/g, "%27")}');` : `background: var(--bg-card-solid);`;
+        const thumbStyle = thumbBgStyle(item.image, "linear-gradient(135deg, #243b55, #0b0e14)");
         const leagueLabel = item.league ? (LEAGUE_NAMES['soccer/'+item.league] ? LEAGUE_NAMES['soccer/'+item.league].name : item.league) : (item.category || "Football");
         const safeTitle = (item.title || "").replace(/</g, "&lt;");
         a.innerHTML = `
@@ -2840,7 +3036,12 @@ const LEAGUE_FLAG_CODES = {
     ISL: "in",
     LIB: "eu",
     CWC: "eu",
-    WC: "eu"
+    WC: "eu",
+    RSA: "za", NGA: "ng", GHA: "gh", CHN: "cn", URU: "uy", PAR: "py",
+    ECU: "ec", BOL: "bo", VEN: "ve", ROU: "ro", IRL: "ie", PER: "pe",
+    CYP: "cy", THA: "th", MYS: "my", IDN: "id", USL: "us", BRA2: "br",
+    ENG4: "gb-eng", ENG5: "gb-eng", WSL: "gb-eng", LIGAF: "es",
+    FRAW: "fr", NEDW: "nl", AUSW: "au"
 };
 
 function enhanceLeagueFlags() {

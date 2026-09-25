@@ -9,7 +9,7 @@
     <title>Privacy Policy | ScoreHub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
-    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""light""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
     <meta name="description" content="ScoreHub privacy policy - how we handle your data.">
     <meta name="keywords" content="privacy, ScoreHub">
     <link rel="canonical" href="https://livematches.hyper.co.ke/privacy.html">
@@ -28,8 +28,10 @@
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
-    <script defer src="/_vercel/insights/script.js"></script>
-    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <!-- Vercel Analytics is injected at runtime by analytics.js (esm.sh SDK, with
+         /_vercel/insights/script.js as its fallback). The two /_vercel script tags
+         that used to sit here 404 on every non-Vercel host and logged two console
+         errors per page load, so they are no longer requested up front. -->
     <script type="module" src="analytics.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
      crossorigin="anonymous"></script>
