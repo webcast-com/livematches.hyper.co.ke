@@ -5911,6 +5911,15 @@ body.modal-open {
     object-fit: cover;
     transition: transform 0.3s ease;
 }
+/* Live highlights only have the home club's crest to show (ESPN scoreboards carry
+   no match photo). Under object-fit: cover a square, transparent PNG is scaled to
+   fill the width and cropped down to a band across the middle of the badge, so
+   display it whole and centred instead. Curated cards use landscape photos and
+   keep the cover behaviour above. */
+.highlight-hub-thumb img.is-crest {
+    object-fit: contain;
+    padding: 18px;
+}
 .highlight-hub-card:hover .highlight-hub-thumb img {
     transform: scale(1.04);
 }

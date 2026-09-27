@@ -126,13 +126,15 @@ async function loadTransfers() {
             return r.json();
         })
     ));
-    if (results.every((r) => r.status !== "fulfilled" && (!r.value || !Array.isArray(r.value.articles)))) {
-        const anyData = results.some((r) => r.status === "fulfilled" && r.value && Array.isArray(r.value.articles));
-        if (!anyData) {
-            list.innerHTML = "";
-            err.hidden = false;
-            return;
-        }
+    // The old form was: if (results.every(r => r.status !== "fulfilled" && …)) {
+    //                       if (!results.some(r => r.status === "fulfilled" && …)) { … } }
+    // The outer condition already implies the inner one, so the guard was dead
+    // code. Collapsed to the single check that actually matters.
+    const anyData = results.some((r) => r.status === "fulfilled" && r.value && Array.isArray(r.value.articles));
+    if (!anyData) {
+        list.innerHTML = "";
+        err.hidden = false;
+        return;
     }
     const seen = new Set();
     const merged = [];

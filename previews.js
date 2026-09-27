@@ -29,9 +29,17 @@ const HUB_LEAGUES = [
     { code: "BEL", slug: "bel.1", name: "Belgian Pro League" },
     { code: "SuperLig", slug: "tur.1", name: "Süper Lig" },
     { code: "SCO", slug: "sco.1", name: "Scottish Premiership" },
-    { code: "SaudiPro", slug: "sau.1", name: "Saudi Pro League" },
+    { code: "SaudiPro", slug: "ksa.1", name: "Saudi Pro League" },
     { code: "J1", slug: "jpn.1", name: "J1 League" },
-    { code: "AUS", slug: "aus.1", name: "A-League" }
+    { code: "AUS", slug: "aus.1", name: "A-League" },
+    { code: "RSA", slug: "rsa.1", name: "South African Premiership" },
+    { code: "NGA", slug: "nga.1", name: "Nigeria Professional League" },
+    { code: "GHA", slug: "gha.1", name: "Ghana Premier League" },
+    { code: "URU", slug: "uru.1", name: "Liga AUF Uruguaya" },
+    { code: "CHN", slug: "chn.1", name: "Chinese Super League" },
+    { code: "IRL", slug: "irl.1", name: "League of Ireland Premier Division" },
+    { code: "AFCON", slug: "caf.nations", name: "Africa Cup of Nations" },
+    { code: "WC", slug: "fifa.world", name: "FIFA World Cup" }
 ];
 
 function cleanLeagueSlug(slug) {
