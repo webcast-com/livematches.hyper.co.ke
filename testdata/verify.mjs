@@ -580,6 +580,154 @@ check('a simulated match report keeps every stat the mock match carries', () => 
     assert(parsed.fouls === 7, `fouls lost from the simulated report (got ${parsed.fouls})`);
 });
 
+/* ------------------------------------------- reload / persistence regressions */
+
+/* app.js sandbox with a working in-memory localStorage and a document that can
+   pretend to own (or not own) the controls a saved view refers to. */
+function persistSandbox({ stored = {}, controls = [] } = {}) {
+    const mem = new Map(Object.entries(stored));
+    const ctx = vm.createContext({
+        window: {},
+        document: {
+            getElementById: () => null,
+            querySelector: (sel) => (controls.some((c) => String(sel).includes(c)) ? { setAttribute() {}, classList: { toggle() {}, add() {}, remove() {} } } : null),
+            querySelectorAll: () => [],
+            addEventListener: () => {}, documentElement: {},
+            createElement: () => ({ style: {}, classList: { add() {}, remove() {} }, setAttribute() {}, appendChild() {} })
+        },
+        console,
+        localStorage: {
+            getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+            setItem: (k, v) => { mem.set(k, String(v)); },
+            removeItem: (k) => { mem.delete(k); }
+        },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {}, clearTimeout: () => {}, clearInterval: () => {},
+        LANG: 'en', t: (k) => k, tf: (k) => k, navigator: {}, location: { search: '', hash: '' },
+        fetch: async () => ({ ok: false, status: 500, json: async () => ({}) })
+    });
+    vm.runInContext(readText('../app.js') + `
+        globalThis.__x = { restoreLiveCache, restoreViewState, saveSessionSnapshot, viewState, syncViewControls };
+        globalThis.__state = {
+            set(s) { Object.assign(this, s); },
+            apply() { currentSport = this.sport; currentFilter = this.filter; currentLeague = this.league; selectedDate = this.date; leadersCategory = this.leaders; currentStandingLeague = this.standings; this.sortByLeague && (sortByLeague = true); },
+            get() { return { sport: currentSport, filter: currentFilter, league: currentLeague, date: selectedDate, leaders: leadersCategory, standings: currentStandingLeague, sortByLeague }; },
+            setLive(list) { apiMatches = list; isApiMode = true; },
+            noLive() { apiMatches = []; isApiMode = false; }
+        };`, ctx);
+    return { x: ctx.__x, state: ctx.__state, mem };
+}
+
+const LIVE_KEY = 'scorehub-live-v1', VIEW_KEY = 'scorehub-view-v1';
+const liveMatch = (over) => Object.assign({
+    id: 'api-1', espnEventId: '1', leagueSlug: 'soccer/eng.1', sport: 'football', league: 'Premier League',
+    homeTeam: 'Arsenal', awayTeam: 'Chelsea', homeScore: 1, awayScore: 0, status: 'live', time: "65'",
+    date: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+}, over);
+
+check('a reload replays the last sweep (the "live data disappears" fix)', () => {
+    const sb = persistSandbox({ stored: { [LIVE_KEY]: JSON.stringify({ at: Date.now(), sport: 'all', date: null, matches: [liveMatch(), liveMatch({ id: 'api-2', status: 'finished', time: 'FT' })] }) } });
+    sb.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+    sb.state.apply();
+    const restored = sb.x.restoreLiveCache();
+    assert(restored && restored.matches.length === 2, 'a fresh snapshot should replay both matches');
+    assert(restored.matches[0].homeTeam === 'Arsenal', 'the saved match data should survive the round-trip');
+});
+
+check('a match cached as live hours ago is closed out, not left on 65\'', () => {
+    const stale = liveMatch({ date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() });
+    const sb = persistSandbox({ stored: { [LIVE_KEY]: JSON.stringify({ at: Date.now(), sport: 'all', date: null, matches: [stale] }) } });
+    sb.state.set({ sport: 'all', date: null }); sb.state.apply();
+    const restored = sb.x.restoreLiveCache();
+    assert(restored.matches[0].status === 'finished' && restored.matches[0].time === 'FT',
+        `a 4-hour-old live match should be finished, got ${restored.matches[0].status}/${restored.matches[0].time}`);
+});
+
+check('nothing dishonest is replayed: expired, wrong view, wrong day or corrupt snapshots', () => {
+    const cases = [
+        ['expired (older than the TTL)', { at: Date.now() - 4 * 60 * 60 * 1000, sport: 'all', date: null, matches: [liveMatch()] }],
+        ['saved for another tab', { at: Date.now(), sport: 'basketball', date: null, matches: [liveMatch()] }],
+        ['saved for another day', { at: Date.now(), sport: 'all', date: '20200101', matches: [liveMatch()] }],
+        ['empty match list', { at: Date.now(), sport: 'all', date: null, matches: [] }],
+        ['matches without an id or teams', { at: Date.now(), sport: 'all', date: null, matches: [{ nope: 1 }, null] }],
+        ['unparsable JSON', '{not json'],
+        ['missing timestamp', { sport: 'all', date: null, matches: [liveMatch()] }]
+    ];
+    for (const [label, payload] of cases) {
+        const sb = persistSandbox({ stored: { [LIVE_KEY]: typeof payload === 'string' ? payload : JSON.stringify(payload) } });
+        sb.state.set({ sport: 'all', date: null }); sb.state.apply();
+        assert(sb.x.restoreLiveCache() === null, `should refuse to replay a snapshot: ${label}`);
+    }
+});
+
+check('the live snapshot is only written while live data is on screen', () => {
+    const withLive = persistSandbox();
+    withLive.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+    withLive.state.apply();
+    withLive.state.setLive([liveMatch()]);
+    withLive.x.saveSessionSnapshot();
+    assert(withLive.mem.get(LIVE_KEY), 'live mode should save the sweep');
+    assert(withLive.mem.get(VIEW_KEY), 'the view should always be saved');
+
+    const simOnly = persistSandbox();
+    simOnly.state.set({ sport: 'all', date: null }); simOnly.state.apply();
+    simOnly.state.noLive();
+    simOnly.x.saveSessionSnapshot();
+    assert(!simOnly.mem.get(LIVE_KEY), 'simulation mode must not overwrite the live snapshot with mock matches');
+    assert(simOnly.mem.get(VIEW_KEY), 'the view should still be saved in simulation mode');
+});
+
+check('the saved view round-trips, and unknown values are ignored rather than restored', () => {
+    const controls = ['data-sport="football"', 'data-filter="live"', 'data-league-id="EPL"', 'data-standing-league="LaLiga"'];
+    const sb = persistSandbox({ controls });
+    sb.state.set({ sport: 'football', filter: 'live', league: 'EPL', date: '20260101', leaders: 'assists', standings: 'LaLiga', sortByLeague: true });
+    sb.state.apply();
+    sb.x.saveSessionSnapshot();
+
+    sb.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL', sortByLeague: false });
+    sb.state.apply();
+    sb.x.restoreViewState();
+    const back = sb.state.get();
+    assert(back.sport === 'football' && back.filter === 'live' && back.league === 'EPL', `view did not round-trip: ${JSON.stringify(back)}`);
+    assert(back.date === '20260101' && back.leaders === 'assists' && back.standings === 'LaLiga', `view did not round-trip: ${JSON.stringify(back)}`);
+
+    // A snapshot referring to controls this page does not have must not be applied,
+    // or the UI would sit in a state with nothing selected.
+    const bare = persistSandbox({ stored: { [VIEW_KEY]: JSON.stringify({ at: Date.now(), sport: 'f1', filter: 'ht', league: 'ZZZ', date: '20260101', leaders: 'assists', standings: 'ZZZ' }) } });
+    bare.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+    bare.state.apply();
+    bare.x.restoreViewState();
+    const kept = bare.state.get();
+    assert(kept.sport === 'all' && kept.filter === 'all' && kept.league === 'all', `unknown controls were applied: ${JSON.stringify(kept)}`);
+    assert(kept.date === '20260101' && kept.leaders === 'assists', `control-independent values should still restore: ${JSON.stringify(kept)}`);
+});
+
+check('a hand-edited or hostile snapshot cannot break boot', () => {
+    // localStorage is user-editable: a value that is not a valid CSS selector used
+    // to make querySelector throw out of init(), leaving a blank page.
+    for (const payload of [
+        { at: Date.now(), sport: 'a"]', filter: 'b"]', league: 'c"]', standings: 'd"]' },
+        { at: Date.now(), sport: { nested: true }, filter: ['x'], league: 42, leaders: 'nope', date: 'yesterday' },
+        { at: Date.now(), sport: 'all', spotlight: 'x'.repeat(5000) },
+        'not an object', 42, null
+    ]) {
+        const sb = persistSandbox({ stored: { [VIEW_KEY]: typeof payload === 'string' ? payload : JSON.stringify(payload) } });
+        sb.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+        sb.state.apply();
+        sb.x.restoreViewState();
+        sb.x.syncViewControls();
+        const kept = sb.state.get();
+        assert(kept.sport === 'all' && kept.filter === 'all' && kept.league === 'all' && kept.date === null,
+            `hostile snapshot changed the view: ${JSON.stringify(kept)}`);
+    }
+});
+
+check('the snapshot keys are the ones the page documents', () => {
+    const app = readText('../app.js');
+    assert(app.includes('"scorehub-live-v1"') && app.includes('"scorehub-view-v1"'),
+        'snapshot storage keys changed — update the docs/tests with them');
+});
+
 /* ------------------------------------------------------------------ report */
 
 function report() {

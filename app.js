@@ -558,6 +558,113 @@ function persistFavorites() { store.set(FAVS_KEY, [...favoriteIds]); }
 // Re-apply saved stars to the simulation dataset (API matches: after each fetch)
 MOCK_MATCHES.forEach(m => { m.favorites = favoriteIds.has(m.id); });
 
+// --- LAST-KNOWN-LIVE SNAPSHOT (survives a reload) ---
+// The sweep result and every view choice used to live only in memory. A reload
+// therefore threw the live scores away and dropped the user on the simulation
+// dataset until the next sweep landed — and if ESPN was slow or blocked, that is
+// where they stayed, which is the "live data disappears on reload" report. Both
+// are now mirrored into localStorage and replayed during boot: the page paints
+// the matches that were on screen, then the normal refresh runs over the top.
+// Nothing is invented — if the refresh cannot land, the existing stale-data
+// banner and the "showing last saved scores" line say so.
+const LIVE_CACHE_KEY = "scorehub-live-v1";
+const VIEW_CACHE_KEY = "scorehub-view-v1";
+const LIVE_CACHE_TTL_MS = 3 * 60 * 60 * 1000;   // older than this: start clean
+const LIVE_CACHE_MAX_MATCHES = 250;             // ~950 B/match, far inside quota
+const MATCH_LENGTH_MS = 3 * 60 * 60 * 1000;     // a match is over ~3 h after kickoff
+
+function viewState() {
+    return {
+        sport: currentSport, filter: currentFilter, league: currentLeague,
+        date: selectedDate, leaders: leadersCategory, sortByLeague,
+        standings: currentStandingLeague, spotlight: spotlightMatchId
+    };
+}
+
+// Called after every successful sweep and again on the way out of the page
+// (pagehide / tab hidden), so the snapshot always describes the last screen.
+function saveSessionSnapshot() {
+    try {
+        if (isApiMode && apiMatches.length) {
+            store.set(LIVE_CACHE_KEY, {
+                at: Date.now(),
+                sport: currentSport,
+                date: selectedDate,
+                matches: apiMatches.slice(0, LIVE_CACHE_MAX_MATCHES)
+            });
+        }
+        store.set(VIEW_CACHE_KEY, Object.assign({ at: Date.now() }, viewState()));
+    } catch (e) { /* storage full or blocked — stay in-memory, as before */ }
+}
+
+// Restore the view first: it is what the controls show, and it decides whether the
+// saved matches still belong to this screen.
+function restoreViewState() {
+    const saved = store.get(VIEW_CACHE_KEY, null);
+    if (!saved || typeof saved !== "object") return;
+    // Only values this page actually offers are restored, so a snapshot from
+    // another page (or an older build) can never leave the UI in a dead state.
+    // Storage is user-editable, so a malformed selector must not break boot either.
+    const hasControl = (sel) => { try { return !!document.querySelector(sel); } catch (e) { return false; } };
+    if (typeof saved.sport === "string" && hasControl(`.sport-tab[data-sport="${saved.sport}"]`)) currentSport = saved.sport;
+    if (typeof saved.filter === "string" && hasControl(`.filter-tab[data-filter="${saved.filter}"]`)) currentFilter = saved.filter;
+    if (saved.league === "all" || (typeof saved.league === "string" && hasControl(`.league-row[data-league-id="${saved.league}"]`))) currentLeague = saved.league;
+    if (saved.leaders === "goals" || saved.leaders === "assists") leadersCategory = saved.leaders;
+    if (typeof saved.standings === "string" && hasControl(`.standings-tab[data-standing-league="${saved.standings}"]`)) currentStandingLeague = saved.standings;
+    if (typeof saved.date === "string" && /^\d{8}$/.test(saved.date)) selectedDate = saved.date;
+    sortByLeague = !!saved.sortByLeague;
+    if (typeof saved.spotlight === "string" && saved.spotlight.length < 100) spotlightMatchId = saved.spotlight;
+}
+
+// The markup ships with "all" active, so mirror the restored view back onto the
+// controls instead of waiting for the user to touch one.
+function syncViewControls() {
+    document.querySelectorAll(".sport-tab").forEach((el) => el.classList.toggle("active", el.getAttribute("data-sport") === currentSport));
+    document.querySelectorAll(".filter-tab").forEach((el) => el.classList.toggle("active", el.getAttribute("data-filter") === currentFilter));
+    document.querySelectorAll(".league-row").forEach((el) => el.classList.toggle("active", el.getAttribute("data-league-id") === currentLeague));
+    document.querySelectorAll(".standings-tab").forEach((el) => el.classList.toggle("active", el.getAttribute("data-standing-league") === currentStandingLeague));
+    document.querySelectorAll("[data-leaders-cat]").forEach((el) => {
+        const on = el.getAttribute("data-leaders-cat") === leadersCategory;
+        el.classList.toggle("active", on);
+        el.setAttribute("aria-selected", on ? "true" : "false");
+    });
+}
+
+// Returns { at, matches } for the last sweep, or null when there is nothing
+// honest to replay.
+function restoreLiveCache() {
+    const cached = store.get(LIVE_CACHE_KEY, null);
+    if (!cached || !Array.isArray(cached.matches) || !cached.matches.length) return null;
+    const at = Number(cached.at);
+    if (!isFinite(at) || at <= 0 || Date.now() - at > LIVE_CACHE_TTL_MS) return null;
+    // Saved for a different tab or day than the one being restored — let the
+    // sweep answer instead of showing matches that do not belong to this view.
+    if (cached.sport !== currentSport || (cached.date || null) !== selectedDate) return null;
+    const matches = cached.matches.filter((m) => m && m.id && (m.homeTeam || m.awayTeam));
+    if (!matches.length) return null;
+    // A match cached as live hours ago has long finished; leaving it on "65'" would
+    // be a lie, so close it out the way the sweep would have.
+    const now = Date.now();
+    matches.forEach((m) => {
+        const ko = m.date ? Date.parse(m.date) : NaN;
+        if (m.status === "live" && isFinite(ko) && now - ko > MATCH_LENGTH_MS) {
+            m.status = "finished";
+            m.time = "FT";
+        }
+    });
+    return { at, matches };
+}
+
+// Live-match counter shown on the badge and the hero stat (shared by the restored
+// snapshot and every sweep so the two cannot drift).
+function applyLiveCountUI() {
+    const liveCount = apiMatches.filter((m) => m.status === "live").length;
+    const badge = document.getElementById("live-match-count-badge");
+    const statNum = document.getElementById("stat-live-matches");
+    if (badge) badge.textContent = `${liveCount || apiMatches.length} Matches (API)`;
+    if (statNum) statNum.textContent = liveCount || apiMatches.length;
+}
+
 let currentSport = "all";
 let currentFilter = "all";
 let currentLeague = "all";
@@ -1556,12 +1663,8 @@ async function loadAPIMatches(opts = {}) {
     apiLoading = false;
 
     // Update live match counter badge
-    const liveCount = apiMatches.filter(m => m.status === "live").length;
     try{ updateHomeSEO(window._lastMatches || []); }catch(e){}
-    const badge = document.getElementById("live-match-count-badge");
-    const statNum = document.getElementById("stat-live-matches");
-    if (badge) badge.textContent = `${liveCount || apiMatches.length} Matches (API)`;
-    if (statNum) statNum.textContent = liveCount || apiMatches.length;
+    applyLiveCountUI();
 
     // Update status bar timestamp (includes active transport for transparency)
     hideNetBanner(); // fresh data — clear any stale warning
@@ -1574,6 +1677,10 @@ async function loadAPIMatches(opts = {}) {
 
     renderMatches();
     renderTicker();
+
+    // Mirror this sweep (and the view behind it) so a reload replays it instantly
+    // instead of starting from the simulation dataset.
+    saveSessionSnapshot();
 
     storyPick = null;
     storyLocked = false;
@@ -4700,9 +4807,30 @@ async function runLiveRefresh() {
 function init() {
     applyStoredTheme();
     initEventHandlers();
+
+    // Restore the previous view (sport / filter / league / day / tab) before the
+    // first render, so a reload comes back to the screen the user left.
+    restoreViewState();
+    syncViewControls();
     renderDateStrip();
     enhanceLeagueFlags();
-    
+
+    // Replay the last successful sweep, if it is recent and belongs to this view.
+    // Without it a reload fell straight to the simulation dataset — live scores
+    // "disappearing" on refresh. With it the matches are on screen immediately and
+    // setApiMode(true) below refreshes over the top; if that refresh cannot land,
+    // the existing "showing last data" path keeps them instead of blanking.
+    const cachedLive = restoreLiveCache();
+    if (cachedLive) {
+        apiMatches = cachedLive.matches;
+        apiMatches.forEach((m) => { m.favorites = favoriteIds.has(m.id); });
+        isApiMode = true;
+        if (!apiMatches.some((m) => m.id === spotlightMatchId)) {
+            const firstLive = apiMatches.find((m) => m.status === "live");
+            spotlightMatchId = (firstLive || apiMatches[0]).id;
+        }
+    }
+
     // Initial Render
     renderTicker();
     renderHighlights();
@@ -4710,11 +4838,33 @@ function init() {
     renderScorers();
     renderNews();
     renderMatches();
-    setSpotlightMatch("fb-1");
-    
+    setSpotlightMatch(spotlightMatchId);
+
     // Start in Live API mode — automatically falls back to Simulation Mode
     // if ESPN is unreachable (loadAPIMatches handles the fallback)
     setApiMode(true);
+
+    if (cachedLive) {
+        // setApiMode() has just written "Fetching…": replace that with the age of
+        // the data on screen, so a user opening a stale snapshot is told so until
+        // the sweep lands (which rewrites the line) or reports the failure.
+        applyLiveCountUI();
+        const lastUpdatedEl = document.getElementById("api-last-updated");
+        if (lastUpdatedEl && Date.now() - cachedLive.at > 60000) {
+            const when = new Date(cachedLive.at);
+            lastUpdatedEl.textContent = tf("upd.cached", {
+                time: when.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" }),
+                n: apiMatches.length
+            });
+        }
+    }
+
+    // Keep the snapshot current for the cases that do not pass through a sweep:
+    // closing the tab, backgrounding it, or reloading straight after a tap.
+    window.addEventListener("pagehide", saveSessionSnapshot);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") saveSessionSnapshot();
+    });
     
     // Start Live Match Simulation (guarded — skips when isApiMode === true)
     setInterval(simulationLoop, 6000);   // clock ticks every 6 s
