@@ -485,6 +485,76 @@ function americanToDecimal(ml) {
     if (isNaN(v) || v === 0) return null;
     return v > 0 ? 1 + v / 100 : 1 + 100 / Math.abs(v);
 }
+// Prices for the totals (Over/Under) and both-teams-to-score markets. ESPN puts
+// these on the odds entry itself (`overOdds`/`underOdds`/`bttsYes`/`bttsNo`) as
+// American moneylines, e.g. -115. A couple of providers send an already-decimal
+// price (1.91) instead, and one sends a probability (45.31). Convert the first
+// two, drop the rest — a market must never render a number that is not a price.
+// Kept byte-identical to the app.js copy; testdata/verify.mjs asserts they agree.
+function espnPriceToDecimal(v) {
+    if (v == null || v === "") return null;
+    const n = typeof v === "number" ? v : parseFloat(v);
+    if (!isFinite(n) || n === 0) return null;
+    if (Math.abs(n) >= 100) return americanToDecimal(n);  // American moneyline
+    return n > 1 && n < 25 ? n : null;                    // decimal, or a percentage we cannot use
+}
+
+// 1X2 + totals + BTTS out of a competition's `odds` array. Extracted from
+// bootMatch so the same parser can be unit-tested against app.js's.
+function oddsFromCompetition(comp) {
+    let odds = null;
+    const rawOdds = Array.isArray(comp && comp.odds) ? comp.odds.filter((o) => o) : [];
+    if (rawOdds.length) {
+        const primary = rawOdds.find((o) => o.homeTeamOdds || o.drawOdds || o.awayTeamOdds) || rawOdds[0];
+        const pickML = (src, side) => {
+            if (!src || !src[side]) return null;
+            return src[side].moneyLine != null ? src[side].moneyLine
+                 : src[side].odds != null ? src[side].odds : null;
+        };
+        odds = {
+            provider: (primary.provider && primary.provider.name) || "ESPN BET",
+            details: primary.details || "",
+            spread: primary.spread != null ? primary.spread : null,
+            overUnder: primary.overUnder != null ? primary.overUnder : null,
+            overOdds: null, underOdds: null, bttsYes: null, bttsNo: null,
+            home: pickML(primary, "homeTeamOdds"),
+            draw: pickML(primary, "drawOdds"),
+            away: pickML(primary, "awayTeamOdds"),
+        };
+        for (const o of rawOdds) {
+            const det = (o.details || "").toLowerCase();
+            const homeML = pickML(o, "homeTeamOdds");
+            const awayML = pickML(o, "awayTeamOdds");
+            if (o.overUnder != null && odds.overUnder == null) odds.overUnder = o.overUnder;
+            // Totals prices ride on the odds entry itself — read those first.
+            const entryOver = espnPriceToDecimal(o.overOdds), entryUnder = espnPriceToDecimal(o.underOdds);
+            if (entryOver != null && odds.overOdds == null) odds.overOdds = entryOver;
+            if (entryUnder != null && odds.underOdds == null) odds.underOdds = entryUnder;
+            // Only an entry that *names* the totals market carries Over/Under prices on
+            // its sides. The moneyline entry merely carries the line (`overUnder`), so
+            // treating its 1X2 prices as Over/Under made the capsule read "O/U 2.5
+            // ↑1.69 ↓4.80" — the home and away win odds, relabelled as total payouts.
+            if (entryOver == null && entryUnder == null && /over|under|total goals|o\/u/.test(det)) {
+                const h2 = americanToDecimal(homeML), a2 = americanToDecimal(awayML);
+                const overIsHome = /over/.test(det) || !/under/.test(det);
+                if (odds.overOdds == null) odds.overOdds = (overIsHome ? h2 : a2) || (overIsHome ? a2 : h2);
+                if (odds.underOdds == null) odds.underOdds = (overIsHome ? a2 : h2) || (overIsHome ? h2 : a2);
+            }
+            // Both teams to score: entry-level Yes/No prices, else a market-named entry.
+            const entryYes = espnPriceToDecimal(o.bttsYes), entryNo = espnPriceToDecimal(o.bttsNo);
+            if (entryYes != null && odds.bttsYes == null) odds.bttsYes = entryYes;
+            if (entryNo != null && odds.bttsNo == null) odds.bttsNo = entryNo;
+            if (odds.bttsYes == null && odds.bttsNo == null && /both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
+                odds.bttsYes = americanToDecimal(homeML);
+                odds.bttsNo = americanToDecimal(awayML);
+            }
+            if (!odds.home && homeML) odds.home = homeML;
+            if (!odds.draw) odds.draw = pickML(o, "drawOdds");
+            if (!odds.away && awayML) odds.away = awayML;
+        }
+    }
+    return odds;
+}
 function oddsSummary(odds) {
     if (!odds) return "";
     const h = americanToDecimal(odds.home), d = americanToDecimal(odds.draw), a = americanToDecimal(odds.away);
@@ -1053,46 +1123,7 @@ async function bootMatch() {
     // Broadcast + odds
     let broadcast = "";
     if (Array.isArray(comp.broadcasts) && comp.broadcasts[0] && Array.isArray(comp.broadcasts[0].names)) broadcast = comp.broadcasts[0].names.join(", ");
-    let odds = null;
-    const rawOdds = Array.isArray(comp.odds) ? comp.odds.filter((o) => o) : [];
-    if (rawOdds.length) {
-        const primary = rawOdds.find((o) => o.homeTeamOdds || o.drawOdds || o.awayTeamOdds) || rawOdds[0];
-        const pickML = (src, side) => {
-            if (!src || !src[side]) return null;
-            return src[side].moneyLine != null ? src[side].moneyLine
-                 : src[side].odds != null ? src[side].odds : null;
-        };
-        odds = {
-            provider: (primary.provider && primary.provider.name) || "ESPN BET",
-            details: primary.details || "",
-            spread: primary.spread != null ? primary.spread : null,
-            overUnder: primary.overUnder != null ? primary.overUnder : null,
-            overOdds: null, underOdds: null, bttsYes: null, bttsNo: null,
-            home: pickML(primary, "homeTeamOdds"),
-            draw: pickML(primary, "drawOdds"),
-            away: pickML(primary, "awayTeamOdds"),
-        };
-        for (const o of rawOdds) {
-            const det = (o.details || "").toLowerCase();
-            const homeML = pickML(o, "homeTeamOdds");
-            const awayML = pickML(o, "awayTeamOdds");
-            if (o.overUnder != null && odds.overUnder == null) odds.overUnder = o.overUnder;
-            if (/over[/ ]?under|total goals|o\/u/.test(det) || o.overUnder != null) {
-                const h2 = americanToDecimal(homeML), a2 = americanToDecimal(awayML);
-                if (/over/.test(det) || !odds.overOdds) odds.overOdds = odds.overOdds || h2 || a2;
-                if (/under/.test(det)) odds.underOdds = odds.underOdds || a2 || h2;
-                if (!odds.overOdds && h2) odds.overOdds = h2;
-                if (!odds.underOdds && a2) odds.underOdds = a2;
-            }
-            if (/both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
-                odds.bttsYes = odds.bttsYes || americanToDecimal(homeML);
-                odds.bttsNo = odds.bttsNo || americanToDecimal(awayML);
-            }
-            if (!odds.home && homeML) odds.home = homeML;
-            if (!odds.draw) odds.draw = pickML(o, "drawOdds");
-            if (!odds.away && awayML) odds.away = awayML;
-        }
-    }
+    const odds = oddsFromCompetition(comp);
 
     const isPre = st.state === "pre";
     const isLive = st.state === "in";

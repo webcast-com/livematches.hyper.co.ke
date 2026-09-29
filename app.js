@@ -1355,20 +1355,27 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
             if (o.overUnder != null && odds.overUnder == null) {
                 odds.overUnder = o.overUnder;
             }
-            if (/over[/ ]?under|total goals|o\/u/.test(det) || o.overUnder != null) {
+            // Totals prices ride on the odds entry itself — read those first.
+            const entryOver = espnPriceToDecimal(o.overOdds), entryUnder = espnPriceToDecimal(o.underOdds);
+            if (entryOver != null && odds.overOdds == null) odds.overOdds = entryOver;
+            if (entryUnder != null && odds.underOdds == null) odds.underOdds = entryUnder;
+            // Only an entry that *names* the totals market carries Over/Under prices on
+            // its sides. The moneyline entry merely carries the line (`overUnder`), so
+            // treating its 1X2 prices as Over/Under made the capsule read "O/U 2.5
+            // ↑1.69 ↓4.80" — the home and away win odds, relabelled as total payouts.
+            if (entryOver == null && entryUnder == null && /over|under|total goals|o\/u/.test(det)) {
                 const h = americanToDecimal(homeML), a = americanToDecimal(awayML);
-                // "Over" is typically published as the home/team1 side, "Under" as away/team2.
-                if (/over/.test(det) || !odds.overOdds) odds.overOdds = odds.overOdds || h || a;
-                if (/under/.test(det)) odds.underOdds = odds.underOdds || a || h;
-                // If the detail string is just "O/U 2.5" with no Over/Under label,
-                // treat home as Over and away as Under (standard ESPN ordering).
-                if (!odds.overOdds && h) odds.overOdds = h;
-                if (!odds.underOdds && a) odds.underOdds = a;
+                const overIsHome = /over/.test(det) || !/under/.test(det);
+                if (odds.overOdds == null) odds.overOdds = (overIsHome ? h : a) || (overIsHome ? a : h);
+                if (odds.underOdds == null) odds.underOdds = (overIsHome ? a : h) || (overIsHome ? h : a);
             }
-            if (/both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
-                // ESPN usually puts "Yes" on the home side and "No" on the away side.
-                odds.bttsYes = odds.bttsYes || americanToDecimal(homeML);
-                odds.bttsNo = odds.bttsNo || americanToDecimal(awayML);
+            // Both teams to score: entry-level Yes/No prices, else a market-named entry.
+            const entryYes = espnPriceToDecimal(o.bttsYes), entryNo = espnPriceToDecimal(o.bttsNo);
+            if (entryYes != null && odds.bttsYes == null) odds.bttsYes = entryYes;
+            if (entryNo != null && odds.bttsNo == null) odds.bttsNo = entryNo;
+            if (odds.bttsYes == null && odds.bttsNo == null && /both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
+                odds.bttsYes = americanToDecimal(homeML);
+                odds.bttsNo = americanToDecimal(awayML);
             }
             // Backfill missing 1X2 from a later provider if primary didn't carry moneylines
             if (!odds.home && homeML) odds.home = homeML;
@@ -1691,6 +1698,19 @@ function americanToDecimal(moneyLine) {
     const v = parseFloat(moneyLine);
     if (isNaN(v) || v === 0) return null;
     return v > 0 ? 1 + v / 100 : 1 + 100 / Math.abs(v);
+}
+
+// Prices for the totals (Over/Under) and both-teams-to-score markets. ESPN puts
+// these on the odds entry itself (`overOdds`/`underOdds`/`bttsYes`/`bttsNo`) as
+// American moneylines, e.g. -115. A couple of providers send an already-decimal
+// price (1.91) instead, and one sends a probability (45.31). Convert the first
+// two, drop the rest — a market must never render a number that is not a price.
+function espnPriceToDecimal(v) {
+    if (v == null || v === "") return null;
+    const n = typeof v === "number" ? v : parseFloat(v);
+    if (!isFinite(n) || n === 0) return null;
+    if (Math.abs(n) >= 100) return americanToDecimal(n);  // American moneyline
+    return n > 1 && n < 25 ? n : null;                    // decimal, or a percentage we cannot use
 }
 
 function oddsSummary(odds) {

@@ -652,6 +652,20 @@ function americanToDecimal(val) {
     return 1 + (100 / Math.abs(n));
 }
 
+// Prices for the totals (Over/Under) and both-teams-to-score markets. ESPN puts
+// these on the odds entry itself (`overOdds`/`underOdds`/`bttsYes`/`bttsNo`) as
+// American moneylines, e.g. -115 — they used to be passed to the renderer raw,
+// so a card read "↑-115.00 ↓105.00". Decimal prices (1.91) pass through and a
+// probability (45.31) is dropped. Kept identical to the app.js/match.js copies;
+// testdata/verify.mjs asserts the three agree.
+function espnPriceToDecimal(v) {
+    if (v == null || v === "") return null;
+    const n = typeof v === "number" ? v : parseFloat(v);
+    if (!isFinite(n) || n === 0) return null;
+    if (Math.abs(n) >= 100) return americanToDecimal(n);  // American moneyline
+    return n > 1 && n < 25 ? n : null;                    // decimal, or a percentage we cannot use
+}
+
 function oddsCapsulesHTML(odds, homeCode, awayCode) {
     if (!odds) return "";
     const h = odds.home != null ? Number(odds.home) : null;
@@ -687,10 +701,10 @@ function previewOdds(comp) {
             details: o.details || "",
             home: h, draw: d, away: a,
             overUnder: o.overUnder,
-            overOdds: o.overOdds,
-            underOdds: o.underOdds,
-            bttsYes: o.bttsYes,
-            bttsNo: o.bttsNo
+            overOdds: espnPriceToDecimal(o.overOdds),
+            underOdds: espnPriceToDecimal(o.underOdds),
+            bttsYes: espnPriceToDecimal(o.bttsYes),
+            bttsNo: espnPriceToDecimal(o.bttsNo)
         };
     }
     const rawOdds = Array.isArray(comp && comp.odds) ? comp.odds.filter(Boolean) : [];
@@ -709,11 +723,34 @@ function previewOdds(comp) {
         details: o.details || "",
         home: h, draw: d, away: a,
         overUnder: o.overUnder,
-        overOdds: o.overOdds,
-        underOdds: o.underOdds,
-        bttsYes: o.bttsYes,
-        bttsNo: o.bttsNo
+        overOdds: null,
+        underOdds: null,
+        bttsYes: null,
+        bttsNo: null
     };
+    // Totals + BTTS are scanned across every provider, using the same rules as the
+    // homepage and match centre: entry-level prices first, and the moneyline entry's
+    // 1X2 prices only when the entry actually names the totals market.
+    for (const x of rawOdds) {
+        const det = (x.details || "").toLowerCase();
+        if (x.overUnder != null && out.overUnder == null) out.overUnder = x.overUnder;
+        const eOver = espnPriceToDecimal(x.overOdds), eUnder = espnPriceToDecimal(x.underOdds);
+        if (eOver != null && out.overOdds == null) out.overOdds = eOver;
+        if (eUnder != null && out.underOdds == null) out.underOdds = eUnder;
+        if (eOver == null && eUnder == null && /over|under|total goals|o\/u/.test(det)) {
+            const oh = americanToDecimal(ml(x.homeTeamOdds)), oa = americanToDecimal(ml(x.awayTeamOdds));
+            const overIsHome = /over/.test(det) || !/under/.test(det);
+            if (out.overOdds == null) out.overOdds = (overIsHome ? oh : oa) || (overIsHome ? oa : oh);
+            if (out.underOdds == null) out.underOdds = (overIsHome ? oa : oh) || (overIsHome ? oh : oa);
+        }
+        const eYes = espnPriceToDecimal(x.bttsYes), eNo = espnPriceToDecimal(x.bttsNo);
+        if (eYes != null && out.bttsYes == null) out.bttsYes = eYes;
+        if (eNo != null && out.bttsNo == null) out.bttsNo = eNo;
+        if (out.bttsYes == null && out.bttsNo == null && /both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
+            out.bttsYes = americanToDecimal(ml(x.homeTeamOdds));
+            out.bttsNo = americanToDecimal(ml(x.awayTeamOdds));
+        }
+    }
     return (out.home == null && out.draw == null && out.away == null && !out.details) ? null : out;
 }
 

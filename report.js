@@ -230,12 +230,16 @@ function simMatchToReportEvent(m) {
                         abbreviation: homeCode,
                         logos: m.homeLogo ? [{ href: m.homeLogo }] : []
                     },
+                    // ESPN's own statistic names, so parseSideStats() reads them back.
+                    // They used to be sent as "possession"/"shots"/"corners"/"fouls",
+                    // which parseSideStats does not look for — a simulated report then
+                    // rendered only "On target" and silently dropped the rest.
                     statistics: [
-                        { name: "possession", displayValue: `${sh.possession || 50}%` },
-                        { name: "shots", displayValue: String(sh.shots || 10) },
+                        { name: "possessionPct", displayValue: `${sh.possession || 50}%` },
+                        { name: "totalShots", displayValue: String(sh.shots || 10) },
                         { name: "shotsOnTarget", displayValue: String(sh.shotsOnTarget || 4) },
-                        { name: "corners", displayValue: String(sh.corners || 4) },
-                        { name: "fouls", displayValue: String(sh.fouls || 8) },
+                        { name: "wonCorners", displayValue: String(sh.corners || 4) },
+                        { name: "foulsCommitted", displayValue: String(sh.fouls || 8) },
                         { name: "yellowCards", displayValue: String(sh.yellowCards || 1) },
                         { name: "redCards", displayValue: String(sh.redCards || 0) }
                     ]
@@ -251,11 +255,11 @@ function simMatchToReportEvent(m) {
                         logos: m.awayLogo ? [{ href: m.awayLogo }] : []
                     },
                     statistics: [
-                        { name: "possession", displayValue: `${sa.possession || 50}%` },
-                        { name: "shots", displayValue: String(sa.shots || 8) },
+                        { name: "possessionPct", displayValue: `${sa.possession || 50}%` },
+                        { name: "totalShots", displayValue: String(sa.shots || 8) },
                         { name: "shotsOnTarget", displayValue: String(sa.shotsOnTarget || 3) },
-                        { name: "corners", displayValue: String(sa.corners || 3) },
-                        { name: "fouls", displayValue: String(sa.fouls || 9) },
+                        { name: "wonCorners", displayValue: String(sa.corners || 3) },
+                        { name: "foulsCommitted", displayValue: String(sa.fouls || 9) },
                         { name: "yellowCards", displayValue: String(sa.yellowCards || 1) },
                         { name: "redCards", displayValue: String(sa.redCards || 0) }
                     ]

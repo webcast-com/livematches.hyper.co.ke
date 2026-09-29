@@ -441,6 +441,145 @@ check('canPreviewMatch accepts scheduled football fixtures across leagues and re
     assert(repHtml.includes('report.html?league=eng.1&id=1004&date=20260915'), `report URL malformed: ${repHtml}`);
 });
 
+/* ------------------------------------------------- odds + sim-stat regressions */
+
+/* Loads one page script into its own sandbox and hands back the named helpers.
+   app.js needs the fuller mock document the checks above already use. */
+function oddsSandbox(file, exports) {
+    const ctx = vm.createContext({
+        window: {},
+        document: {
+            getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
+            addEventListener: () => {}, documentElement: {}, createElement: () => ({ style: {}, classList: { add() {}, remove() {} }, setAttribute() {}, appendChild() {} })
+        },
+        console,
+        localStorage: { getItem: () => null, setItem: () => {} },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {}, clearTimeout: () => {}, clearInterval: () => {},
+        LANG: 'en', t: (k) => k, tf: (k) => k, navigator: {}, location: { search: '', hash: '' },
+        fetch: async () => ({ ok: false, status: 500, json: async () => ({}) })
+    });
+    vm.runInContext(readText(file) + `; globalThis.__x = { ${exports.join(', ')} };`, ctx);
+    return ctx.__x;
+}
+
+const appOdds = oddsSandbox('../app.js', ['parseESPNEvent', 'espnPriceToDecimal', 'americanToDecimal']);
+const matchOdds = oddsSandbox('../match.js', ['oddsFromCompetition', 'espnPriceToDecimal']);
+const prevOdds = oddsSandbox('../preview.js', ['previewOdds', 'espnPriceToDecimal']);
+
+check('espnPriceToDecimal is one implementation across app.js, match.js and preview.js', () => {
+    const inputs = [null, undefined, '', 0, 1, 1.5, 1.91, 2.5, 12, 25, 26, 45.31, 54.69, 100, -110, -115, 105, 250, '1.91', '-110', 'nonsense'];
+    const expected = { '-110': 1.91, '-115': 1.87, 105: 2.05, 100: 2, 250: 3.5 };
+    // 1 is not a price (no return), 25+ and the 45/54 pair are provider
+    // probabilities rather than odds, so all of them must come back null.
+    const dropped = [null, undefined, '', 0, 1, 'nonsense', 25, 26, 45.31, 54.69];
+    for (const fn of [appOdds, matchOdds, prevOdds]) {
+        for (const v of inputs) {
+            const got = fn.espnPriceToDecimal(v);
+            const label = `${JSON.stringify(v)} → ${got}`;
+            if (dropped.includes(v)) {
+                assert(got === null, `a value that is not a price should be dropped, got ${label}`);
+                continue;
+            }
+            if (expected[v] != null) {
+                assert(Math.abs(got - expected[v]) < 0.005, `expected ${expected[v]} for ${label}`);
+            } else {
+                assert(typeof got === 'number' && got > 1, `expected a decimal price, got ${label}`);
+            }
+        }
+    }
+});
+
+/* Every shape ESPN has been seen to publish for the totals and BTTS markets. */
+const ODDS_CASES = [
+    {
+        name: 'moneyline entry that merely carries the total line',
+        odds: [{ provider: { name: 'Draft Kings' }, details: 'ARS -145', overUnder: 2.5, spread: -0.5,
+                 homeTeamOdds: { moneyLine: -145 }, drawOdds: { moneyLine: 260 }, awayTeamOdds: { moneyLine: 380 } }],
+        expect: { overUnder: 2.5, overOdds: null, underOdds: null, bttsYes: null, bttsNo: null, home: -145, away: 380 }
+    },
+    {
+        name: 'entry-level Over/Under prices (the documented ESPN shape)',
+        odds: [{ provider: { name: 'Draft Kings' }, details: 'ARS -145', overUnder: 2.5, overOdds: -115, underOdds: 105,
+                 homeTeamOdds: { moneyLine: -145 }, drawOdds: { moneyLine: 260 }, awayTeamOdds: { moneyLine: 380 } }],
+        expect: { overUnder: 2.5, overOdds: 1.87, underOdds: 2.05, home: -145 }
+    },
+    {
+        name: 'separate entry whose details name the totals market',
+        odds: [
+            { provider: { name: 'Draft Kings' }, details: 'ARS -145', overUnder: 2.5, homeTeamOdds: { moneyLine: -145 }, drawOdds: { moneyLine: 260 }, awayTeamOdds: { moneyLine: 380 } },
+            { provider: { name: 'Draft Kings' }, details: 'O/U 2.5', homeTeamOdds: { moneyLine: -110 }, awayTeamOdds: { moneyLine: -110 } }
+        ],
+        expect: { overOdds: 1.91, underOdds: 1.91 }
+    },
+    {
+        name: 'BTTS entry',
+        odds: [{ provider: { name: 'Draft Kings' }, details: 'Both teams to score', homeTeamOdds: { moneyLine: -125 }, awayTeamOdds: { moneyLine: 105 } }],
+        expect: { bttsYes: 1.8, bttsNo: 2.05 }
+    }
+];
+
+check('parseESPNEvent reads the totals/BTTS markets the way ESPN publishes them', () => {
+    for (const c of ODDS_CASES) {
+        const ev = JSON.parse(JSON.stringify(scoreboard.events[0]));
+        ev.competitions[0].odds = c.odds;
+        const m = appOdds.parseESPNEvent(ev, { name: 'Premier League', code: 'EPL', sport: 'football' }, 'soccer/eng.1');
+        for (const [k, v] of Object.entries(c.expect)) {
+            const got = m.odds[k];
+            if (v === null) assert(got === null, `${c.name}: ${k} should stay empty, got ${JSON.stringify(got)}`);
+            else if (typeof v === 'number' && !Number.isInteger(v)) assert(Math.abs(got - v) < 0.005, `${c.name}: ${k} expected ${v}, got ${got}`);
+            else assert(got === v, `${c.name}: ${k} expected ${v}, got ${JSON.stringify(got)}`);
+        }
+    }
+});
+
+check('a moneyline entry never has its 1X2 prices relabelled as Over/Under payouts', () => {
+    const ev = JSON.parse(JSON.stringify(scoreboard.events[0]));
+    ev.competitions[0].odds = [ODDS_CASES[0].odds[0]];
+    const m = appOdds.parseESPNEvent(ev, { name: 'Premier League', code: 'EPL', sport: 'football' }, 'soccer/eng.1');
+    assert(m.odds.overOdds === null && m.odds.underOdds === null,
+        `Over/Under payouts were invented from the moneyline: ${m.odds.overOdds} / ${m.odds.underOdds}`);
+});
+
+check('app.js and match.js agree on every odds market for the same competition', () => {
+    for (const c of ODDS_CASES) {
+        const comp = { odds: c.odds };
+        const a = appOdds.parseESPNEvent({ id: '1', date: '2026-05-24T15:00Z', status: { type: { state: 'post', completed: true } }, competitions: [{ ...comp, competitors: scoreboard.events[0].competitions[0].competitors }] },
+            { name: 'Premier League', code: 'EPL', sport: 'football' }, 'soccer/eng.1').odds;
+        const b = matchOdds.oddsFromCompetition(comp);
+        for (const k of ['home', 'draw', 'away', 'overUnder', 'overOdds', 'underOdds', 'bttsYes', 'bttsNo']) {
+            const same = (a[k] == null && b[k] == null) || (typeof a[k] === 'number' && Math.abs(a[k] - b[k]) < 1e-9) || a[k] === b[k];
+            assert(same, `${c.name}: ${k} differs — app.js ${JSON.stringify(a[k])} vs match.js ${JSON.stringify(b[k])}`);
+        }
+    }
+});
+
+check('preview.js renders totals prices as decimals, not raw American moneylines', () => {
+    const out = prevOdds.previewOdds({ odds: ODDS_CASES[1].odds });
+    assert(Math.abs(out.overOdds - 1.87) < 0.005 && Math.abs(out.underOdds - 2.05) < 0.005,
+        `preview.js totals prices are ${out.overOdds} / ${out.underOdds}`);
+    const html = readText('../preview.js');
+    assert(!/↑\$\{.*overOdds/.test(html) || html.includes('Number(odds.overOdds).toFixed(2)'),
+        'preview.js oddsCapsulesHTML must format odds.overOdds as a number');
+});
+
+check('a simulated match report keeps every stat the mock match carries', () => {
+    const ctx = oddsSandbox('../report.js', ['simMatchToReportEvent', 'parseSideStats']);
+    const sim = {
+        id: 'fb-1', league: 'UEFA Champions League', leagueSlug: 'uefa.champions', homeTeam: 'Arsenal', homeCode: 'ARS',
+        awayTeam: 'Chelsea', awayCode: 'CHE', homeScore: 2, awayScore: 1, time: 'FT', venue: 'Emirates Stadium',
+        stats: { possession: 55, shots: 8, shotsOnTarget: 4, corners: 4, fouls: 7, yellowCards: 2, redCards: 0 }
+    };
+    const ev = ctx.simMatchToReportEvent(sim);
+    const cs = ev.competitions[0].competitors;
+    const home = cs.find((c) => c.homeAway === 'home');
+    const parsed = ctx.parseSideStats(home);
+    assert(parsed.poss === 55, `possession lost from the simulated report (got ${parsed.poss})`);
+    assert(parsed.shots === 8, `shots lost from the simulated report (got ${parsed.shots})`);
+    assert(parsed.corners === 4, `corners lost from the simulated report (got ${parsed.corners})`);
+    assert(parsed.fouls === 7, `fouls lost from the simulated report (got ${parsed.fouls})`);
+});
+
 /* ------------------------------------------------------------------ report */
 
 function report() {
