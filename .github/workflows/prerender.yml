@@ -13,7 +13,7 @@ name: Prerender static pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, arena/01a0f3fd-livematches-hyper-co-ke]  # TEMPORARY: run on the working branch
   schedule:
     - cron: '0 4 * * *'
   workflow_dispatch:
