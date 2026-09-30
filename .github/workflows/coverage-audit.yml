@@ -1,0 +1,100 @@
+# Asks ESPN, competition by competition, whether it is actually serving data
+# for everything the site registers — and writes the answer to
+# COVERAGE-AUDIT.md + testdata/coverage-audit.json.
+#
+# COMPETITION-COVERAGE.md counts what the code wires up (261 competitions).
+# This run counts what the upstream API answers: live / idle (out of season) /
+# empty / dead. It is the only way to notice a slug that is registered
+# everywhere the contract demands and still 400s forever.
+#
+# Manual only (workflow_dispatch) plus a weekly Monday run — it makes a few
+# hundred requests, so it has no business firing on every push.
+
+name: Coverage audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 5 * * 1'
+  # Re-audit whenever the registry itself changes: adding or repointing a
+  # competition is exactly when we want to know whether ESPN answers it.
+  push:
+    branches: [main]
+    paths:
+      - 'tools/audit-coverage.mjs'
+      - '.github/workflows/coverage-audit.yml'
+      - 'app.js'
+      - 'standings.js'
+      - 'tools/sports.mjs'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: coverage-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # the commit step may have to rebase onto a moved tip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ask ESPN which leagues it publishes for the numeric-id sports
+        run: node tools/audit-coverage.mjs --discover rugby,cricket
+
+      - name: Probe every registered competition
+        run: node tools/audit-coverage.mjs
+
+      - name: Verify the repository still passes its checks
+        run: node testdata/verify.mjs
+
+      - name: Show the summary in the run log
+        run: sed -n '/## Totals/,/^## By sport/p' COVERAGE-AUDIT.md
+
+      - name: Commit the audit
+        run: |
+          set -eu
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          FILES="COVERAGE-AUDIT.md testdata/coverage-audit.json testdata/espn-league-directory.json"
+
+          # The prerender job commits to this same branch and the audit takes a
+          # couple of minutes, so the tip regularly moves underneath us. Keep the
+          # generated files outside the work tree and replay them onto whatever
+          # landed, rather than losing a run to a non-fast-forward.
+          mkdir -p /tmp/audit-out
+          for f in $FILES; do
+            [ -f "$f" ] && cp "$f" "/tmp/audit-out/$(basename "$f")"
+          done
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${GITHUB_REF_NAME}"
+            git reset --hard "origin/${GITHUB_REF_NAME}"
+            for f in $FILES; do
+              [ -f "/tmp/audit-out/$(basename "$f")" ] && cp "/tmp/audit-out/$(basename "$f")" "$f"
+            done
+            git add $FILES
+            if git diff --cached --quiet; then
+              echo "No changes to commit."
+              exit 0
+            fi
+            git commit -m "Coverage audit: refresh which competitions ESPN is actually serving"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Pushed on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push rejected on attempt ${attempt}; replaying onto the new tip."
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not push the audit after five attempts."
+          exit 1

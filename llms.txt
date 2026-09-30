@@ -10,8 +10,10 @@ news, highlights and headlines. No account is required for anything.
 
 - [Live scores](https://livematches.hyper.co.ke/): every match live now, today's fixtures and results, the fixtures calendar, top scorers and the match spotlight
 - [News](https://livematches.hyper.co.ke/news.html): football headlines and stories, filterable by competition, each story opening on-site
-- [Standings](https://livematches.hyper.co.ke/standings.html): league tables for 30+ competitions, deep-linkable per league (e.g. standings.html?league=eng.1)
-- [Premier League table](https://livematches.hyper.co.ke/table/eng.1/): static table pages also exist per league under /table/<league-slug>/ (e.g. /table/esp.1/, /table/ken.1/)
+- [Standings](https://livematches.hyper.co.ke/standings.html): league tables for 70+ football competitions, deep-linkable per league (e.g. standings.html?league=eng.1) — plus static tables for American football (NFL, college), basketball (NBA, WNBA, NBL), baseball (MLB) and ice hockey (NHL)
+- [League tables](https://livematches.hyper.co.ke/table/eng.1/): one static page per league under /table/<league-slug>/ (e.g. /table/esp.1/, /table/ken.1/, /table/nfl/, /table/mlb/)
+- [Match reports and previews](https://livematches.hyper.co.ke/previews.html): static per-match pages under /report/<match-id>/ and /preview/<match-id>/ — scoreline, scoring plays, period/innings line score and team stats for the finished games of the last week, and kickoff, venue, records and odds for the fixtures ahead
+- Every snapshot is plain static HTML — a table or match page reads with JavaScript disabled — and each one credits ESPN as the data source
 - [Previews & reports](https://livematches.hyper.co.ke/previews.html): every fixture previewed before kickoff and reported after full-time
 - [Predictions](https://livematches.hyper.co.ke/predictions.html): free fan predictor — pick exact scores, auto-settled scoring
 - [Transfers](https://livematches.hyper.co.ke/transfers.html): confirmed deals and rumours, filterable by league

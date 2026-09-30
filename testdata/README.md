@@ -22,6 +22,69 @@ Notes:
   inline.
 - These files are in the served root, so `robots.txt` disallows `/testdata/`.
 
+## `live/` — recorded ESPN payloads per sport
+
+`espn-standings.sample.json` is hand-written and soccer-shaped. The prerenderer
+now also publishes tables and match snapshots for baseball, American football,
+basketball and hockey, whose payloads carry different numbers (innings and
+quarters, W-L-PCT-GB standings, nested box scores) — and a parser can only be
+written against the real shape. `tools/collect-samples.mjs` records those
+payloads:
+
+```
+node tools/collect-samples.mjs              # full collection (needs the network;
+                                            # the CI job runs this step)
+node tools/collect-samples.mjs --probe      # liveness check of every candidate
+                                            # slug, writes manifest only
+```
+
+It writes `live/<date>/standings.<sport>.<league>.json`,
+`scoreboard.<sport>.<league>.<yyyymmdd>.json`,
+`summary.<sport>.<league>.<eventId>.json` and a `manifest.json` recording every
+league and probe (which slugs are live, which answer 400, how many rows each
+table has). The league list comes from `tools/sports.mjs`, so a fixture can
+never drift from a page the prerenderer would publish.
+
+`node tools/prerender.mjs --offline` then builds a demo from these files — the
+other sports from `live/`, soccer from the hand-written samples — which is how
+the sport-aware renderers are tested without network access. It refuses to run
+without `--out`: offline it only has the MLS sample for one league and the
+recorded fixtures for the rest, so writing into the repository would overwrite
+the live-generated pages with demo data (the hand-written standings sample is
+used for `usa.1` alone, for the same reason):
+
+```
+node tools/prerender.mjs --offline --out /tmp/check
+node testdata/verify.mjs
+```
+
+Trimmed: the fixtures hold the fields the parsers read, the opening dozen plays
+of each match plus every scoring play, and nothing else (the full play-by-play
+alone is megabytes per game).
+
+## `coverage-audit.json` — what ESPN is actually serving
+
+`COMPETITION-COVERAGE.md` counts what the code registers (263 competitions).
+`tools/audit-coverage.mjs` asks ESPN the different question — does this slug
+answer, and with content? — one scoreboard request per competition over a ±7
+day window, plus a standings request for every league that advertises a
+`/table/<slug>/` page. It writes `COVERAGE-AUDIT.md` (human-readable, grouped by
+sport and country) and `testdata/coverage-audit.json` (machine-readable), and
+the CI job commits both so the census survives:
+
+```
+node tools/audit-coverage.mjs                # everything (needs network)
+node tools/audit-coverage.mjs --sport soccer
+node tools/audit-coverage.mjs --limit 20     # smoke test
+```
+
+Verdicts: `live` (answered with fixtures or a table), `idle` (answered, out of
+season), `empty` (answered with no league identity), `dead` (HTTP error — a
+slug to drop). The first full run found 255 live, 1 idle, 0 empty and 7 dead
+(the three cricket and three rugby slugs the site registers, plus `ukr.1`).
+Like the fixtures, the audit is committed by CI because this sandbox cannot
+reach ESPN.
+
 ## Verify
 
 ```
@@ -32,7 +95,15 @@ Runs BOM/JSON checks, asserts every field path the site reads is present and of
 the right type, then loads `../standings.js` and parses the samples with the real
 `parseStandingsGroups()` — proving both MLS conferences survive, that one-table
 and nested payloads still produce one table, and that season labels come off the
-payload rather than a hard-coded year. Finally it cross-checks `sitemap.xml` and
+payload rather than a hard-coded year. It cross-checks `sitemap.xml` and
 `standings.html` against `STANDINGS_LEAGUES`, so the two can no longer drift
 apart silently (the reason seven sitemap links used to render the Premier League
-table). No dependencies, no network; exits non-zero on failure.
+table). Since the multi-sport pass it also imports the prerenderer's parsers and
+runs them over `live/<date>/` — the NFL, NHL and MLB fixtures must still yield
+their conferences, their columns (W/L/PCT/GB, GP/W/L/OTL/PTS) and the right
+season label (`seasonLabelForSport()` is pinned against ESPN's habit of rolling
+`season.year` over before the new season starts) — and it checks that the
+non-soccer table pages stay inside `tools/sports.mjs`, are self-canonical, are
+listed in the sitemap, and never hand a reader off to the soccer-only
+`report.html`/`preview.html` tools. No dependencies, no network; exits non-zero
+on failure.

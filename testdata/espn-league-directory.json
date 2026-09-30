@@ -1,0 +1,258 @@
+{
+ "at": "2026-09-30T21:39:35.066Z",
+ "directory": {
+  "rugby": [
+   {
+    "id": "8005",
+    "slug": "270559",
+    "abbreviation": "TOP14",
+    "name": "French Top 14",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 17,
+    "espnName": "French Top 14"
+   },
+   {
+    "id": "8331",
+    "slug": "270557",
+    "abbreviation": "United Rugby Championship",
+    "name": "United Rugby Championship",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 16,
+    "espnName": "United Rugby Championship"
+   },
+   {
+    "id": "8004",
+    "slug": "270563",
+    "abbreviation": "National Provence Championship",
+    "name": "Mitre 10 Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 14,
+    "espnName": "Mitre 10 Cup"
+   },
+   {
+    "id": "20113",
+    "slug": "289279",
+    "abbreviation": "URBA Top 14",
+    "name": "URBA Top 14",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 14,
+    "espnName": "URBA Top 14"
+   },
+   {
+    "id": "8007",
+    "slug": "267979",
+    "abbreviation": "Prem Rugby",
+    "name": "Prem Rugby",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 10,
+    "espnName": "Gallagher Prem"
+   },
+   {
+    "id": "10659",
+    "slug": "289234",
+    "abbreviation": "International Test Match",
+    "name": "International Test Match",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 1,
+    "espnName": "International Test Match"
+   },
+   {
+    "id": "19940",
+    "slug": "289274",
+    "abbreviation": "2020 Tri Nations",
+    "name": "2020 Tri Nations",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "2020 Tri Nations"
+   },
+   {
+    "id": "8009",
+    "slug": "236461",
+    "abbreviation": "Anglo-Welsh Cup",
+    "name": "Anglo-Welsh Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Anglo-Welsh Cup"
+   },
+   {
+    "id": "8016",
+    "slug": "268565",
+    "abbreviation": "British and Irish Lions Tour",
+    "name": "British and Irish Lions Tour",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "British and Irish Lions Tour"
+   },
+   {
+    "id": "8002",
+    "slug": "270555",
+    "abbreviation": "Currie Cup",
+    "name": "Currie Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Currie Cup"
+   },
+   {
+    "id": "8010",
+    "slug": "272073",
+    "abbreviation": "European Rugby Challenge Cup",
+    "name": "European Rugby Challenge Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "European Rugby Challenge Cup"
+   },
+   {
+    "id": "8329",
+    "slug": "271937",
+    "abbreviation": "European Rugby Champions Cup",
+    "name": "European Rugby Champions Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "European Rugby Champions Cup"
+   },
+   {
+    "id": "19114",
+    "slug": "289262",
+    "abbreviation": "Major League Rugby",
+    "name": "Major League Rugby",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Major League Rugby"
+   },
+   {
+    "id": "24400",
+    "slug": "17567",
+    "abbreviation": "Nations Championship",
+    "name": "Nations Championship",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Nations Championship"
+   },
+   {
+    "id": "10743",
+    "slug": "282",
+    "abbreviation": "",
+    "name": "Olympic Men's 7s",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Olympic Men's 7s"
+   },
+   {
+    "id": "10729",
+    "slug": "283",
+    "abbreviation": "OLYWRS",
+    "name": "Olympic Women's Rugby Sevens",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Olympic Women's Rugby Sevens"
+   },
+   {
+    "id": "8337",
+    "slug": "164205",
+    "abbreviation": "Rugby World Cup",
+    "name": "Rugby World Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Rugby World Cup"
+   },
+   {
+    "id": "8323",
+    "slug": "180659",
+    "abbreviation": "Six Nations",
+    "name": "Six Nations",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Six Nations"
+   },
+   {
+    "id": "19867",
+    "slug": "289271",
+    "abbreviation": "Super Rugby Aotearoa",
+    "name": "Super Rugby Aotearoa",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Super Rugby Aotearoa"
+   },
+   {
+    "id": "19869",
+    "slug": "289272",
+    "abbreviation": "Super Rugby AU",
+    "name": "Super Rugby AU",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Super Rugby AU"
+   },
+   {
+    "id": "8326",
+    "slug": "242041",
+    "abbreviation": "Super Rugby Pacific",
+    "name": "Super Rugby Pacific",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Super Rugby Pacific"
+   },
+   {
+    "id": "20008",
+    "slug": "289277",
+    "abbreviation": "Super Rugby Trans-Tasman",
+    "name": "Super Rugby Trans-Tasman",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Super Rugby Trans-Tasman"
+   },
+   {
+    "id": "8328",
+    "slug": "244293",
+    "abbreviation": "Rugby Championship",
+    "name": "The Rugby Championship",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "The Rugby Championship"
+   },
+   {
+    "id": "4001",
+    "slug": "2009",
+    "abbreviation": "URBA Primera A",
+    "name": "URBA Primera A",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "URBA Primera A"
+   },
+   {
+    "id": "17953",
+    "slug": "289237",
+    "abbreviation": "Women's Rugby World Cup",
+    "name": "Women's Rugby World Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Women's Rugby World Cup"
+   }
+  ],
+  "cricket": []
+ }
+}

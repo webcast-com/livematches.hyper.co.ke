@@ -249,6 +249,29 @@ drift from what the app renders:
   both regimes: current repo (hand-written sitemap) and a simulated
   post-Action clone with generated pages — 87/87 in each.
 
+**Shipped — PR-S2 "More sports" (2026-09-30):** the same generator now covers the
+four sports that have no interactive page of their own (plus rugby, which the
+coverage audit re-pointed at ESPN's numeric ids). `tools/sports.mjs` is the one
+list of leagues, and `tools/prerender.mjs` renders sport-aware pages from it:
+- `/table/<slug>/` — NFL (conferences), college football (11 conferences), NBA,
+  WNBA, NBL, MLB (AL/NL), NHL (divisions): the columns differ per sport
+  (W-L-PCT-GB, GP-W-L-OTL-PTS, W-L-PF-PA), so `TABLE_COLUMNS` picks the stat
+  names that exist in the payload and drops the ones that do not
+- `/report/<id>/` + `/preview/<id>/` — line score by period or inning, scoring
+  plays (or the inning score for baseball, which publishes no play flags), team
+  stats from the match summary, records, venue, odds where ESPN carries them
+- preview windows: 3 days for football (soccer) as before, 7 for the other
+  sports, which play weekly rather than daily; per-league snapshot caps keep one
+  busy league from filling the window
+- `tools/collect-samples.mjs` records the real ESPN payloads the other sports
+  return into `testdata/live/<date>/` (the sandbox that develops these pages
+  cannot reach ESPN), and `--offline` builds from them
+- verify.mjs 87 → **92 checks**: every sport table page belongs to a configured
+  league and carries real column headers, every hand-written `/table/` link
+  points at a configured league, snapshot pages never link a non-soccer match to
+  the soccer-only tools, and the sport parsers are re-run over the recorded
+  payloads (conferences, columns and season labels included)
+
 **To activate:** merge to main — the workflow fires on the push and commits
 the pages (or run `node tools/prerender.mjs` locally and push). Until that
 first run the repo simply has no `table/`/`report/`/`preview/` dirs and the
