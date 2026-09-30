@@ -1,5 +1,5 @@
 {
- "at": "2026-09-30T21:25:37.499Z",
+ "at": "2026-09-30T21:29:26.475Z",
  "directory": {
   "rugby": [
    {
@@ -9,18 +9,8 @@
     "name": "French Top 14",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 8,
+    "events": 17,
     "espnName": "French Top 14"
-   },
-   {
-    "id": "20113",
-    "slug": "289279",
-    "abbreviation": "URBA Top 14",
-    "name": "URBA Top 14",
-    "isTournament": false,
-    "scoreboardOk": true,
-    "events": 7,
-    "espnName": "URBA Top 14"
    },
    {
     "id": "8331",
@@ -29,7 +19,7 @@
     "name": "United Rugby Championship",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 3,
+    "events": 16,
     "espnName": "United Rugby Championship"
    },
    {
@@ -39,8 +29,18 @@
     "name": "Mitre 10 Cup",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 1,
+    "events": 14,
     "espnName": "Mitre 10 Cup"
+   },
+   {
+    "id": "20113",
+    "slug": "289279",
+    "abbreviation": "URBA Top 14",
+    "name": "URBA Top 14",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 14,
+    "espnName": "URBA Top 14"
    },
    {
     "id": "8007",
@@ -49,8 +49,18 @@
     "name": "Prem Rugby",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 1,
+    "events": 10,
     "espnName": "Gallagher Prem"
+   },
+   {
+    "id": "10659",
+    "slug": "289234",
+    "abbreviation": "International Test Match",
+    "name": "International Test Match",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 1,
+    "espnName": "International Test Match"
    },
    {
     "id": "19940",
@@ -111,16 +121,6 @@
     "scoreboardOk": true,
     "events": 0,
     "espnName": "European Rugby Champions Cup"
-   },
-   {
-    "id": "10659",
-    "slug": "289234",
-    "abbreviation": "International Test Match",
-    "name": "International Test Match",
-    "isTournament": false,
-    "scoreboardOk": true,
-    "events": 0,
-    "espnName": "International Test Match"
    },
    {
     "id": "19114",
