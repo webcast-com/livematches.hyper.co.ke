@@ -337,10 +337,18 @@ async function main() {
     log(`mode=${PROBE_ONLY ? 'probe only' : 'full'} out=${LIVE_DIR} ${STAMP}`);
     if (!PROBE_ONLY) {
         // a fresh dated folder each run, so the fixtures for one run stay together
+        mkdirSync(LIVE_DIR, { recursive: true });
         const dir = path.join(LIVE_DIR, STAMP);
         if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
-        const keep = readdirSync(LIVE_DIR, { withFileTypes: true }).filter((e) => e.isDirectory() && e.name !== STAMP).map((e) => e.name).sort();
-        for (const old of keep.slice(-2)) { /* keep the two most recent runs */ }
+        // keep the two most recent previous runs; older ones are the repo's
+        // problem, not ours (they are pruned by hand when the fixtures rotate)
+        const previous = readdirSync(LIVE_DIR, { withFileTypes: true })
+            .filter((e) => e.isDirectory() && e.name !== STAMP)
+            .map((e) => e.name).sort();
+        for (const old of previous.slice(0, Math.max(0, previous.length - 2))) {
+            rmSync(path.join(LIVE_DIR, old), { recursive: true, force: true });
+            log(`pruned old fixture run ${old}`);
+        }
     }
 
     for (const L of LEAGUES) {
@@ -365,7 +373,7 @@ async function main() {
             }
         }
         // 2. scoreboards across the report + preview window
-        if (L.matches !== false) {
+        if (L.matches === true) {
             for (const day of days) {
                 try {
                     const j = await fetchJSON(`https://site.api.espn.com/apis/site/v2/sports/${L.sport}/${L.league}/scoreboard?dates=${yymmdd(day)}`);
@@ -390,7 +398,8 @@ async function main() {
             }
         }
         manifest.leagues.push(entry);
-        log(`${L.sport}/${L.league}: standings=${entry.standings}${entry.tableRows ? `(${entry.tableRows} rows)` : ''} scoreboards=${entry.scoreboards} summaries=${entry.summaries}`);
+        const note = entry.standingsError ? ` [standings: ${entry.standingsError}]` : '';
+        log(`${L.sport}/${L.league}: standings=${entry.standings}${entry.tableRows ? `(${entry.tableRows} rows)` : ''} scoreboards=${entry.scoreboards} summaries=${entry.summaries}${note}`);
     }
 
     // 3. liveness probes for the wider candidate list
