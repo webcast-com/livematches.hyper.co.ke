@@ -328,8 +328,14 @@ check('multi-sport table pages are for configured leagues and self-canonical', (
         // the page must not advertise a table that is empty: at least a header
         // row plus one club per configured column
         const columns = TABLE_COLUMNS[entry.sport] || [];
-        assert(!columns.length, `no TABLE_COLUMNS configured for ${entry.sport}`);
-        assert(c.includes('class="full-team-name"'), `table/${d}: the table has no team rows`);
+        assert(columns.length, `no TABLE_COLUMNS configured for ${entry.sport}`);
+        assert(c.includes('class="full-team-name"'), `table/${d}: the table has no table rows`);
+        // at least a third of the configured columns must appear as headers,
+        // otherwise the page is a table of names with no numbers behind them
+        const headers = [...c.matchAll(/<th>([^<]*)<\/th>/g)].map((m) => m[1]);
+        const present = columns.filter((col) => headers.includes(col.label)).length;
+        assert(present >= Math.ceil(columns.length / 3),
+            `table/${d}: only ${present} of ${columns.length} ${entry.sport} columns rendered (${headers.join(',')})`);
     }
 });
 
