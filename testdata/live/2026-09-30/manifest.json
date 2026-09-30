@@ -1,5 +1,5 @@
 {
- "collectedAt": "2026-09-30T21:25:01.837Z",
+ "collectedAt": "2026-09-30T21:38:23.602Z",
  "leagues": [
   {
    "sport": "baseball",
@@ -583,7 +583,7 @@
   }
  ],
  "totals": {
-  "bytes": 6072082,
+  "bytes": 6072705,
   "files": 148
  }
 }
