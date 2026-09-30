@@ -6115,3 +6115,24 @@ body.modal-open {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== Static page-intro blocks + noscript note (SEO/V1 pass, 2026-09-30) ===== */
+.page-intro {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--primary);
+    border-radius: 8px;
+    background: rgba(0, 242, 254, 0.06);
+}
+.page-intro p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+.page-intro a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+html[data-theme="light"] .page-intro { background: rgba(0, 100, 180, 0.07); }
+.noscript-note {
+    margin: 12px 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--warning);
+    color: var(--text-secondary);
+    font-size: 13px;
+    background: rgba(245, 158, 11, 0.08);
+}

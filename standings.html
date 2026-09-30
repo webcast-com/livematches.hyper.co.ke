@@ -32,6 +32,7 @@
          /_vercel/insights/script.js as its fallback). The two /_vercel script tags
          that used to sit here 404 on every non-Vercel host and logged two console
          errors per page load, so they are no longer requested up front. -->
+    <script type="application/ld+json" id="page-jsonld">{"@context":"https://schema.org","@type":"CollectionPage","name":"League Standings","url":"https://livematches.hyper.co.ke/standings.html","isPartOf":{"@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://livematches.hyper.co.ke/"},{"@type":"ListItem","position":2,"name":"League Standings","item":"https://livematches.hyper.co.ke/standings.html"}]}}</script>
     <script type="module" src="analytics.js"></script>
 </head>
 <body>
@@ -53,9 +54,14 @@
             </div>
         </header>
 
+        <noscript><div class="noscript-note">League tables update live with JavaScript. Without it you can still read the page overview below — enable JavaScript and reload for the full tables.</div></noscript>
+
         <main class="card legal-card">
             <h1>Standings</h1>
             <p class="legal-updated">Complete tables — every team, updated live on matchdays. Data: ESPN.</p>
+            <section class="page-intro" aria-label="About this page">
+                <p>Live league tables for 30+ competitions: the Premier League, La Liga, Serie A, Bundesliga, Ligue 1 and the Champions League, plus MLS, Liga MX, Brasileir&atilde;o, the Saudi Pro League — and the Kenyan and Ugandan Premier Leagues. Every table shows the full W/D/L record, goals and form, updated live on matchdays, and each league has its own shareable link — for example the <a href="?league=eng.1">Premier League table</a> or the <a href="?league=ken.1">Kenyan Premier League table</a>. Planning around a fixture? See <a href="index.html">today's live scores</a>, read the <a href="previews.html">match previews</a>, or pick results in the free <a href="predictions.html">predictions game</a>.</p>
+            </section>
             <div class="chip-row" id="standings-chips">
                 <button class="standings-tab active" data-league="EPL">Premier League</button>
                 <button class="standings-tab" data-league="LaLiga">La Liga</button>

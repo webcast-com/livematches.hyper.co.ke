@@ -115,13 +115,27 @@ don't fix blind.**
 
 | # | Idea | Where | Effort | Risk | Fallback |
 |---|------|-------|--------|------|----------|
-| V1.1 ✅✅ **THE big one** | **Static-first intro block on every hub page**: below the existing H1, add a unique 60–120-word prose section (what the page offers, which leagues, what a user can do) + **3–6 in-body contextual links** to related pages (e.g. Standings → “Premier League table”, “Champions League table”, “Latest news”). This is what the indexed pages have and the rest don't. Zero JS involvement — it renders even if every ESPN fetch fails | All 10 hub pages | M | Very low | N/A (plain HTML) |
-| V1.2 | **`<noscript>` block** on every page: 2–3 sentences + key links, so crawlers with JS rendering disabled/failed still see real content | All pages | S | Very low | N/A |
-| V1.3 | **Sitemap hygiene**: remove the four bare template URLs (`match`, `preview`, `report`, `story` — they render soft-404s); add `<lastmod>` to real pages; keep `?league=` URLs (JS-rendered tables do get indexed, lower priority). Re-submit in GSC | `sitemap.xml` | S | Very low | N/A |
-| V1.4 | **Static JSON-LD per hub page**: `BreadcrumbList` + `CollectionPage`/`WebPage` (and `SportsOrganization` on About). The dynamic `SportsEvent`/`NewsArticle` injection in `seo.js` stays untouched — crawlers that render JS still get the rich data | All pages | S | Very low | N/A |
-| V1.5 | **`llms.txt` at the domain root** (H1 + one-paragraph site summary + markdown links to every hub page — must follow the spec: H1 heading, ≥1 markdown link, not too short, or the agentic audit scores it **worse** than absent). Draft in §6 | `llms.txt` (new) | S | Very low | Absent = not scored; malformed = −1. Get the format right |
+| V1.1 ✅ **THE big one** | **Static-first intro block on every hub page**: below the existing H1, add a unique 60–120-word prose section (what the page offers, which leagues, what a user can do) + **3–6 in-body contextual links** to related pages (e.g. Standings → “Premier League table”, “Champions League table”, “Latest news”). This is what the indexed pages have and the rest don't. Zero JS involvement — it renders even if every ESPN fetch fails | All 10 hub pages | M | Very low | N/A (plain HTML) |
+| V1.2 ✅ | **`<noscript>` block** on every page: 2–3 sentences + key links, so crawlers with JS rendering disabled/failed still see real content | All pages | S | Very low | N/A |
+| V1.3 ✅ | **Sitemap hygiene**: remove the four bare template URLs (`match`, `preview`, `report`, `story` — they render soft-404s); add `<lastmod>` to real pages; keep `?league=` URLs (JS-rendered tables do get indexed, lower priority). Re-submit in GSC | `sitemap.xml` | S | Very low | N/A |
+| V1.4 ✅ | **Static JSON-LD per hub page**: `BreadcrumbList` + `CollectionPage`/`WebPage` (and `SportsOrganization` on About). The dynamic `SportsEvent`/`NewsArticle` injection in `seo.js` stays untouched — crawlers that render JS still get the rich data | All pages | S | Very low | N/A |
+| V1.5 ✅ | **`llms.txt` at the domain root** (H1 + one-paragraph site summary + markdown links to every hub page — must follow the spec: H1 heading, ≥1 markdown link, not too short, or the agentic audit scores it **worse** than absent). Draft in §6 | `llms.txt` (new) | S | Very low | Absent = not scored; malformed = −1. Get the format right |
 | V1.6 | **Crawl-budget guard**: while per-match URLs aren't prerenderable yet, keep them crawlable (they're the future) — no robots change. Revisit after Phase S1 | — | — | — | — |
-| V1.7 | **In-body cross-links in prose** on `about.html` (“see live scores”, “league tables”) — makes the strongest indexed page distribute authority | `about.html` | S | Very low | N/A |
+| V1.7 ✅ | **In-body cross-links in prose** on `about.html` (“see live scores”, “league tables”) — makes the strongest indexed page distribute authority | `about.html` | S | Very low | N/A |
+
+Bonus (part of V1.1): the four template pages (`match/preview/report/story`)
+now ship **static seed content inside the JS-render container** — an H1, a
+description and on-site links that the page's own script replaces when it
+renders. Crawlers that fail/finish before JS see a real page instead of a
+283-char shell; JS users notice nothing.
+
+**Shipped — PR-V "Crawlable" (2026-09-30):** V1.1 (intro blocks + links on all
+7 hubs + template seeds), V1.2 (noscript on 11 pages), V1.3 (4 template URLs
+removed from sitemap, `<lastmod>` added to all 42), V1.4 (static
+CollectionPage/WebPage + BreadcrumbList JSON-LD on 12 pages), V1.5
+(`llms.txt`), V1.7 (about.html explore-links). verify.mjs 80/80 green;
+internal-link and JSON-LD validity checks pass. V0 (GSC actions) is on the
+site owner, not in code.
 
 **Expected effect:** this is the difference between "JS shell" and "a page
 with content" for every URL. Combined with V0.3 re-submission, hub pages
