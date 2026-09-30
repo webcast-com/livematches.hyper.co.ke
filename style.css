@@ -6165,3 +6165,18 @@ html[data-theme="light"] .page-intro { background: rgba(0, 100, 180, 0.07); }
 }
 .main-nav .dropdown-toggle:focus-visible,
 .skip-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Sport pages: per-sport heading + summary for crawlers and screen readers.
+   Visually hidden and out of flow, so the dashboard layout is untouched. */
+.sport-page-intro {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}

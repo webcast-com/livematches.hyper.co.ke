@@ -597,18 +597,44 @@ function saveSessionSnapshot() {
     } catch (e) { /* storage full or blocked — stay in-memory, as before */ }
 }
 
+// Sport tab the current address belongs to ("all" for the home page, or when the
+// sport-pages.js helper is unavailable).
+function sportFromUrl() {
+    try {
+        const sp = window.SportPages;
+        const sport = sp ? sp.sportForPath(window.location.pathname) : "all";
+        return hasSportTab(sport) ? sport : "all";
+    } catch (e) { return "all"; }
+}
+
+function hasSportTab(sport) {
+    return !!document.querySelector(`.sport-tab[data-sport="${sport}"]`);
+}
+
+// Keep the address bar, tab title and canonical in step with the selected sport.
+function syncSportUrl(mode) {
+    try { if (window.SportPages) window.SportPages.navigate(currentSport, mode); } catch (e) { /* cosmetic only */ }
+}
+
 // Restore the view first: it is what the controls show, and it decides whether the
 // saved matches still belong to this screen.
 function restoreViewState() {
+    // The address decides the sport: /basketball/ opens the Basketball tab, the
+    // home page opens All Sports. (Before the sport pages existed the last-used
+    // tab came back from storage — it still does for everything below.)
+    const pageSport = sportFromUrl();
+    currentSport = pageSport;
     const saved = store.get(VIEW_CACHE_KEY, null);
     if (!saved || typeof saved !== "object") return;
     // Only values this page actually offers are restored, so a snapshot from
     // another page (or an older build) can never leave the UI in a dead state.
     // Storage is user-editable, so a malformed selector must not break boot either.
     const hasControl = (sel) => { try { return !!document.querySelector(sel); } catch (e) { return false; } };
-    if (typeof saved.sport === "string" && hasControl(`.sport-tab[data-sport="${saved.sport}"]`)) currentSport = saved.sport;
+    // A league picked on another sport's screen would hide everything here, so it
+    // is only brought back when the saved view was for this same sport.
+    const sameSport = saved.sport === pageSport;
     if (typeof saved.filter === "string" && hasControl(`.filter-tab[data-filter="${saved.filter}"]`)) currentFilter = saved.filter;
-    if (saved.league === "all" || (typeof saved.league === "string" && hasControl(`.league-row[data-league-id="${saved.league}"]`))) currentLeague = saved.league;
+    if (sameSport && (saved.league === "all" || (typeof saved.league === "string" && hasControl(`.league-row[data-league-id="${saved.league}"]`)))) currentLeague = saved.league;
     if (saved.leaders === "goals" || saved.leaders === "assists") leadersCategory = saved.leaders;
     if (typeof saved.standings === "string" && hasControl(`.standings-tab[data-standing-league="${saved.standings}"]`)) currentStandingLeague = saved.standings;
     if (typeof saved.date === "string" && /^\d{8}$/.test(saved.date)) selectedDate = saved.date;
@@ -4538,25 +4564,34 @@ function initEventHandlers() {
     
     // Sports navigation filtering
     const sportTabs = document.querySelectorAll(".sport-tab");
+    // Selecting a sport: from a tab click, or from Back/Forward between sport pages.
+    const selectSport = (sport, urlMode) => {
+        sportTabs.forEach((t) => t.classList.toggle("active", t.getAttribute("data-sport") === sport));
+        currentSport = sport;
+        // Each sport has its own address (/basketball/ …); move there without reloading
+        syncSportUrl(urlMode);
+        // Reset league filter when switching sports/tabs so the new sport isn't hidden
+        const wasLeagueFilter = currentLeague !== "all";
+        currentLeague = "all";
+        document.querySelectorAll(".league-row").forEach((r) => r.classList.remove("active"));
+        if (wasLeagueFilter) setFilter("all");
+        if (currentSport === "f1") {
+            loadF1Data();
+        } else if (isApiMode) {
+            // Re-fetch API data for the newly selected sport
+            loadAPIMatches();
+        } else {
+            renderMatches();
+        }
+    };
     sportTabs.forEach((tab) => {
-        tab.addEventListener("click", () => {
-            sportTabs.forEach((t) => t.classList.remove("active"));
-            tab.classList.add("active");
-            currentSport = tab.getAttribute("data-sport");
-            // Reset league filter when switching sports/tabs so the new sport isn't hidden
-            const wasLeagueFilter = currentLeague !== "all";
-            currentLeague = "all";
-            document.querySelectorAll(".league-row").forEach((r) => r.classList.remove("active"));
-            if (wasLeagueFilter) setFilter("all");
-            if (currentSport === "f1") {
-                loadF1Data();
-            } else if (isApiMode) {
-                // Re-fetch API data for the newly selected sport
-                loadAPIMatches();
-            } else {
-                renderMatches();
-            }
-        });
+        tab.addEventListener("click", () => selectSport(tab.getAttribute("data-sport"), "push"));
+    });
+    // Back / Forward between sport pages: the address already changed, so just follow it
+    window.addEventListener("popstate", () => {
+        const sport = sportFromUrl();
+        if (sport === currentSport) return;
+        selectSport(sport, "replace");
     });
     
     // Live Scores lists filtering tabs
@@ -4826,6 +4861,7 @@ function initEventHandlers() {
     navHome.addEventListener("click", (e) => {
         e.preventDefault();
         currentSport = "all";
+        syncSportUrl("push");
         currentLeague = "all";
         selectedDate = null;
         renderDateStrip();
@@ -5136,6 +5172,17 @@ function updateHomeSEO(matches) {
                 url: 'https://livematches.hyper.co.ke/' + matchPageUrl(m)
             }));
         if (!items.length) return;
+        // On a sport page (/basketball/ …) describe that page rather than "football"
+        const sp = window.SportPages;
+        const sportPage = sp && currentSport !== 'all' ? sp.pageFor(currentSport) : null;
+        if (sportPage) {
+            SEO.itemList(items, 'Live ' + sportPage.name + ' Matches Today');
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: sportPage.name, url: sp.urlFor(currentSport) }
+            ]);
+            return;
+        }
         SEO.itemList(items, 'Live Football Matches Today');
         SEO.breadcrumb([
             { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
