@@ -171,64 +171,84 @@ function regionOf(sport, league) {
 
 /* ------------------------------------------------------------------ probing */
 
+function summarise(events, lg, j, mode, errors) {
+    /* An out-of-season league does not error: the scoreboard hands back a
+       matchday regardless of how far away it is. Judge every event by its own
+       date so "active" means ESPN has something inside the window, and keep
+       the next fixture separately — a league on an international break is
+       running, it just is not running this week. */
+    const now = NOW.getTime();
+    const lo = shift(-WINDOW_DAYS).getTime();
+    const hi = shift(WINDOW_DAYS).getTime();
+    const state = (e) => (e.status && e.status.type && e.status.type.state) || '';
+    const at = (e) => { const t = Date.parse(e.date || ''); return Number.isFinite(t) ? t : NaN; };
+    const inWindow = events.filter((e) => { const t = at(e); return Number.isFinite(t) && t >= lo && t <= hi; });
+    const stamps = events.map(at).filter(Number.isFinite).sort((a, b) => a - b);
+    const future = stamps.filter((t) => t >= now);
+    const past = stamps.filter((t) => t < now);
+    const isoDay = (t) => new Date(t).toISOString().slice(0, 10);
+    return {
+        ok: true,
+        mode,
+        modeErrors: errors.join('; '),
+        espnName: lg.name || lg.abbreviation || '',
+        season: (lg.season && (lg.season.displayName || lg.season.year)) || (j.season && j.season.year) || '',
+        returned: events.length,
+        events: inWindow.length,
+        inPlay: inWindow.filter((e) => state(e) === 'in').length,
+        finished: inWindow.filter((e) => state(e) === 'post').length,
+        upcoming: inWindow.filter((e) => state(e) === 'pre').length,
+        nextEvent: future.length ? isoDay(future[0]) : '',
+        lastEvent: past.length ? isoDay(past[past.length - 1]) : '',
+        ranged: mode.startsWith('range') || mode === 'month',
+    };
+}
+
 async function probeScoreboard(sport, league) {
     const from = yyyymmdd(shift(-WINDOW_DAYS));
     const to = yyyymmdd(shift(WINDOW_DAYS));
     const base = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard`;
-    /* A date range is one request instead of fifteen, but ESPN is picky about
-       the shape and rejects some combinations outright — the first version of
-       this audit had every single ranged call fail and never noticed, because
-       the plain fallback answered. Try the shapes in order of how much they
-       tell us and record which one won, so a silent downgrade is visible in
-       the output instead of quietly narrowing the window to "today". */
-    const attempts = [
+    const errors = [];
+
+    /* ESPN rejects dates=FROM-TO on all but a couple of leagues — the first
+       run of this audit had 265 of 267 silently fall back to the default
+       scoreboard, which returns only the next matchday and therefore hides
+       every result from the past week. It does accept a whole month, so ask
+       for the one or two months the window touches and merge them. That is
+       two requests instead of fifteen and it covers the window properly. */
+    const months = [...new Set([from.slice(0, 6), yyyymmdd(NOW).slice(0, 6), to.slice(0, 6)])];
+    const merged = new Map();
+    let monthLg = null;
+    let monthPayload = null;
+    for (const m of months) {
+        try {
+            const j = await getJSON(`${base}?dates=${m}&limit=500`);
+            for (const e of Array.isArray(j.events) ? j.events : []) merged.set(e.id || JSON.stringify(e), e);
+            monthLg = monthLg || (j.leagues && j.leagues[0]) || null;
+            monthPayload = monthPayload || j;
+        } catch (e) {
+            errors.push(`month ${m}: ${e.message}`);
+        }
+        await sleep(DELAY_MS);
+    }
+    if (merged.size || monthLg) {
+        return summarise([...merged.values()], monthLg || {}, monthPayload || {}, 'month', errors);
+    }
+
+    // Month form refused too: fall back through the narrower shapes, and
+    // record which one answered so the downgrade is visible in the output.
+    for (const [mode, url] of [
         ['range+limit', `${base}?dates=${from}-${to}&limit=400`],
-        ['range', `${base}?dates=${from}-${to}`],
         ['limit', `${base}?limit=400`],
         ['plain', base],
-    ];
-    const errors = [];
-    for (const [mode, url] of attempts) {
-        let j;
+    ]) {
         try {
-            j = await getJSON(url);
+            const j = await getJSON(url);
+            return summarise(Array.isArray(j.events) ? j.events : [], (j.leagues && j.leagues[0]) || {}, j, mode, errors);
         } catch (e) {
             errors.push(`${mode}: ${e.message}`);
-            await sleep(DELAY_MS);
-            continue;
         }
-        const events = Array.isArray(j.events) ? j.events : [];
-        const lg = (j.leagues && j.leagues[0]) || {};
-        /* An out-of-season league does not error: the scoreboard hands back a
-           matchday regardless of how far away it is. Judge every event by its
-           own date so "active" means ESPN has something inside the window,
-           and keep the next fixture separately — a league on an international
-           break is running, it just is not running this week. */
-        const now = NOW.getTime();
-        const lo = shift(-WINDOW_DAYS).getTime();
-        const hi = shift(WINDOW_DAYS).getTime();
-        const state = (e) => (e.status && e.status.type && e.status.type.state) || '';
-        const at = (e) => { const t = Date.parse(e.date || ''); return Number.isFinite(t) ? t : NaN; };
-        const inWindow = events.filter((e) => { const t = at(e); return Number.isFinite(t) && t >= lo && t <= hi; });
-        const stamps = events.map(at).filter(Number.isFinite).sort((a, b) => a - b);
-        const future = stamps.filter((t) => t >= now);
-        const past = stamps.filter((t) => t < now);
-        const isoDay = (t) => new Date(t).toISOString().slice(0, 10);
-        return {
-            ok: true,
-            mode,
-            modeErrors: errors.join('; '),
-            espnName: lg.name || lg.abbreviation || '',
-            season: (lg.season && (lg.season.displayName || lg.season.year)) || (j.season && j.season.year) || '',
-            returned: events.length,
-            events: inWindow.length,
-            inPlay: inWindow.filter((e) => state(e) === 'in').length,
-            finished: inWindow.filter((e) => state(e) === 'post').length,
-            upcoming: inWindow.filter((e) => state(e) === 'pre').length,
-            nextEvent: future.length ? isoDay(future[0]) : '',
-            lastEvent: past.length ? isoDay(past[past.length - 1]) : '',
-            ranged: mode.startsWith('range'),
-        };
+        await sleep(DELAY_MS);
     }
     return { ok: false, error: errors.join('; ') || 'unknown error' };
 }
