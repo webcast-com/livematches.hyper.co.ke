@@ -42,7 +42,7 @@ const DELAY_MS = 120;
 const TIMEOUT_MS = 20000;
 const DAYS_BACK = 7;      // finished matches for /report/ snapshots
 const DAYS_FORWARD = 8;   // upcoming matches for /preview/ snapshots
-const MAX_SUMMARIES_PER_LEAGUE = 2;
+const MAX_SUMMARIES_PER_LEAGUE = 6;
 const CAP_BYTES = 24 * 1024 * 1024;   // hard stop so a run cannot balloon the repo
 
 /* ---------------------------------------------------------------- what to get
@@ -110,6 +110,16 @@ const LEAGUES = [
     { sport: 'soccer', league: 'concacaf.champions', table: true },
     { sport: 'soccer', league: 'afc.champions', table: true },
     { sport: 'soccer', league: 'caf.champions', table: true },
+    { sport: 'soccer', league: 'eng.3', table: true },
+    { sport: 'soccer', league: 'eng.4', table: true },
+    { sport: 'soccer', league: 'eng.5', table: true },
+    { sport: 'soccer', league: 'tur.2', table: true },
+    { sport: 'soccer', league: 'den.2', table: true },
+    { sport: 'soccer', league: 'swe.2', table: true },
+    { sport: 'soccer', league: 'nor.2', table: true },
+    { sport: 'soccer', league: 'usa.usl.l1', table: true },
+    { sport: 'soccer', league: 'concacaf.leagues.cup', table: true },
+    { sport: 'soccer', league: 'caf.confed', table: true },
 
     // ---- other sports: tables + match snapshots
     { sport: 'football', league: 'nfl', table: true, matches: true },
@@ -172,7 +182,12 @@ function trimTeam(t) {
 }
 
 function trimStat(s) {
-    return pick(s, ['name', 'displayName', 'shortDisplayName', 'value', 'displayValue', 'description', 'abbreviation']);
+    const out = pick(s, ['name', 'displayName', 'shortDisplayName', 'value', 'displayValue', 'description', 'abbreviation', 'label', 'category']);
+    // baseball and basketball boxscores nest their numbers one level down:
+    // {name:'batting', displayName:'Batting', stats:[{name:'runs', displayValue:'4'}]}
+    if (Array.isArray(s.stats)) out.stats = s.stats.map(trimStat);
+    if (Array.isArray(s.leaders)) out.leaderCount = s.leaders.length;
+    return out;
 }
 
 function trimCompetitor(c) {
@@ -254,8 +269,9 @@ function trimSummary(j) {
             })),
         };
     }
-    for (const key of ['scoringPlays', 'plays', 'winprobability', 'keyPlays']) {
-        if (Array.isArray(j[key])) out[key] = j[key].slice(0, key === 'plays' ? 40 : 60).map((p) => {
+    out.rawKeys = Object.keys(j).sort();
+    for (const key of ['scoringPlays', 'plays', 'winprobability', 'keyPlays', 'drives']) {
+        if (Array.isArray(j[key])) out[key] = j[key].slice(0, key === 'plays' ? 400 : 80).map((p) => {
             if (key === 'winprobability') return pick(p, ['homeWinPercentage', 'playId', 'tiePercentage']);
             const x = trimDetail(p);
             if (p.participants) x.participants = arr(p.participants).slice(0, 4).map((pt) => ({ athlete: pt.athlete ? pick(pt.athlete, ['id', 'displayName', 'shortName']) : undefined, type: pt.type }));
