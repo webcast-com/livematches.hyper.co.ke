@@ -3030,6 +3030,13 @@ function initTickerDrag() {
     });
 }
 
+const TICKER_PX_PER_SEC = 40;   // a comfortable reading pace on desktop and phones alike
+function applyTickerSpeed() {
+    const half = tickerSlider.scrollWidth / 2;
+    if (!half) return;
+    tickerSlider.style.animationDuration = Math.max(12, half / TICKER_PX_PER_SEC).toFixed(1) + "s";
+}
+
 function renderTicker() {
     const strip = document.querySelector(".ticker-strip");
     const prevScroll = strip ? strip.scrollLeft : 0;
@@ -3052,8 +3059,12 @@ function renderTicker() {
         return;
     }
 
-    // Always double for seamless infinite marquee — desktop and mobile both auto-scroll
-    const tickerMatches = [...tickerSource, ...tickerSource];
+    // The marquee translates the track by -50%, so it is built from two identical
+    // halves. `copies` is how many times the match list is repeated inside each half.
+    const fillTicker = (copies) => {
+    tickerSlider.innerHTML = "";
+    const tickerMatches = [];
+    for (let i = 0; i < copies * 2; i++) tickerMatches.push(...tickerSource);
 
     tickerMatches.forEach((match) => {
         const card = document.createElement("div");
@@ -3095,6 +3106,20 @@ function renderTicker() {
 
         tickerSlider.appendChild(card);
     });
+    };
+    fillTicker(1);
+
+    // The speed used to be a fixed 55 s / 45 s per loop whatever the content: two
+    // matches whirled past, two hundred crawled. Fix the speed in pixels per second
+    // instead and derive the loop time from the track's real width. With only a few
+    // cards one half is narrower than the strip and the loop would show a gap, so the
+    // list is repeated until a half is at least as wide as the strip.
+    if (strip && tickerSlider.scrollWidth > 0) {
+        const oneCopy = tickerSlider.scrollWidth / 2;
+        const copies = Math.min(12, Math.max(1, Math.ceil(strip.clientWidth / oneCopy)));
+        if (copies > 1) fillTicker(copies);
+    }
+    applyTickerSpeed();
 
     // Preserve manual swipe position across re-renders (mobile) - if user has scrolled, keep it
     if (strip && !wasDragging && window.innerWidth <= 768) {

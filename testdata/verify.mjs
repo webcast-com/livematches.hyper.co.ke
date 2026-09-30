@@ -1277,6 +1277,11 @@ check('espnEventsOf() flattens tennis tournaments into match events and leaves o
     assert(ctx2.fn(nba, 'basketball/nba') === nba.events, 'non-tennis events must pass through untouched');
 });
 
+check('ticker speed is derived from the track width (px/s), not a fixed loop time', () => {
+    assert(/function applyTickerSpeed\(/.test(appSrc) && /style\.animationDuration/.test(appSrc), 'renderTicker must set the marquee duration from its content width');
+    assert(/TICKER_PX_PER_SEC\s*=\s*\d+/.test(appSrc), 'TICKER_PX_PER_SEC is missing');
+});
+
 /* ------------------------------------------------------------------ report */
 
 function report() {
