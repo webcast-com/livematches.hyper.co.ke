@@ -71,19 +71,19 @@
             </section>
             <input class="shop-search" id="highlights-search" type="search" placeholder="Search highlights by team (e.g. Arsenal, Real Madrid)…" aria-label="Search highlights" style="margin-top:12px;">
             <div class="chip-row" id="highlights-chips">
-                <button class="standings-tab active" data-league="All">All</button>
-                <button class="standings-tab" data-league="EPL">Premier League</button>
-                <button class="standings-tab" data-league="LaLiga">La Liga</button>
-                <button class="standings-tab" data-league="SerieA">Serie A</button>
-                <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
-                <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
-                <button class="standings-tab" data-league="UCL">Champions League</button>
+                <button type="button" class="standings-tab active" data-league="All">All</button>
+                <button type="button" class="standings-tab" data-league="EPL">Premier League</button>
+                <button type="button" class="standings-tab" data-league="LaLiga">La Liga</button>
+                <button type="button" class="standings-tab" data-league="SerieA">Serie A</button>
+                <button type="button" class="standings-tab" data-league="Bundesliga">Bundesliga</button>
+                <button type="button" class="standings-tab" data-league="Ligue1">Ligue 1</button>
+                <button type="button" class="standings-tab" data-league="UCL">Champions League</button>
             </div>
             <div id="highlights-grid" class="highlights-hub-grid">
                 <p class="loading-note">Loading match highlights…</p>
             </div>
             <div id="highlights-error" class="window-strip" hidden>
-                Couldn't load live highlights.
+                Couldn't load live highlights — showing illustrative samples.
                 <button id="highlights-retry" class="btn btn-primary btn-sm" style="margin-left:8px;">Retry</button>
             </div>
             <p class="transfer-src">Video streams &amp; highlights hosted via official broadcaster channels on YouTube.</p>
