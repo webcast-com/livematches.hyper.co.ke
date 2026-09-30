@@ -831,6 +831,42 @@ const ESPN_ENDPOINTS = {
         "soccer/fra.super_cup", "soccer/ned.cup", "soccer/por.taca.portugal",
         "soccer/sco.tennents", "soccer/sco.cis", "soccer/bra.copa_do_brazil",
         "soccer/arg.copa", "soccer/usa.open", "soccer/ksa.kings.cup",
+        // Full ESPN catalogue
+        "soccer/fifa.shebelieves", "soccer/fifa.w.champions_cup", "soccer/fifa.wcq.ply",
+        "soccer/fifa.worldq.ofc", "soccer/fifa.friendly.w", "soccer/fifa.wworldq.uefa",
+        "soccer/fifa.wwcq.ply", "soccer/fifa.conmebol.olympicsq", "soccer/fifa.concacaf.olympicsq",
+        "soccer/fifa.w.concacaf.olympicsq", "soccer/fifa.wworld.u17", "soccer/fifa.friendly_u21",
+        "soccer/fifa.intercontinental.cup", "soccer/global.finalissima", "soccer/global.w.finalissima",
+        "soccer/global.u20.intercontinental_cup", "soccer/global.club_challenge", "soccer/global.pinatar_cup",
+        "soccer/friendly.emirates_cup", "soccer/global.arnold.clark_cup", "soccer/global.gulf_cup",
+        "soccer/club.friendly", "soccer/nonfifa", "soccer/uefa.wchampions_qual",
+        "soccer/uefa.w.europa", "soccer/uefa.euro_u21_qual", "soccer/uefa.euro.u19",
+        "soccer/concacaf.gold_qual", "soccer/concacaf.w.gold", "soccer/concacaf.confederations_playoff",
+        "soccer/concacaf.w.champions_cup", "soccer/concacaf.womens.championship", "soccer/concacaf.central.american.cup",
+        "soccer/concacaf.champions_cup", "soccer/concacaf.u23", "soccer/conmebol.america.femenina",
+        "soccer/afc.w.asian.cup", "soccer/afc.cupq", "soccer/afc.champions_qual",
+        "soccer/afc.cup_qual", "soccer/afc.saff.championship", "soccer/aff.championship",
+        "soccer/caf.w.nations", "soccer/caf.championship", "soccer/caf.cosafa",
+        "soccer/usa.nwsl.cup", "soccer/usa.w.usl.1", "soccer/usa.usl.l1",
+        "soccer/usa.usl.l1.cup", "soccer/usa.ncaa.m.1", "soccer/usa.ncaa.w.1",
+        "soccer/can.w.nsl", "soccer/eng.trophy", "soccer/eng.fa_qual",
+        "soccer/eng.w.fa", "soccer/eng.w.league_cup", "soccer/eng.w.promotion.relegation",
+        "soccer/sco.2", "soccer/sco.challenge", "soccer/sco.tennents_qual",
+        "soccer/sco.1.promotion.relegation", "soccer/sco.2.promotion.relegation", "soccer/esp.copa_de_la_reina",
+        "soccer/esp.joan_gamper", "soccer/ger.playoff.relegation", "soccer/ger.2.promotion.relegation",
+        "soccer/fra.1.promotion.relegation", "soccer/ned.supercup", "soccer/ned.playoff.relegation",
+        "soccer/ned.3.promotion.relegation", "soccer/ned.w.knvb_cup", "soccer/por.1.promotion.relegation",
+        "soccer/bel.promotion.relegation", "soccer/rus.1.promotion.relegation", "soccer/swe.1.promotion.relegation",
+        "soccer/nor.1.promotion.relegation", "soccer/arg.2", "soccer/arg.3",
+        "soccer/arg.copa_de_la_superliga", "soccer/arg.trofeo_de_la_campeones", "soccer/arg.supercopa",
+        "soccer/arg.supercopa.internacional", "soccer/bra.supercopa_do_brazil", "soccer/bra.camp.carioca",
+        "soccer/bra.camp.paulista", "soccer/bra.camp.gaucho", "soccer/bra.camp.mineiro",
+        "soccer/chi.super_cup", "soccer/chi.copa_chi", "soccer/chi.1.promotion.relegation",
+        "soccer/uru.2", "soccer/col.superliga", "soccer/col.copa",
+        "soccer/bol.copa", "soccer/bol.ply.rel", "soccer/par.1.supercopa",
+        "soccer/mex.2", "soccer/mex.campeon", "soccer/hon.1",
+        "soccer/crc.1", "soccer/gua.1", "soccer/slv.1",
+        "soccer/jpn.world_challenge", "soccer/chn.1.promotion.relegation",
     ],
     basketball: [
         "basketball/nba", "basketball/wnba", "basketball/euroleague",
@@ -911,6 +947,42 @@ const ESPN_ENDPOINTS = {
         "soccer/fra.super_cup", "soccer/ned.cup", "soccer/por.taca.portugal",
         "soccer/sco.tennents", "soccer/sco.cis", "soccer/bra.copa_do_brazil",
         "soccer/arg.copa", "soccer/usa.open", "soccer/ksa.kings.cup",
+        // Full ESPN catalogue
+        "soccer/fifa.shebelieves", "soccer/fifa.w.champions_cup", "soccer/fifa.wcq.ply",
+        "soccer/fifa.worldq.ofc", "soccer/fifa.friendly.w", "soccer/fifa.wworldq.uefa",
+        "soccer/fifa.wwcq.ply", "soccer/fifa.conmebol.olympicsq", "soccer/fifa.concacaf.olympicsq",
+        "soccer/fifa.w.concacaf.olympicsq", "soccer/fifa.wworld.u17", "soccer/fifa.friendly_u21",
+        "soccer/fifa.intercontinental.cup", "soccer/global.finalissima", "soccer/global.w.finalissima",
+        "soccer/global.u20.intercontinental_cup", "soccer/global.club_challenge", "soccer/global.pinatar_cup",
+        "soccer/friendly.emirates_cup", "soccer/global.arnold.clark_cup", "soccer/global.gulf_cup",
+        "soccer/club.friendly", "soccer/nonfifa", "soccer/uefa.wchampions_qual",
+        "soccer/uefa.w.europa", "soccer/uefa.euro_u21_qual", "soccer/uefa.euro.u19",
+        "soccer/concacaf.gold_qual", "soccer/concacaf.w.gold", "soccer/concacaf.confederations_playoff",
+        "soccer/concacaf.w.champions_cup", "soccer/concacaf.womens.championship", "soccer/concacaf.central.american.cup",
+        "soccer/concacaf.champions_cup", "soccer/concacaf.u23", "soccer/conmebol.america.femenina",
+        "soccer/afc.w.asian.cup", "soccer/afc.cupq", "soccer/afc.champions_qual",
+        "soccer/afc.cup_qual", "soccer/afc.saff.championship", "soccer/aff.championship",
+        "soccer/caf.w.nations", "soccer/caf.championship", "soccer/caf.cosafa",
+        "soccer/usa.nwsl.cup", "soccer/usa.w.usl.1", "soccer/usa.usl.l1",
+        "soccer/usa.usl.l1.cup", "soccer/usa.ncaa.m.1", "soccer/usa.ncaa.w.1",
+        "soccer/can.w.nsl", "soccer/eng.trophy", "soccer/eng.fa_qual",
+        "soccer/eng.w.fa", "soccer/eng.w.league_cup", "soccer/eng.w.promotion.relegation",
+        "soccer/sco.2", "soccer/sco.challenge", "soccer/sco.tennents_qual",
+        "soccer/sco.1.promotion.relegation", "soccer/sco.2.promotion.relegation", "soccer/esp.copa_de_la_reina",
+        "soccer/esp.joan_gamper", "soccer/ger.playoff.relegation", "soccer/ger.2.promotion.relegation",
+        "soccer/fra.1.promotion.relegation", "soccer/ned.supercup", "soccer/ned.playoff.relegation",
+        "soccer/ned.3.promotion.relegation", "soccer/ned.w.knvb_cup", "soccer/por.1.promotion.relegation",
+        "soccer/bel.promotion.relegation", "soccer/rus.1.promotion.relegation", "soccer/swe.1.promotion.relegation",
+        "soccer/nor.1.promotion.relegation", "soccer/arg.2", "soccer/arg.3",
+        "soccer/arg.copa_de_la_superliga", "soccer/arg.trofeo_de_la_campeones", "soccer/arg.supercopa",
+        "soccer/arg.supercopa.internacional", "soccer/bra.supercopa_do_brazil", "soccer/bra.camp.carioca",
+        "soccer/bra.camp.paulista", "soccer/bra.camp.gaucho", "soccer/bra.camp.mineiro",
+        "soccer/chi.super_cup", "soccer/chi.copa_chi", "soccer/chi.1.promotion.relegation",
+        "soccer/uru.2", "soccer/col.superliga", "soccer/col.copa",
+        "soccer/bol.copa", "soccer/bol.ply.rel", "soccer/par.1.supercopa",
+        "soccer/mex.2", "soccer/mex.campeon", "soccer/hon.1",
+        "soccer/crc.1", "soccer/gua.1", "soccer/slv.1",
+        "soccer/jpn.world_challenge", "soccer/chn.1.promotion.relegation",
     ]
 };
 
@@ -1051,6 +1123,111 @@ const LEAGUE_NAMES = {
     "soccer/arg.copa": { name: "Copa Argentina", code: "CAR", sport: "football" },
     "soccer/usa.open": { name: "U.S. Open Cup", code: "USOC", sport: "football" },
     "soccer/ksa.kings.cup": { name: "Saudi King's Cup", code: "KSC", sport: "football" },
+    // Full ESPN catalogue
+    "soccer/fifa.shebelieves": { name: "SheBelieves Cup", code: "SBC", sport: "football" },
+    "soccer/fifa.w.champions_cup": { name: "FIFA Women's Champions Cup", code: "FWCC", sport: "football" },
+    "soccer/fifa.wcq.ply": { name: "World Cup Qualifying Play-offs", code: "WCQP", sport: "football" },
+    "soccer/fifa.worldq.ofc": { name: "OFC World Cup Qualifying", code: "WCQO", sport: "football" },
+    "soccer/fifa.friendly.w": { name: "Women's International Friendlies", code: "WFRI", sport: "football" },
+    "soccer/fifa.wworldq.uefa": { name: "UEFA Women's World Cup Qualifying", code: "WWQU", sport: "football" },
+    "soccer/fifa.wwcq.ply": { name: "Women's World Cup Qualifying Play-offs", code: "WWQP", sport: "football" },
+    "soccer/fifa.conmebol.olympicsq": { name: "CONMEBOL Olympic Qualifying", code: "OCQ", sport: "football" },
+    "soccer/fifa.concacaf.olympicsq": { name: "CONCACAF Olympic Qualifying", code: "OCN", sport: "football" },
+    "soccer/fifa.w.concacaf.olympicsq": { name: "CONCACAF Women's Olympic Qualifying", code: "WOC", sport: "football" },
+    "soccer/fifa.wworld.u17": { name: "FIFA U-17 Women's World Cup", code: "U17W", sport: "football" },
+    "soccer/fifa.friendly_u21": { name: "U-21 International Friendlies", code: "U21F", sport: "football" },
+    "soccer/fifa.intercontinental.cup": { name: "Intercontinental Cup (India)", code: "ICI", sport: "football" },
+    "soccer/global.finalissima": { name: "CONMEBOL-UEFA Cup of Champions", code: "CUCC", sport: "football" },
+    "soccer/global.w.finalissima": { name: "Women's Finalissima", code: "WFS", sport: "football" },
+    "soccer/global.u20.intercontinental_cup": { name: "U-20 Intercontinental Cup", code: "U20I", sport: "football" },
+    "soccer/global.club_challenge": { name: "CONMEBOL-UEFA Club Challenge", code: "CUCL", sport: "football" },
+    "soccer/global.pinatar_cup": { name: "Pinatar Cup", code: "PIN", sport: "football" },
+    "soccer/friendly.emirates_cup": { name: "Emirates Cup", code: "EMR", sport: "football" },
+    "soccer/global.arnold.clark_cup": { name: "Arnold Clark Cup", code: "ARC", sport: "football" },
+    "soccer/global.gulf_cup": { name: "Gulf Cup", code: "GULF", sport: "football" },
+    "soccer/club.friendly": { name: "Club Friendlies", code: "CF", sport: "football" },
+    "soccer/nonfifa": { name: "Non-FIFA Friendly", code: "NONF", sport: "football" },
+    "soccer/uefa.wchampions_qual": { name: "Women's Champions League Qualifying", code: "UWCLQ", sport: "football" },
+    "soccer/uefa.w.europa": { name: "UEFA Women's Europa Cup", code: "UWEC", sport: "football" },
+    "soccer/uefa.euro_u21_qual": { name: "UEFA U-21 Championship Qualifying", code: "U21Q", sport: "football" },
+    "soccer/uefa.euro.u19": { name: "UEFA U-19 Championship", code: "U19", sport: "football" },
+    "soccer/concacaf.gold_qual": { name: "CONCACAF Gold Cup Qualifying", code: "GCQ", sport: "football" },
+    "soccer/concacaf.w.gold": { name: "CONCACAF W Gold Cup", code: "WGC", sport: "football" },
+    "soccer/concacaf.confederations_playoff": { name: "CONCACAF Confederations Play-off", code: "CFP", sport: "football" },
+    "soccer/concacaf.w.champions_cup": { name: "CONCACAF W Champions Cup", code: "WCC", sport: "football" },
+    "soccer/concacaf.womens.championship": { name: "CONCACAF Women's Championship", code: "CWCH", sport: "football" },
+    "soccer/concacaf.central.american.cup": { name: "CONCACAF Central American Cup", code: "CAC", sport: "football" },
+    "soccer/concacaf.champions_cup": { name: "CONCACAF Champions Cup", code: "CCC", sport: "football" },
+    "soccer/concacaf.u23": { name: "CONCACAF U-23 Championship", code: "U23C", sport: "football" },
+    "soccer/conmebol.america.femenina": { name: "Copa América Femenina", code: "CAMF", sport: "football" },
+    "soccer/afc.w.asian.cup": { name: "AFC Women's Asian Cup", code: "AWC", sport: "football" },
+    "soccer/afc.cupq": { name: "AFC Cup Qualifying", code: "ACQ", sport: "football" },
+    "soccer/afc.champions_qual": { name: "AFC Champions League Qualifying", code: "ACLQ", sport: "football" },
+    "soccer/afc.cup_qual": { name: "AFC Cup Qualification", code: "ACQL", sport: "football" },
+    "soccer/afc.saff.championship": { name: "SAFF Championship", code: "SAFF", sport: "football" },
+    "soccer/aff.championship": { name: "ASEAN Championship", code: "AFF", sport: "football" },
+    "soccer/caf.w.nations": { name: "Women's Africa Cup of Nations", code: "WAFCON", sport: "football" },
+    "soccer/caf.championship": { name: "African Nations Championship", code: "CHAN", sport: "football" },
+    "soccer/caf.cosafa": { name: "COSAFA Cup", code: "COSAFA", sport: "football" },
+    "soccer/usa.nwsl.cup": { name: "NWSL Cup", code: "NWC", sport: "football" },
+    "soccer/usa.w.usl.1": { name: "USL Super League", code: "USLW", sport: "football" },
+    "soccer/usa.usl.l1": { name: "USL League One", code: "USL1", sport: "football" },
+    "soccer/usa.usl.l1.cup": { name: "USL League One Cup", code: "USL1C", sport: "football" },
+    "soccer/usa.ncaa.m.1": { name: "NCAA Men's Soccer", code: "NCAAM", sport: "football" },
+    "soccer/usa.ncaa.w.1": { name: "NCAA Women's Soccer", code: "NCAAW", sport: "football" },
+    "soccer/can.w.nsl": { name: "Northern Super League", code: "NSL", sport: "football" },
+    "soccer/eng.trophy": { name: "EFL Trophy", code: "EFLT", sport: "football" },
+    "soccer/eng.fa_qual": { name: "FA Cup Qualifying", code: "FAQ", sport: "football" },
+    "soccer/eng.w.fa": { name: "Women's FA Cup", code: "WFA", sport: "football" },
+    "soccer/eng.w.league_cup": { name: "Women's League Cup", code: "WLC", sport: "football" },
+    "soccer/eng.w.promotion.relegation": { name: "Women's Super League Play-offs", code: "WSLP", sport: "football" },
+    "soccer/sco.2": { name: "Scottish Championship", code: "SCO2", sport: "football" },
+    "soccer/sco.challenge": { name: "Scottish Challenge Cup", code: "SCC", sport: "football" },
+    "soccer/sco.tennents_qual": { name: "Scottish Cup Qualifying", code: "SCQ", sport: "football" },
+    "soccer/sco.1.promotion.relegation": { name: "Scottish Premiership Play-offs", code: "SPFP", sport: "football" },
+    "soccer/sco.2.promotion.relegation": { name: "Scottish Championship Play-offs", code: "SCFP", sport: "football" },
+    "soccer/esp.copa_de_la_reina": { name: "Copa de la Reina", code: "CDLR", sport: "football" },
+    "soccer/esp.joan_gamper": { name: "Joan Gamper Trophy", code: "JGT", sport: "football" },
+    "soccer/ger.playoff.relegation": { name: "Bundesliga Play-offs", code: "BLP", sport: "football" },
+    "soccer/ger.2.promotion.relegation": { name: "2. Bundesliga Play-offs", code: "2BLP", sport: "football" },
+    "soccer/fra.1.promotion.relegation": { name: "Ligue 1 Play-offs", code: "L1P", sport: "football" },
+    "soccer/ned.supercup": { name: "Johan Cruyff Shield", code: "JCS", sport: "football" },
+    "soccer/ned.playoff.relegation": { name: "Eredivisie Play-offs", code: "EREP", sport: "football" },
+    "soccer/ned.3.promotion.relegation": { name: "Tweede Divisie Play-offs", code: "TDP", sport: "football" },
+    "soccer/ned.w.knvb_cup": { name: "KNVB Women's Cup", code: "KNVBC", sport: "football" },
+    "soccer/por.1.promotion.relegation": { name: "Primeira Liga Play-offs", code: "PLP", sport: "football" },
+    "soccer/bel.promotion.relegation": { name: "Belgian Pro League Play-offs", code: "BPLP", sport: "football" },
+    "soccer/rus.1.promotion.relegation": { name: "Russian Premier League Play-offs", code: "RPLP", sport: "football" },
+    "soccer/swe.1.promotion.relegation": { name: "Allsvenskan Play-offs", code: "ALSP", sport: "football" },
+    "soccer/nor.1.promotion.relegation": { name: "Eliteserien Play-offs", code: "ELIP", sport: "football" },
+    "soccer/arg.2": { name: "Primera Nacional", code: "ARG2", sport: "football" },
+    "soccer/arg.3": { name: "Primera B Metropolitana", code: "ARG3", sport: "football" },
+    "soccer/arg.copa_de_la_superliga": { name: "Copa de la Superliga", code: "CDS", sport: "football" },
+    "soccer/arg.trofeo_de_la_campeones": { name: "Trofeo de Campeones", code: "TDC", sport: "football" },
+    "soccer/arg.supercopa": { name: "Supercopa Argentina", code: "SCA", sport: "football" },
+    "soccer/arg.supercopa.internacional": { name: "Supercopa Internacional", code: "SCI", sport: "football" },
+    "soccer/bra.supercopa_do_brazil": { name: "Supercopa do Brasil", code: "SDB", sport: "football" },
+    "soccer/bra.camp.carioca": { name: "Campeonato Carioca", code: "CARI", sport: "football" },
+    "soccer/bra.camp.paulista": { name: "Campeonato Paulista", code: "PAUL", sport: "football" },
+    "soccer/bra.camp.gaucho": { name: "Campeonato Gaúcho", code: "GAU", sport: "football" },
+    "soccer/bra.camp.mineiro": { name: "Campeonato Mineiro", code: "MIN", sport: "football" },
+    "soccer/chi.super_cup": { name: "Supercopa de Chile", code: "SCCH", sport: "football" },
+    "soccer/chi.copa_chi": { name: "Copa Chile", code: "CCH", sport: "football" },
+    "soccer/chi.1.promotion.relegation": { name: "Primera División Play-offs", code: "CHP", sport: "football" },
+    "soccer/uru.2": { name: "Segunda División Uruguaya", code: "URU2", sport: "football" },
+    "soccer/col.superliga": { name: "Superliga Colombiana", code: "SLC", sport: "football" },
+    "soccer/col.copa": { name: "Copa Colombia", code: "CCO", sport: "football" },
+    "soccer/bol.copa": { name: "Copa Bolivia", code: "CBL", sport: "football" },
+    "soccer/bol.ply.rel": { name: "Bolivian Liga Profesional Promotion/Relegation Playoffs", code: "BOLP", sport: "football" },
+    "soccer/par.1.supercopa": { name: "Supercopa Paraguay", code: "SPY", sport: "football" },
+    "soccer/mex.2": { name: "Liga de Expansión MX", code: "MX2", sport: "football" },
+    "soccer/mex.campeon": { name: "Campeón de Campeones", code: "CDC", sport: "football" },
+    "soccer/hon.1": { name: "Liga Nacional de Honduras", code: "HON", sport: "football" },
+    "soccer/crc.1": { name: "Liga Promerica", code: "CRC", sport: "football" },
+    "soccer/gua.1": { name: "Liga Nacional de Guatemala", code: "GUA", sport: "football" },
+    "soccer/slv.1": { name: "Primera División de El Salvador", code: "SLV", sport: "football" },
+    "soccer/jpn.world_challenge": { name: "Japanese J.League World Challenge", code: "JWC", sport: "football" },
+    "soccer/chn.1.promotion.relegation": { name: "Chinese Super League Play-offs", code: "CSLP", sport: "football" },
     // More countries, women's leagues & tournaments
     // Other sports - expanded
     "basketball/nba":               { name: "NBA",                     code: "NBA",      sport: "basketball" },
@@ -1141,7 +1318,7 @@ const ESPN_PROBE_TIMEOUT_MS = 3500;            // one transport, reachability ch
 const ESPN_TRANSPORT_COOLDOWN_MS = 5 * 60 * 1000;
 const ESPN_TRANSPORT_FAIL_LIMIT = 2;           // consecutive failures before cooling down
 const ESPN_SWEEP_WATCHDOG_MS = 12000;          // nothing fetched yet → stop and fall back
-const ESPN_SWEEP_MAX_MS = 60000;               // hard cap on a sweep that is limping along
+const ESPN_SWEEP_MAX_MS = 90000;               // hard cap on a sweep that is limping along (the full ESPN catalogue is 231 leagues)
 const ESPN_REFRESH_MS = 60000;                 // live data: refresh cadence
 const ESPN_RECOVERY_MS = 5 * 60 * 1000;        // simulation mode: how often to look for live data
 
@@ -1562,8 +1739,24 @@ function showSkeletons(count = 4) {
     }
 }
 
-// Fetch and load all matches for the selected sport from the ESPN API - now worldwide with chunked fetching
+// Fetch and load all matches for the selected sport from the ESPN API - now worldwide with chunked fetching.
+//
+// The sweep is single-flight, but the full ESPN catalogue means it can run for a
+// while: if the user switches tabs mid-sweep the request used to be dropped and the
+// old tab's matches stayed on screen until the next auto-refresh. Keep one request
+// queued and re-run the sweep for whatever tab is selected when it lands.
+let sweepQueued = false;
 async function loadAPIMatches(opts = {}) {
+    if (apiLoading) { sweepQueued = true; return; }
+    let again = true;
+    while (again) {
+        sweepQueued = false;
+        await runAPIMatches(opts);
+        again = sweepQueued && currentSport !== "f1";
+    }
+}
+
+async function runAPIMatches(opts = {}) {
     if (currentSport === "f1") { loadF1Data(); return; }
     if (apiLoading) return;
     apiLoading = true;
@@ -1589,7 +1782,10 @@ async function loadAPIMatches(opts = {}) {
 
     try {
         // Chunked parallel fetching to support 50+ worldwide leagues without hammering the browser/ESPN
-        const CHUNK_SIZE = 6;
+        // 8 rather than 6: the full ESPN catalogue doubled the per-tab endpoint count
+        // (210 football / 231 worldwide), and the extra two in flight per chunk keep a
+        // healthy sweep well inside the cap instead of truncating it at the obscure end.
+        const CHUNK_SIZE = 8;
         for (let i = 0; i < endpoints.length; i += CHUNK_SIZE) {
             if (sweepAbort.signal.aborted) break;
             const chunk = endpoints.slice(i, i + CHUNK_SIZE);
@@ -3166,7 +3362,7 @@ const LEAGUE_FLAG_CODES = {
     LIB: "eu",
     CWC: "eu",
     WC: "eu",
-    RSA: "za", NGA: "ng", GHA: "gh", CHN: "cn", URU: "uy", PAR: "py",
+    RSA: "za", NGA: "ng", GHA: "gh", KEN: "ke", UGA: "ug", CHN: "cn", URU: "uy", PAR: "py",
     ECU: "ec", BOL: "bo", VEN: "ve", ROU: "ro", IRL: "ie", PER: "pe",
     CYP: "cy", THA: "th", MYS: "my", IDN: "id", USL: "us", BRA2: "br",
     ENG4: "gb-eng", ENG5: "gb-eng", WSL: "gb-eng", LIGAF: "es",
