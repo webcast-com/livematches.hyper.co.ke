@@ -370,6 +370,34 @@ check('highlightLinkHTML generates YouTube links exclusively for finished fixtur
     assert(ctx.__highlightLinkHTML(schedMatch) === '', 'scheduled match must not show highlight link');
 });
 
+check('every league the site names is one it actually fetches, and vice versa', () => {
+    const mockEl = { addEventListener: () => {}, querySelector: () => null, querySelectorAll: () => [] };
+    const ctx = vm.createContext({
+        window: {},
+        document: { getElementById: () => mockEl, querySelector: () => mockEl, querySelectorAll: () => [], addEventListener: () => {}, documentElement: mockEl, createElement: () => mockEl },
+        console,
+        localStorage: { getItem: () => null, setItem: () => {} },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {},
+        LANG: 'en', t: (k) => k
+    });
+    vm.runInContext(
+        readText('../app.js') + '; globalThis.__LEAGUE_NAMES = LEAGUE_NAMES; globalThis.__ESPN_ENDPOINTS = ESPN_ENDPOINTS;',
+        ctx);
+
+    const named = Object.keys(ctx.__LEAGUE_NAMES);
+    const swept = [...new Set(Object.values(ctx.__ESPN_ENDPOINTS).flat())];
+
+    // A league with a name but no endpoint is advertised and then never fetched
+    // (uefa.champions_qual and uefa.europa_qual sat stranded like that).
+    const stranded = named.filter((k) => !swept.includes(k));
+    assert(!stranded.length, `named but never fetched: ${stranded.join(', ')}`);
+
+    // A league with an endpoint but no name renders its raw slug in the UI.
+    const anonymous = swept.filter((k) => !named.includes(k));
+    assert(!anonymous.length, `fetched but never named: ${anonymous.join(', ')}`);
+});
+
 check('every football league in app.js is mapped in PREVIEW_LEAGUES, REPORT_LEAGUES, and MATCH_LEAGUES', () => {
     const mockEl = { addEventListener: () => {}, querySelector: () => null, querySelectorAll: () => [] };
     const appCtx = vm.createContext({

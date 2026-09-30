@@ -41,6 +41,8 @@
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=rsa.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=nga.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=gha.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=ken.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://livematches.hyper.co.ke/standings.html?league=uga.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=irl.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=rou.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://livematches.hyper.co.ke/standings.html?league=per.1</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>

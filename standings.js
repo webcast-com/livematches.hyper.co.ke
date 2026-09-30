@@ -32,6 +32,8 @@ const STANDINGS_LEAGUES = [
     { code: "RSA", slug: "rsa.1", name: "South African Premiership" },
     { code: "NGA", slug: "nga.1", name: "Nigeria Professional League" },
     { code: "GHA", slug: "gha.1", name: "Ghana Premier League" },
+    { code: "KEN", slug: "ken.1", name: "Kenyan Premier League" },
+    { code: "UGA", slug: "uga.1", name: "Ugandan Premier League" },
     { code: "IRL", slug: "irl.1", name: "League of Ireland Premier Division" },
     { code: "ROU", slug: "rou.1", name: "Liga I Romania" },
     { code: "PER", slug: "per.1", name: "Liga 1 de Per\xfa" },

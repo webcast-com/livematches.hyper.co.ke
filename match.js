@@ -303,6 +303,8 @@ const MATCH_LEAGUES = {
     "rsa.1": "South African Premiership",
     "nga.1": "Nigeria Professional League",
     "gha.1": "Ghana Premier League",
+    "ken.1": "Kenyan Premier League",
+    "uga.1": "Ugandan Premier League",
     "chn.1": "Chinese Super League",
     "tha.1": "Thai League 1",
     "mys.1": "Malaysia Super League",
