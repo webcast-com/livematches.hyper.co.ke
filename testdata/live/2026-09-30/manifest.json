@@ -1,633 +1,29 @@
 {
- "collectedAt": "2026-09-30T20:36:30.286Z",
+ "collectedAt": "2026-09-30T20:49:33.600Z",
  "leagues": [
   {
-   "sport": "soccer",
-   "league": "aus.1",
+   "sport": "baseball",
+   "league": "mlb",
    "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 12,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "gre.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 14,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "sui.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "aut.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 12,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "rus.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 16,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ukr.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "col.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 20,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "chi.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 16,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ind.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 13,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "cze.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "irl.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "rou.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "sco.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 10,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "eng.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 24,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "esp.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 22,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ger.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 18,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ita.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 20,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "fra.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 18,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ned.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 20,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "por.2",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "tha.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 16,
-   "tableGroups": 1,
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "mys.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 13,
-   "tableGroups": 1,
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "idn.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 18,
-   "tableGroups": 1,
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "egy.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "uae.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "qat.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "isr.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 14,
+   "scoreboards": 14,
+   "summaries": 6,
+   "tableRows": 30,
    "tableGroups": 2,
-   "season": 2024
+   "season": 2027
   },
   {
-   "sport": "soccer",
-   "league": "fin.1",
+   "sport": "baseball",
+   "league": "mexican-winter-league",
    "standings": false,
    "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
+   "summaries": 0
   },
   {
-   "sport": "soccer",
-   "league": "isl.1",
+   "sport": "baseball",
+   "league": "dominican-winter-league",
    "standings": false,
    "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "bul.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "srb.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "svk.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "svn.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "hun.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "cro.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "pol.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "ecu.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "par.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 12,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "bol.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 16,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ven.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 14,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "bra.2",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 20,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "usa.usl.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 25,
-   "tableGroups": 2,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "can.w.nsl",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 6,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "eng.w.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 14,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "esp.w.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 16,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ita.w.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "ger.w.1",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "fra.w.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 12,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ned.w.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 10,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "aus.w.1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 11,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "uefa.europa",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 36,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "uefa.europa.conf",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 36,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "uefa.wchampions",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 18,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "conmebol.libertadores",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 32,
-   "tableGroups": 8,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "conmebol.sudamericana",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 32,
-   "tableGroups": 8,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "concacaf.champions",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "afc.champions",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 32,
-   "tableGroups": 2,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "caf.champions",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 16,
-   "tableGroups": 4,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "eng.3",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 24,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "eng.4",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 24,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "eng.5",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 24,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "tur.2",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "den.2",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "swe.2",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "nor.2",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "soccer",
-   "league": "usa.usl.l1",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 17,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "concacaf.leagues.cup",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 36,
-   "tableGroups": 2,
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "caf.confed",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 16,
-   "tableGroups": 4,
-   "season": 2026
+   "summaries": 0
   },
   {
    "sport": "football",
@@ -650,55 +46,6 @@
    "season": 2026
   },
   {
-   "sport": "football",
-   "league": "canadian-football",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "football",
-   "league": "ufl",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0
-  },
-  {
-   "sport": "baseball",
-   "league": "mlb",
-   "standings": true,
-   "scoreboards": 14,
-   "summaries": 6,
-   "tableRows": 30,
-   "tableGroups": 2,
-   "season": 2027
-  },
-  {
-   "sport": "baseball",
-   "league": "college-baseball",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 63,
-   "tableGroups": 1,
-   "season": 2026
-  },
-  {
-   "sport": "baseball",
-   "league": "mexican-winter-league",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0
-  },
-  {
-   "sport": "baseball",
-   "league": "dominican-winter-league",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0
-  },
-  {
    "sport": "basketball",
    "league": "nba",
    "standings": true,
@@ -717,34 +64,6 @@
    "tableRows": 15,
    "tableGroups": 2,
    "season": 2026
-  },
-  {
-   "sport": "basketball",
-   "league": "mens-college-basketball",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 365,
-   "tableGroups": 31,
-   "season": 2027
-  },
-  {
-   "sport": "basketball",
-   "league": "womens-college-basketball",
-   "standings": true,
-   "scoreboards": 0,
-   "summaries": 0,
-   "tableRows": 363,
-   "tableGroups": 31,
-   "season": 2027
-  },
-  {
-   "sport": "basketball",
-   "league": "euroleague",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
   },
   {
    "sport": "basketball",
@@ -769,43 +88,9 @@
   {
    "sport": "hockey",
    "league": "mens-college-hockey",
-   "standings": true,
+   "standings": false,
    "scoreboards": 3,
-   "summaries": 0,
-   "tableRows": 1,
-   "tableGroups": 10,
-   "season": 2027
-  },
-  {
-   "sport": "hockey",
-   "league": "womens-college-hockey",
-   "standings": false,
-   "scoreboards": 0,
    "summaries": 0
-  },
-  {
-   "sport": "hockey",
-   "league": "khl",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "hockey",
-   "league": "shl",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
-  },
-  {
-   "sport": "hockey",
-   "league": "liiga",
-   "standings": false,
-   "scoreboards": 0,
-   "summaries": 0,
-   "standingsError": "no entries"
   }
  ],
  "probes": [
@@ -832,16 +117,83 @@
   },
   {
    "sport": "soccer",
-   "league": "tur.2",
+   "league": "eng.w.2",
+   "ok": false,
+   "error": "HTTP 400"
+  },
+  {
+   "sport": "soccer",
+   "league": "sco.2",
    "ok": true,
-   "name": "Turkish 1. Ligi",
+   "name": "Scottish Championship",
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "sui.1",
+   "ok": true,
+   "name": "Swiss Super League",
+   "season": 2025
+  },
+  {
+   "sport": "soccer",
+   "league": "cze.1",
+   "ok": true,
+   "name": "Gambrinus Liga",
    "season": ""
   },
   {
    "sport": "soccer",
-   "league": "bel.2",
+   "league": "irl.1",
+   "ok": true,
+   "name": "Irish Premier Division",
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "rou.1",
+   "ok": true,
+   "name": "Romanian Liga 1",
+   "season": 2025
+  },
+  {
+   "sport": "soccer",
+   "league": "fin.1",
+   "ok": true,
+   "name": "Finnish Veikkausliga",
+   "season": 2000
+  },
+  {
+   "sport": "soccer",
+   "league": "isl.1",
    "ok": false,
    "error": "HTTP 400"
+  },
+  {
+   "sport": "soccer",
+   "league": "cyp.1",
+   "ok": true,
+   "name": "Cypriot First Division",
+   "season": 2025
+  },
+  {
+   "sport": "soccer",
+   "league": "ukr.1",
+   "ok": false,
+   "error": "HTTP 400"
+  },
+  {
+   "sport": "soccer",
+   "league": "por.2",
+   "ok": false,
+   "error": "HTTP 400"
+  },
+  {
+   "sport": "soccer",
+   "league": "tur.2",
+   "ok": true,
+   "name": "Turkish 1. Ligi",
+   "season": ""
   },
   {
    "sport": "soccer",
@@ -866,36 +218,6 @@
   },
   {
    "sport": "soccer",
-   "league": "gre.2",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "rus.2",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "ksa.2",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "jpn.2",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "chn.2",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
    "league": "usa.usl.l1",
    "ok": true,
    "name": "USL League One",
@@ -903,10 +225,24 @@
   },
   {
    "sport": "soccer",
-   "league": "fifa.worldq",
+   "league": "concacaf.leagues.cup",
    "ok": true,
-   "name": "World Cup Qualifying",
-   "season": 2009
+   "name": "Leagues Cup",
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "caf.confed",
+   "ok": true,
+   "name": "CAF Confederation Cup",
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "afc.cup",
+   "ok": true,
+   "name": "AFC Champions League Two",
+   "season": 2026
   },
   {
    "sport": "basketball",
@@ -914,6 +250,13 @@
    "ok": true,
    "name": "NBA G League",
    "season": 2027
+  },
+  {
+   "sport": "basketball",
+   "league": "euroleague",
+   "ok": true,
+   "name": "Euroleague",
+   "season": 2026
   },
   {
    "sport": "basketball",
@@ -950,11 +293,42 @@
    "season": 2026
   },
   {
+   "sport": "baseball",
+   "league": "college-baseball",
+   "ok": true,
+   "name": "NCAA Baseball",
+   "season": 2026
+  },
+  {
    "sport": "hockey",
    "league": "olympics-mens-ice-hockey",
    "ok": true,
    "name": "Men's Ice Hockey",
    "season": 2026
+  },
+  {
+   "sport": "hockey",
+   "league": "ahl",
+   "ok": false,
+   "error": "HTTP 400"
+  },
+  {
+   "sport": "hockey",
+   "league": "echl",
+   "ok": false,
+   "error": "HTTP 400"
+  },
+  {
+   "sport": "hockey",
+   "league": "khl",
+   "ok": false,
+   "error": "HTTP 400"
+  },
+  {
+   "sport": "hockey",
+   "league": "shl",
+   "ok": false,
+   "error": "HTTP 400"
   },
   {
    "sport": "football",
@@ -979,459 +353,29 @@
   },
   {
    "sport": "football",
-   "league": "nfl-draft",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "hockey",
-   "league": "ahl",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "hockey",
-   "league": "echl",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "aus.1",
-   "ok": true,
-   "name": "Australian A-League Men",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "gre.1",
-   "ok": true,
-   "name": "Greek Super League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "sui.1",
-   "ok": true,
-   "name": "Swiss Super League",
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "aut.1",
-   "ok": true,
-   "name": "Austrian Bundesliga",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "rus.1",
-   "ok": true,
-   "name": "Russian Premier League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ukr.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "col.1",
-   "ok": true,
-   "name": "Colombian Primera A",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "chi.1",
-   "ok": true,
-   "name": "Chilean Primera División",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ind.1",
-   "ok": true,
-   "name": "Indian Super League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "cze.1",
-   "ok": true,
-   "name": "Gambrinus Liga",
-   "season": ""
-  },
-  {
-   "sport": "soccer",
-   "league": "irl.1",
-   "ok": true,
-   "name": "Irish Premier Division",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "rou.1",
-   "ok": true,
-   "name": "Romanian Liga 1",
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "sco.2",
-   "ok": true,
-   "name": "Scottish Championship",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "eng.2",
-   "ok": true,
-   "name": "English League Championship",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "esp.2",
-   "ok": true,
-   "name": "Spanish LALIGA 2",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ger.2",
-   "ok": true,
-   "name": "German 2. Bundesliga",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ita.2",
-   "ok": true,
-   "name": "Italian Serie B",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "fra.2",
-   "ok": true,
-   "name": "French Ligue 2",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ned.2",
-   "ok": true,
-   "name": "Dutch Keuken Kampioen Divisie",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "por.2",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "tha.1",
-   "ok": true,
-   "name": "Thai League 1",
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "mys.1",
-   "ok": true,
-   "name": "Malaysian Super League",
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "idn.1",
-   "ok": true,
-   "name": "Indonesian Super League",
-   "season": 2025
-  },
-  {
-   "sport": "soccer",
-   "league": "egy.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "uae.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "qat.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "isr.1",
-   "ok": true,
-   "name": "Israeli Premier League",
-   "season": 2024
-  },
-  {
-   "sport": "soccer",
-   "league": "fin.1",
-   "ok": true,
-   "name": "Finnish Veikkausliga",
-   "season": 2000
-  },
-  {
-   "sport": "soccer",
-   "league": "isl.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "bul.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "srb.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "svk.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "svn.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "hun.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "cro.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "pol.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "ecu.1",
-   "ok": true,
-   "name": "LigaPro Ecuador",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "par.1",
-   "ok": true,
-   "name": "Paraguayan Primera División",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "bol.1",
-   "ok": true,
-   "name": "Bolivian Liga Profesional",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ven.1",
-   "ok": true,
-   "name": "Venezuelan Primera División",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "bra.2",
-   "ok": true,
-   "name": "Brazilian Serie B",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "usa.usl.1",
-   "ok": true,
-   "name": "USL Championship",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "can.w.nsl",
-   "ok": true,
-   "name": "Northern Super League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "eng.w.1",
-   "ok": true,
-   "name": "English Women's Super League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "esp.w.1",
-   "ok": true,
-   "name": "Spanish Liga F",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ita.w.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "ger.w.1",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "soccer",
-   "league": "fra.w.1",
-   "ok": true,
-   "name": "French Première Ligue",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "ned.w.1",
-   "ok": true,
-   "name": "Dutch Vrouwen Eredivisie",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "aus.w.1",
-   "ok": true,
-   "name": "Australian A-League Women",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "uefa.europa",
-   "ok": true,
-   "name": "UEFA Europa League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "uefa.europa.conf",
-   "ok": true,
-   "name": "UEFA Conference League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "uefa.wchampions",
-   "ok": true,
-   "name": "UEFA Women's Champions League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "conmebol.libertadores",
-   "ok": true,
-   "name": "CONMEBOL Libertadores",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "conmebol.sudamericana",
-   "ok": true,
-   "name": "CONMEBOL Sudamericana",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "concacaf.champions",
-   "ok": true,
-   "name": "Concacaf Champions Cup",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "afc.champions",
-   "ok": true,
-   "name": "AFC Champions League Elite",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "caf.champions",
-   "ok": true,
-   "name": "CAF Champions League",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "concacaf.leagues.cup",
-   "ok": true,
-   "name": "Leagues Cup",
-   "season": 2026
-  },
-  {
-   "sport": "soccer",
-   "league": "caf.confed",
-   "ok": true,
-   "name": "CAF Confederation Cup",
-   "season": 2026
-  },
-  {
-   "sport": "football",
-   "league": "nfl",
-   "ok": true,
-   "name": "National Football League",
-   "season": 2026
-  },
-  {
-   "sport": "football",
-   "league": "college-football",
-   "ok": true,
-   "name": "NCAA - Football",
-   "season": 2026
-  },
-  {
-   "sport": "football",
    "league": "canadian-football",
    "ok": false,
    "error": "HTTP 400"
+  },
+  {
+   "sport": "basketball",
+   "league": "mens-college-basketball",
+   "ok": true,
+   "name": "NCAA Men's Basketball",
+   "season": 2027
+  },
+  {
+   "sport": "basketball",
+   "league": "womens-college-basketball",
+   "ok": true,
+   "name": "NCAA Women's Basketball",
+   "season": 2027
   },
   {
    "sport": "baseball",
    "league": "mlb",
    "ok": true,
    "name": "Major League Baseball",
-   "season": 2026
-  },
-  {
-   "sport": "baseball",
-   "league": "college-baseball",
-   "ok": true,
-   "name": "NCAA Baseball",
    "season": 2026
   },
   {
@@ -1449,6 +393,20 @@
    "season": ""
   },
   {
+   "sport": "football",
+   "league": "nfl",
+   "ok": true,
+   "name": "National Football League",
+   "season": 2026
+  },
+  {
+   "sport": "football",
+   "league": "college-football",
+   "ok": true,
+   "name": "NCAA - Football",
+   "season": 2026
+  },
+  {
    "sport": "basketball",
    "league": "nba",
    "ok": true,
@@ -1460,27 +418,6 @@
    "league": "wnba",
    "ok": true,
    "name": "Women's National Basketball Association",
-   "season": 2026
-  },
-  {
-   "sport": "basketball",
-   "league": "mens-college-basketball",
-   "ok": true,
-   "name": "NCAA Men's Basketball",
-   "season": 2027
-  },
-  {
-   "sport": "basketball",
-   "league": "womens-college-basketball",
-   "ok": true,
-   "name": "NCAA Women's Basketball",
-   "season": 2027
-  },
-  {
-   "sport": "basketball",
-   "league": "euroleague",
-   "ok": true,
-   "name": "Euroleague",
    "season": 2026
   },
   {
@@ -1503,35 +440,10 @@
    "ok": true,
    "name": "NCAA Men's Ice Hockey",
    "season": 2027
-  },
-  {
-   "sport": "hockey",
-   "league": "womens-college-hockey",
-   "ok": true,
-   "name": "NCAA Women's Hockey",
-   "season": 2027
-  },
-  {
-   "sport": "hockey",
-   "league": "khl",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "hockey",
-   "league": "shl",
-   "ok": false,
-   "error": "HTTP 400"
-  },
-  {
-   "sport": "hockey",
-   "league": "liiga",
-   "ok": false,
-   "error": "HTTP 400"
   }
  ],
  "totals": {
-  "bytes": 20532197,
-  "files": 163
+  "bytes": 5553621,
+  "files": 117
  }
 }
