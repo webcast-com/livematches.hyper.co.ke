@@ -39,6 +39,11 @@ function readJSON(file) {
     catch (e) { throw new Error(`does not parse as JSON: ${e.message}`); }
 }
 
+const ROOT_PAGES = ['index.html', 'news.html', 'about.html', 'predictions.html',
+    'standings.html', 'highlights.html', 'transfers.html', 'shop.html', 'previews.html',
+    'privacy.html', 'terms.html', 'match.html', 'story.html', 'preview.html',
+    'report.html', 'offline.html'];
+
 const FLATTENED = /^@\{|System\.Object\[\]|(^|;)\s*[A-Za-z_][A-Za-z0-9_]*=/;
 
 function walkStrings(value, visit, trail = '') {
@@ -258,13 +263,56 @@ check('season labels come off the payload, not a hard-coded string', () => {
 
 check('every standings link in sitemap.xml is a league this page can render', () => {
     const sitemap = readText('../sitemap.xml');
-    const slugs = [...sitemap.matchAll(/standings\.html\?league=([^"'&<\s]+)/g)].map((m) => m[1]);
-    assert(slugs.length, 'no ?league= links found in sitemap.xml');
+    const qSlugs = [...sitemap.matchAll(/standings\.html\?league=([^"'&<\s]+)/g)].map((m) => m[1]);
+    const tSlugs = [...sitemap.matchAll(/\/table\/([a-z0-9.]+)\//g)].map((m) => m[1]);
+    const slugs = [...qSlugs, ...tSlugs];
+    assert(slugs.length, 'no league-table links found in sitemap.xml (neither ?league= nor /table/)');
     const known = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
     const unknown = slugs.filter((s) => !known.has(s));
     assert(!unknown.length, `sitemap.xml advertises leagues with no table: ${unknown.join(', ')}`);
-    const missing = STANDINGS_LEAGUES.filter((l) => !slugs.includes(l.slug)).map((l) => l.slug);
-    assert(!missing.length, `these leagues have no sitemap entry: ${missing.join(', ')}`);
+    if (qSlugs.length) {
+        const missing = STANDINGS_LEAGUES.filter((l) => !slugs.includes(l.slug)).map((l) => l.slug);
+        assert(!missing.length, `these leagues have no sitemap entry: ${missing.join(', ')}`);
+    } else {
+        // generated regime (tools/prerender.mjs): the sitemap must mirror the
+        // prerendered table pages exactly — no URL for a page that does not exist
+        const dir = path.join(HERE, '..', 'table');
+        const pageDirs = fs.existsSync(dir) ? fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, d, 'index.html'))) : [];
+        const onlyInSitemap = tSlugs.filter((s) => !pageDirs.includes(s));
+        assert(!onlyInSitemap.length, `sitemap lists table pages that do not exist: ${onlyInSitemap.join(', ')}`);
+    }
+});
+
+check('prerendered table pages (when present) are for known leagues and self-canonical', () => {
+    const dir = path.join(HERE, '..', 'table');
+    if (!fs.existsSync(dir)) return; // generator has not run yet — nothing to check
+    const known = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const dirs = fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, d, 'index.html')));
+    assert(dirs.length, 'table/ exists but holds no pages');
+    const unknown = dirs.filter((d) => !known.has(d));
+    assert(!unknown.length, `table/ has pages for unknown leagues: ${unknown.join(', ')}`);
+    for (const d of dirs) {
+        const c = readText(`../table/${d}/index.html`);
+        assert(c.includes(`<link rel="canonical" href="https://livematches.hyper.co.ke/table/${d}/">`),
+            `table/${d}: canonical is not its own /table/${d}/ URL`);
+        assert(!/loading-note/i.test(c), `table/${d}: static page contains a loading placeholder`);
+        assert(c.includes('prerender-meta'), `table/${d}: missing prerender-meta (sitemap generator depends on it)`);
+    }
+});
+
+check('news-sitemap.xml (when present) is well-formed news XML for story pages', () => {
+    const f2 = path.join(HERE, 'news-sitemap.xml');
+    if (!fs.existsSync(f2)) return; // generator writes it only when fresh stories exist
+    const c = readText('../news-sitemap.xml');
+    assert(c.includes('xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"'), 'news namespace missing');
+    const locs = [...c.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    assert(locs.length, 'news sitemap has no URLs');
+    for (const loc of locs) {
+        assert(/^https:\/\/livematches\.hyper\.co\.ke\/story\.html\?id=[^&\s]+$/.test(loc),
+            `news sitemap lists a non-story URL: ${loc}`);
+    }
+    const titles = [...c.matchAll(/<news:title>([^<]+)<\/news:title>/g)];
+    assert(titles.length === locs.length, 'every news URL needs a news:title');
 });
 
 check('standings.html has one chip per league and no orphan chips', () => {
@@ -754,6 +802,84 @@ check('the snapshot keys are the ones the page documents', () => {
     const app = readText('../app.js');
     assert(app.includes('"scorehub-live-v1"') && app.includes('"scorehub-view-v1"'),
         'snapshot storage keys changed — update the docs/tests with them');
+});
+
+check('no page loads the legacy amp-auto-ads scripts', () => {
+    for (const f of ROOT_PAGES) {
+        const c = readText('../' + f);
+        assert(!c.includes('amp-auto-ads') && !c.includes('cdn.ampproject.org'),
+            `${f} still loads the AMP runtime (dead ~100KB of third-party JS on a non-AMP page)`);
+    }
+});
+
+check('every local <script src> is deferred (no parser-blocking JS at the end of body)', () => {
+    for (const f of ROOT_PAGES) {
+        const c = readText('../' + f);
+        for (const m of c.matchAll(/<script src="([a-z0-9.\-]+\.js)"><\/script>/g)) {
+            assert(false, `${f}: <script src="${m[1]}"> is missing defer`);
+        }
+    }
+});
+
+check('every <img> declares width and height (layout stability, CLS and the agentic audits)', () => {
+    const jsFiles = fs.readdirSync(HERE).filter((x) => x.endsWith('.js') && x !== 'sw.js');
+    for (const f of jsFiles) {
+        const c = readText('../' + f);
+        for (const m of c.matchAll(/<img\b[^>]*>/g)) {
+            assert(/\swidth="/.test(m[0]) && /\sheight="/.test(m[0]),
+                `${f}: <img> without width/height: ${m[0].replace(/\s+/g, ' ').slice(0, 90)}`);
+        }
+    }
+    for (const f of ROOT_PAGES) {
+        const c = readText('../' + f);
+        for (const m of c.matchAll(/<img\b[^>]*>/g)) {
+            if (m[0].includes('data:image')) continue; // inline SVG carries its own intrinsic size
+            assert(/\swidth="/.test(m[0]) && /\sheight="/.test(m[0]),
+                `${f}: <img> without width/height: ${m[0].replace(/\s+/g, ' ').slice(0, 90)}`);
+        }
+    }
+});
+
+check('every page has a skip-to-content link whose target exists', () => {
+    for (const f of ROOT_PAGES) {
+        if (f === 'offline.html') continue; // noindex utility page, not part of navigation
+        const c = readText('../' + f);
+        const m = c.match(/<a class="skip-link" href="#([^"]+)"/);
+        assert(m, `${f}: no skip link`);
+        assert(c.includes(`id="${m[1]}"`), `${f}: skip link points at missing #${m[1]}`);
+    }
+});
+
+check('every <a href> and <button> has a programmatic name (agent accessibility tree)', () => {
+    function scan(text, label) {
+        const tagRe = /<(a|button)\b([^>]*)>/g;
+        let m;
+        while ((m = tagRe.exec(text)) !== null) {
+            const tag = m[1], attrs = m[2];
+            if (tag === 'a' && !/\shref\s*=/.test(attrs)) continue; // anchors without href are not controls
+            if (/aria-label\s*=/.test(attrs) || /aria-labelledby\s*=/.test(attrs) || /\stitle\s*=/.test(attrs)) continue;
+            let depth = 1, inner = '';
+            const closeRe = new RegExp(`<(/?)${tag}\\b[^>]*>`, 'g');
+            closeRe.lastIndex = tagRe.lastIndex;
+            let cm;
+            while (depth > 0 && (cm = closeRe.exec(text)) !== null) {
+                depth += cm[1] === '/' ? -1 : 1;
+                if (depth === 0) { inner = text.slice(tagRe.lastIndex, cm.index); break; }
+            }
+            const name = inner.replace(/<[^>]*>/g, ' ')
+                .replace(/\$\{[^}]*\}/g, 'x')
+                .replace(/&[a-z]+;/gi, 'x')
+                .replace(/[\s\-\u2013\u2014\u00b7.,;:!?"'(\[\]{}|/&\\*+#%@$^_=~<>'`]/g, '');
+            assert(name.length > 0,
+                `${label}: <${tag}${attrs.replace(/\s+/g, ' ').slice(0, 70)}> has no programmatic name`);
+        }
+    }
+    for (const f of ROOT_PAGES) scan(readText('../' + f).replace(/<script[\s\S]*?<\/script>/g, ''), f);
+    for (const j of ['app.js', 'match.js', 'preview.js', 'previews.js', 'predictions.js',
+                     'report.js', 'standings.js', 'story.js', 'transfers.js', 'news.js',
+                     'highlights.js', 'share.js', 'shop.js', 'pwa.js', 'seo.js', 'i18n.js']) {
+        scan(readText('../' + j), j);
+    }
 });
 
 /* ------------------------------------------------------------------ report */

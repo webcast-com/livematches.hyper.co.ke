@@ -147,7 +147,7 @@ function renderNewsList() {
         return `
             <div class="news-hub-card" data-idx="${index}" style="cursor:pointer;">
                 <div class="news-hub-thumb-wrap">
-                    <img class="news-hub-thumb" src="${img}" alt="${title}" loading="lazy" onerror="this.src='icon-512.png';" />
+                    <img class="news-hub-thumb" src="${img}" alt="${title}" width="140" height="96" loading="lazy" decoding="async" onerror="this.src='icon-512.png';" />
                 </div>
                 <div class="news-hub-body">
                     <div class="news-hub-meta">

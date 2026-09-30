@@ -7,6 +7,10 @@
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Football News Story | ScoreHub</title>
+    <link rel="preconnect" href="https://site.api.espn.com">
+    <link rel="preconnect" href="https://site.web.api.espn.com">
+    <link rel="preconnect" href="https://a.espncdn.com">
+    <link rel="dns-prefetch" href="https://flagcdn.com">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
@@ -32,14 +36,16 @@
          /_vercel/insights/script.js as its fallback). The two /_vercel script tags
          that used to sit here 404 on every non-Vercel host and logged two console
          errors per page load, so they are no longer requested up front. -->
+    <script type="application/ld+json" id="page-jsonld">{"@context":"https://schema.org","@type":"WebPage","name":"Football News Story","url":"https://livematches.hyper.co.ke/story.html","isPartOf":{"@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://livematches.hyper.co.ke/"},{"@type":"ListItem","position":2,"name":"Football News Story","item":"https://livematches.hyper.co.ke/story.html"}]}}</script>
     <script type="module" src="analytics.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <a class="skip-link" href="#story-body">Skip to content</a>
     <div class="app-container legal-page">
         <header class="legal-header">
-            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo" width="32" height="32"><span>ScoreHub</span></a>
             <nav class="legal-nav" aria-label="Page navigation">
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
@@ -56,6 +62,11 @@
         </header>
 
         <main class="card legal-card" id="story-body">
+            <h1>Football News Story</h1>
+            <p class="legal-updated">Headlines and match stories from worldwide football, updated continuously.</p>
+            <div class="legal-content">
+                <p>Every story in the <a href="news.html">News Centre</a> opens here on-site: the full article, the clubs' crests, a live scorecard for any match the story refers to, and related stories from the same competition. Prefer the numbers? Jump to <a href="index.html">today's live scores</a> or the <a href="standings.html">league tables</a>.</p>
+            </div>
             <p class="loading-note">Loading story&hellip;</p>
         </main>
 
@@ -74,9 +85,9 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="story.js"></script>
-    <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="story.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script src="seo.js" defer></script>
+    <script src="pwa.js" defer></script>
 </body>
 </html>

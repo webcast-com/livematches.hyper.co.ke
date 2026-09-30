@@ -9,6 +9,10 @@
 the graceful fallback. Phases are ordered by value ÷ risk. Each phase is
 independently shippable and revertible.
 
+> Companion roadmap: **`SEO-PERF-ROADMAP.md`** covers search visibility (only
+> 3 pages indexed today), Core Web Vitals (mobile Perf 63 / BP 77) and the new
+> Lighthouse Agentic Browsing category — same non-breaking rules apply there.
+
 ---
 
 ## Ground Rules (how we avoid breaking the app)

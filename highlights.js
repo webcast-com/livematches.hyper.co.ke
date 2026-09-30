@@ -135,7 +135,7 @@ function renderHighlightsGrid() {
         return `
             <div class="highlight-hub-card">
                 <a href="${hlUrl}" target="_blank" rel="noopener" class="highlight-hub-thumb" aria-label="Watch ${title}">
-                    <img src="${img}" alt="${title}" loading="lazy" class="${item.imageIsCrest ? "is-crest" : ""}" onerror="this.src='icon-512.png';" />
+                    <img src="${img}" alt="${title}" width="600" height="338" loading="lazy" decoding="async" class="${item.imageIsCrest ? "is-crest" : ""}" onerror="this.src='icon-512.png';" />
                     <span class="highlight-hub-play">&#9658;</span>
                 </a>
                 <div class="highlight-hub-info">

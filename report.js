@@ -1024,7 +1024,7 @@ async function bootReport() {
             });
         }
     } catch (e) {}
-    const logoImg = (u) => u ? `<img class="pred-logo" style="width:26px;height:26px;" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+    const logoImg = (u) => u ? `<img class="pred-logo" style="width:26px;height:26px;" src="${esc(u)}" alt="" width="26" height="26" loading="lazy" decoding="async" onerror="this.remove()">` : "";
     const nextBox = (next.H || next.A)
         ? `<div class="report-next"><h3>${t("report.next")}</h3>`
         + (next.H ? `<span>🔜 ${esc(H.name)} face ${esc(next.H.opp)} (${esc(formatNextDate(next.H.date))}).</span>` : "")

@@ -1,0 +1,33 @@
+# ScoreHub — Live Football Scores, Tables & News
+
+ScoreHub (livematches.hyper.co.ke) is a free live-football site covering 150+
+competitions worldwide — the Premier League, LaLiga, Serie A, Bundesliga, UEFA
+Champions League, and the Kenyan and Ugandan Premier Leagues — with real-time
+scores, fixtures, league tables, match previews, full-time reports, transfer
+news, highlights and headlines. No account is required for anything.
+
+## Pages
+
+- [Live scores](https://livematches.hyper.co.ke/): every match live now, today's fixtures and results, the fixtures calendar, top scorers and the match spotlight
+- [News](https://livematches.hyper.co.ke/news.html): football headlines and stories, filterable by competition, each story opening on-site
+- [Standings](https://livematches.hyper.co.ke/standings.html): league tables for 30+ competitions, deep-linkable per league (e.g. standings.html?league=eng.1)
+- [Premier League table](https://livematches.hyper.co.ke/table/eng.1/): static table pages also exist per league under /table/<league-slug>/ (e.g. /table/esp.1/, /table/ken.1/)
+- [Previews & reports](https://livematches.hyper.co.ke/previews.html): every fixture previewed before kickoff and reported after full-time
+- [Predictions](https://livematches.hyper.co.ke/predictions.html): free fan predictor — pick exact scores, auto-settled scoring
+- [Transfers](https://livematches.hyper.co.ke/transfers.html): confirmed deals and rumours, filterable by league
+- [Highlights](https://livematches.hyper.co.ke/highlights.html): goals and match highlights via official broadcaster channels on YouTube
+- [About](https://livematches.hyper.co.ke/about.html): what ScoreHub is, data sources and FAQ
+- [Privacy Policy](https://livematches.hyper.co.ke/privacy.html): how data is handled
+- [Terms of Use](https://livematches.hyper.co.ke/terms.html): terms of use
+
+## Notes for AI agents
+
+- Scores and tables change continuously — cite the page URL together with the
+  time you read it.
+- All content is free to read; no account, subscription or paywall exists.
+- Data is sourced from ESPN's public feeds and the Jolpica F1 API, and is
+  credited on-page. Team names and crests belong to their respective owners.
+- Match pages use query parameters (e.g. match.html?id=…); a bare page URL
+  without parameters shows a page overview rather than a specific match.
+- The site is a fan project and is not affiliated with any league, club or
+  broadcaster.

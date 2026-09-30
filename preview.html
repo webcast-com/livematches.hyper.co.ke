@@ -7,6 +7,10 @@
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Match Preview - Predictions, Form & Analysis | ScoreHub</title>
+    <link rel="preconnect" href="https://site.api.espn.com">
+    <link rel="preconnect" href="https://site.web.api.espn.com">
+    <link rel="preconnect" href="https://a.espncdn.com">
+    <link rel="dns-prefetch" href="https://flagcdn.com">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <meta property="og:type" content="article">
@@ -33,14 +37,16 @@
          /_vercel/insights/script.js as its fallback). The two /_vercel script tags
          that used to sit here 404 on every non-Vercel host and logged two console
          errors per page load, so they are no longer requested up front. -->
+    <script type="application/ld+json" id="page-jsonld">{"@context":"https://schema.org","@type":"WebPage","name":"Match Preview","url":"https://livematches.hyper.co.ke/preview.html","isPartOf":{"@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://livematches.hyper.co.ke/"},{"@type":"ListItem","position":2,"name":"Match Preview","item":"https://livematches.hyper.co.ke/preview.html"}]}}</script>
     <script type="module" src="analytics.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <a class="skip-link" href="#preview-body">Skip to content</a>
     <div class="app-container legal-page">
         <header class="legal-header">
-            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo" width="32" height="32"><span>ScoreHub</span></a>
             <nav class="legal-nav" aria-label="Page navigation">
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
@@ -57,6 +63,11 @@
         </header>
 
         <main class="card legal-card" id="preview-body">
+            <h1>Match Preview</h1>
+            <p class="legal-updated">Form, table positions, head-to-head and a verdict — before kickoff.</p>
+            <div class="legal-content">
+                <p>ScoreHub writes an original preview for every fixture: both teams' last five matches, home and away records, league positions, top scorers, the bookmakers' favourite and a stats-based verdict. Browse them all in the <a href="previews.html">previews &amp; reports hub</a>, or open one from any upcoming match card on the <a href="index.html">live scores</a> page. After full-time the same match gets a full report in the same hub.</p>
+            </div>
             <p class="loading-note">Building your preview&hellip;</p>
         </main>
 
@@ -75,10 +86,10 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="share.js"></script>
-    <script src="preview.js"></script>
-    <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="share.js" defer></script>
+    <script src="preview.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script src="seo.js" defer></script>
+    <script src="pwa.js" defer></script>
 </body>
 </html>

@@ -193,7 +193,7 @@ function pickBigHub(ranked, maxN) {
 }
 
 function hubLogoImg(logo) {
-    return logo ? `<img class="pred-logo" src="${esc(logo)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+    return logo ? `<img class="pred-logo" src="${esc(logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : "";
 }
 
 function matchHighlightUrl(homeTeam, awayTeam, leagueName) {

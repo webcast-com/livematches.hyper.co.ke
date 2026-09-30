@@ -889,7 +889,7 @@ function formColHTML(name, code, logo, form) {
         `<div class="form-game">${esc(formatGameDate(g.date))} · ${g.ha} · <b>${g.gf}–${g.ga}</b> vs ${esc(g.opp)}</div>`
     ).join("");
     return `<div class="form-col"><h3>`
-        + (logo ? `<img class="pred-logo" src="${esc(logo)}" alt="" loading="lazy" onerror="this.remove()">` : "")
+        + (logo ? `<img class="pred-logo" src="${esc(logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : "")
         + `${esc(name)} <span style="color:var(--text-muted);font-weight:400;">${t("preview.lastfive")}</span></h3>`
         + chips + games + `</div>`;
 }

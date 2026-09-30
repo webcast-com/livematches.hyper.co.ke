@@ -7,6 +7,10 @@
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Shop - Football Merch & Gear | ScoreHub</title>
+    <link rel="preconnect" href="https://site.api.espn.com">
+    <link rel="preconnect" href="https://site.web.api.espn.com">
+    <link rel="preconnect" href="https://a.espncdn.com">
+    <link rel="dns-prefetch" href="https://flagcdn.com">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
@@ -32,14 +36,16 @@
          /_vercel/insights/script.js as its fallback). The two /_vercel script tags
          that used to sit here 404 on every non-Vercel host and logged two console
          errors per page load, so they are no longer requested up front. -->
+    <script type="application/ld+json" id="page-jsonld">{"@context":"https://schema.org","@type":"CollectionPage","name":"Football Shop","url":"https://livematches.hyper.co.ke/shop.html","isPartOf":{"@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://livematches.hyper.co.ke/"},{"@type":"ListItem","position":2,"name":"Football Shop","item":"https://livematches.hyper.co.ke/shop.html"}]}}</script>
     <script type="module" src="analytics.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="app-container legal-page">
         <header class="legal-header">
-            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo" width="32" height="32"><span>ScoreHub</span></a>
             <nav class="legal-nav" aria-label="Page navigation">
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
@@ -55,9 +61,14 @@
             </div>
         </header>
 
-        <main class="card legal-card">
+        <noscript><div class="noscript-note">Store search and filtering need JavaScript. Without it you can still read the page overview below and use the store links as they are.</div></noscript>
+
+        <main id="main-content" class="card legal-card">
             <h1>Kit Finder</h1>
             <p class="legal-updated">Official club stores and trusted retailers, one tap away. ScoreHub doesn't sell anything — you buy direct.</p>
+<section class="page-intro" aria-label="About this page">
+                <p>A kit finder, not a shop: official club stores and trusted retailers for 14 top clubs — Arsenal, Chelsea, Liverpool, Man City, Man United, Tottenham, Real Madrid, Barcelona and more — plus a Jumia Kenya shortcut on every card for local delivery. ScoreHub never takes your money or your details: every button takes you straight to the club's official store. Sorting your matchday look? Check <a href="index.html">today's live scores</a> while you browse, follow the <a href="transfers.html">transfer news</a> to see who might wear the shirt next, or study the <a href="standings.html">league tables</a> before the big game.</p>
+            </section>
             <input class="shop-search" id="shop-search" type="search" placeholder="Search clubs… (e.g. Arsenal)" data-i18n-ph="shop.ph" aria-label="Search clubs" data-i18n-aria="shop.aria">
             <div class="chip-row" id="shop-chips">
                 <button class="standings-tab active" data-league="All">All</button>
@@ -206,7 +217,7 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="shop.js"></script>
+    <script src="shop.js" defer></script>
     <script>
     (function () {
         var grid = document.getElementById("shop-grid");
@@ -233,8 +244,8 @@
         search.addEventListener("input", apply);
     })();
     </script>
-    <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="i18n.js" defer></script>
+    <script src="seo.js" defer></script>
+    <script src="pwa.js" defer></script>
 </body>
 </html>

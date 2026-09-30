@@ -7,6 +7,10 @@
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Predictions - Make Your Pick | ScoreHub</title>
+    <link rel="preconnect" href="https://site.api.espn.com">
+    <link rel="preconnect" href="https://site.web.api.espn.com">
+    <link rel="preconnect" href="https://a.espncdn.com">
+    <link rel="dns-prefetch" href="https://flagcdn.com">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
@@ -32,14 +36,16 @@
          /_vercel/insights/script.js as its fallback). The two /_vercel script tags
          that used to sit here 404 on every non-Vercel host and logged two console
          errors per page load, so they are no longer requested up front. -->
+    <script type="application/ld+json" id="page-jsonld">{"@context":"https://schema.org","@type":"WebPage","name":"Predictions","url":"https://livematches.hyper.co.ke/predictions.html","isPartOf":{"@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://livematches.hyper.co.ke/"},{"@type":"ListItem","position":2,"name":"Predictions","item":"https://livematches.hyper.co.ke/predictions.html"}]}}</script>
     <script type="module" src="analytics.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="app-container legal-page">
         <header class="legal-header">
-            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo" width="32" height="32"><span>ScoreHub</span></a>
             <nav class="legal-nav" aria-label="Page navigation">
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link active" data-i18n="nav.predictions">Predictions</a>
@@ -54,8 +60,9 @@
                 <a class="btn btn-primary btn-sm" href="index.html">&larr; Back to Scores</a>
             </div>
         </header>
+        <noscript><div class="noscript-note">Fixtures and picks need JavaScript. Without it you can still read the page overview below — enable JavaScript and reload to play.</div></noscript>
 
-        <main class="card legal-card">
+        <main id="main-content" class="card legal-card">
             <!-- PREDICTIONS HERO -->
             <section class="pred-hero-banner">
                 <div class="pred-hero-content">
@@ -78,6 +85,9 @@
 
             <h1>Predictions</h1>
             <p class="legal-updated">Pick scores on upcoming fixtures. Exact score = 3 pts &middot; correct outcome = 1 pt. Picks lock at kickoff and settle automatically. <a href="previews.html" style="color:var(--primary);">Browse all previews &rarr;</a></p>
+<section class="page-intro" aria-label="About this page">
+                <p>A free daily football predictions game: pick the exact score on every upcoming fixture, lock in before kickoff, and the results settle automatically — 3 points for the exact score, 1 for the right outcome. Everything is stored in your own browser; no account is needed. Picks cover the Premier League, La Liga, Serie A, the Bundesliga, Ligue 1 and the Champions League. Not sure what to pick? Read our data-driven <a href="previews.html">match previews</a> for form and table positions, study the <a href="standings.html">current league tables</a>, and catch up on the <a href="news.html">latest football news</a> before you commit.</p>
+            </section>
             <div class="pred-scorebar" id="pred-scorebar" hidden></div>
             <div class="pred-demo window-strip" id="pred-demo" hidden>
                 <span>⚽ No upcoming fixtures found — showing demo matches so you can try it out.</span>
@@ -119,9 +129,9 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="predictions.js"></script>
-    <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="predictions.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script src="seo.js" defer></script>
+    <script src="pwa.js" defer></script>
 </body>
 </html>

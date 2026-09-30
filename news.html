@@ -7,6 +7,10 @@
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Football News - Latest Stories & Headlines | ScoreHub</title>
+    <link rel="preconnect" href="https://site.api.espn.com">
+    <link rel="preconnect" href="https://site.web.api.espn.com">
+    <link rel="preconnect" href="https://a.espncdn.com">
+    <link rel="dns-prefetch" href="https://flagcdn.com">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
     <script>(function(){try{var t=localStorage.getItem("scorehub-theme");if(t==="light"||t===""){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
@@ -32,14 +36,16 @@
          /_vercel/insights/script.js as its fallback). The two /_vercel script tags
          that used to sit here 404 on every non-Vercel host and logged two console
          errors per page load, so they are no longer requested up front. -->
+    <script type="application/ld+json" id="page-jsonld">{"@context":"https://schema.org","@type":"CollectionPage","name":"Football News","url":"https://livematches.hyper.co.ke/news.html","isPartOf":{"@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://livematches.hyper.co.ke/"},{"@type":"ListItem","position":2,"name":"Football News","item":"https://livematches.hyper.co.ke/news.html"}]}}</script>
     <script type="module" src="analytics.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
           crossorigin="anonymous"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="app-container legal-page">
         <header class="legal-header">
-            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo" width="32" height="32"><span>ScoreHub</span></a>
             <nav class="legal-nav" aria-label="Page navigation">
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
@@ -54,10 +60,14 @@
                 <a class="btn btn-primary btn-sm" href="index.html">&larr; Back to Scores</a>
             </div>
         </header>
+        <noscript><div class="noscript-note">The news feed updates live with JavaScript. Without it you can still read the page overview below — enable JavaScript and reload for the full experience.</div></noscript>
 
-        <main class="card legal-card">
+        <main id="main-content" class="card legal-card">
             <h1 data-i18n="news.hubtitle">Football News</h1>
             <p class="legal-updated" data-i18n="news.hubsub">Breaking news, tactical insights, and match stories across top leagues worldwide.</p>
+<section class="page-intro" aria-label="About this page">
+                <p>ScoreHub's football news hub collects the latest headlines, match stories and analysis from the Premier League, Champions League, La Liga, Serie A, the Bundesliga and leagues worldwide — and every story opens right here on the site, with no redirects. Filter by competition with the chips below or search for a club or player. While you read, follow the numbers on <a href="index.html">today's live scores</a>, check where your club sits in the <a href="standings.html">league tables</a>, dig into the <a href="previews.html">match previews and reports</a>, or follow the latest deals in the <a href="transfers.html">Transfer Centre</a>.</p>
+            </section>
             <input class="shop-search" id="news-search" type="search" placeholder="Search news stories, teams, players…" aria-label="Search news" style="margin-top:12px;">
             <div class="chip-row" id="news-chips">
                 <button class="standings-tab active" data-league="All">All</button>
@@ -93,7 +103,7 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="i18n.js"></script>
-    <script src="news.js"></script>
+    <script src="i18n.js" defer></script>
+    <script src="news.js" defer></script>
 </body>
 </html>

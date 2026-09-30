@@ -35,9 +35,10 @@
     <script type="module" src="analytics.js"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="app-container legal-page">
         <header class="legal-header">
-            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo"><span>ScoreHub</span></a>
+            <a class="legal-brand" href="index.html"><img src="logo.svg" alt="ScoreHub logo" width="32" height="32"><span>ScoreHub</span></a>
             <nav class="legal-nav" aria-label="Page navigation">
                 <a href="index.html" class="legal-nav-link" data-i18n="nav.home">Home</a>
                 <a href="predictions.html" class="legal-nav-link" data-i18n="nav.predictions">Predictions</a>
@@ -53,7 +54,9 @@
             </div>
         </header>
 
-        <main class="card legal-card">
+        <noscript><div class="noscript-note">These terms read fine without JavaScript.</div></noscript>
+
+        <main id="main-content" class="card legal-card">
             <h1>Terms of Use</h1>
             <p class="legal-updated">Last updated: September 13, 2026</p>
             <div class="legal-content">
@@ -107,8 +110,8 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
-    <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="i18n.js" defer></script>
+    <script src="seo.js" defer></script>
+    <script src="pwa.js" defer></script>
 </body>
 </html>
