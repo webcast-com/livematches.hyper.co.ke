@@ -16,6 +16,15 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '30 5 * * 1'
+  # TEMPORARY, same as prerender.yml: GitHub only exposes workflow_dispatch for
+  # files that exist on the default branch, so until this lands on main the
+  # only way to run it is a push trigger scoped to the working branch. Remove
+  # this block when the branch merges.
+  push:
+    branches: [arena/01a0f3fd-livematches-hyper-co-ke]
+    paths:
+      - 'tools/audit-coverage.mjs'
+      - '.github/workflows/coverage-audit.yml'
 
 permissions:
   contents: write
