@@ -1,5 +1,5 @@
 {
- "collectedAt": "2026-09-30T20:31:28.453Z",
+ "collectedAt": "2026-09-30T20:36:30.286Z",
  "leagues": [
   {
    "sport": "soccer",
@@ -538,11 +538,103 @@
    "season": 2026
   },
   {
+   "sport": "soccer",
+   "league": "eng.3",
+   "standings": true,
+   "scoreboards": 0,
+   "summaries": 0,
+   "tableRows": 24,
+   "tableGroups": 1,
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "eng.4",
+   "standings": true,
+   "scoreboards": 0,
+   "summaries": 0,
+   "tableRows": 24,
+   "tableGroups": 1,
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "eng.5",
+   "standings": true,
+   "scoreboards": 0,
+   "summaries": 0,
+   "tableRows": 24,
+   "tableGroups": 1,
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "tur.2",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0,
+   "standingsError": "no entries"
+  },
+  {
+   "sport": "soccer",
+   "league": "den.2",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0,
+   "standingsError": "no entries"
+  },
+  {
+   "sport": "soccer",
+   "league": "swe.2",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0,
+   "standingsError": "no entries"
+  },
+  {
+   "sport": "soccer",
+   "league": "nor.2",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0,
+   "standingsError": "no entries"
+  },
+  {
+   "sport": "soccer",
+   "league": "usa.usl.l1",
+   "standings": true,
+   "scoreboards": 0,
+   "summaries": 0,
+   "tableRows": 17,
+   "tableGroups": 1,
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "concacaf.leagues.cup",
+   "standings": true,
+   "scoreboards": 0,
+   "summaries": 0,
+   "tableRows": 36,
+   "tableGroups": 2,
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "caf.confed",
+   "standings": true,
+   "scoreboards": 0,
+   "summaries": 0,
+   "tableRows": 16,
+   "tableGroups": 4,
+   "season": 2026
+  },
+  {
    "sport": "football",
    "league": "nfl",
    "standings": true,
    "scoreboards": 7,
-   "summaries": 2,
+   "summaries": 6,
    "tableRows": 32,
    "tableGroups": 2,
    "season": 2026
@@ -552,7 +644,7 @@
    "league": "college-football",
    "standings": true,
    "scoreboards": 9,
-   "summaries": 2,
+   "summaries": 6,
    "tableRows": 124,
    "tableGroups": 11,
    "season": 2026
@@ -577,7 +669,7 @@
    "league": "mlb",
    "standings": true,
    "scoreboards": 14,
-   "summaries": 2,
+   "summaries": 6,
    "tableRows": 30,
    "tableGroups": 2,
    "season": 2027
@@ -621,7 +713,7 @@
    "league": "wnba",
    "standings": true,
    "scoreboards": 9,
-   "summaries": 2,
+   "summaries": 6,
    "tableRows": 15,
    "tableGroups": 2,
    "season": 2026
@@ -659,7 +751,7 @@
    "league": "nbl",
    "standings": true,
    "scoreboards": 12,
-   "summaries": 2,
+   "summaries": 6,
    "tableRows": 10,
    "tableGroups": 1,
    "season": 2027
@@ -669,7 +761,7 @@
    "league": "nhl",
    "standings": true,
    "scoreboards": 14,
-   "summaries": 2,
+   "summaries": 6,
    "tableRows": 32,
    "tableGroups": 2,
    "season": 2027
@@ -1295,6 +1387,20 @@
    "season": 2026
   },
   {
+   "sport": "soccer",
+   "league": "concacaf.leagues.cup",
+   "ok": true,
+   "name": "Leagues Cup",
+   "season": 2026
+  },
+  {
+   "sport": "soccer",
+   "league": "caf.confed",
+   "ok": true,
+   "name": "CAF Confederation Cup",
+   "season": 2026
+  },
+  {
    "sport": "football",
    "league": "nfl",
    "ok": true,
@@ -1425,7 +1531,7 @@
   }
  ],
  "totals": {
-  "bytes": 16293143,
-  "files": 133
+  "bytes": 20532197,
+  "files": 163
  }
 }
