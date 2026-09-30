@@ -40,6 +40,52 @@ const STANDINGS_LEAGUES = [
     { code: "DEN", slug: "den.1", name: "Danish Superliga" },
     { code: "SWE", slug: "swe.1", name: "Allsvenskan" },
     { code: "NOR", slug: "nor.1", name: "Eliteserien" },
+    // Second tiers of the big five and their neighbours. ESPN serves a live
+    // table for every one of these; they used to be swept for scores but had no
+    // table, so their /table/<slug>/ page could not exist.
+    { code: "ENG2", slug: "eng.2", name: "Championship" },
+    { code: "ESP2", slug: "esp.2", name: "LaLiga 2" },
+    { code: "GER2", slug: "ger.2", name: "2. Bundesliga" },
+    { code: "ITA2", slug: "ita.2", name: "Serie B" },
+    { code: "FRA2", slug: "fra.2", name: "Ligue 2" },
+    { code: "NED2", slug: "ned.2", name: "Eerste Divisie" },
+    { code: "SCO2", slug: "sco.2", name: "Scottish Championship" },
+    { code: "ENG3", slug: "eng.3", name: "League One" },
+    { code: "ENG4", slug: "eng.4", name: "League Two" },
+    { code: "ENG5", slug: "eng.5", name: "National League" },
+    // Top flights the site already swept for scores, now with their tables.
+    { code: "AUS", slug: "aus.1", name: "A-League Men" },
+    { code: "GRE", slug: "gre.1", name: "Super League Greece" },
+    { code: "AUT", slug: "aut.1", name: "Austrian Bundesliga" },
+    { code: "RUS", slug: "rus.1", name: "Russian Premier League" },
+    { code: "COL", slug: "col.1", name: "Primera A Colombia" },
+    { code: "CHI", slug: "chi.1", name: "Chilean Primera Divisi\xf3n" },
+    { code: "IND", slug: "ind.1", name: "Indian Super League" },
+    { code: "PAR", slug: "par.1", name: "Paraguayan Primera Divisi\xf3n" },
+    { code: "BOL", slug: "bol.1", name: "Bolivian Liga Profesional" },
+    { code: "VEN", slug: "ven.1", name: "Venezuelan Primera Divisi\xf3n" },
+    { code: "BRA2", slug: "bra.2", name: "Brasileir\xe3o S\xe9rie B" },
+    { code: "USL", slug: "usa.usl.1", name: "USL Championship" },
+    { code: "THA", slug: "tha.1", name: "Thai League 1" },
+    { code: "MYS", slug: "mys.1", name: "Malaysia Super League" },
+    { code: "IDN", slug: "idn.1", name: "Indonesian Super League" },
+    // Women's football
+    { code: "WSL", slug: "eng.w.1", name: "Women\u2019s Super League" },
+    { code: "ESPW", slug: "esp.w.1", name: "Liga F" },
+    { code: "FRAW", slug: "fra.w.1", name: "Premi\xe8re Ligue" },
+    { code: "NEDW", slug: "ned.w.1", name: "Vrouwen Eredivisie" },
+    { code: "AUSW", slug: "aus.w.1", name: "A-League Women" },
+    { code: "NSL", slug: "can.w.nsl", name: "Northern Super League" },
+    // Continental club competitions (league phase / group tables)
+    { code: "UEL", slug: "uefa.europa", name: "UEFA Europa League" },
+    { code: "UECL", slug: "uefa.europa.conf", name: "UEFA Conference League" },
+    { code: "UWCL", slug: "uefa.wchampions", name: "UEFA Women\u2019s Champions League" },
+    { code: "LIB", slug: "conmebol.libertadores", name: "CONMEBOL Libertadores" },
+    { code: "SUD", slug: "conmebol.sudamericana", name: "CONMEBOL Sudamericana" },
+    { code: "AFCE", slug: "afc.champions", name: "AFC Champions League Elite" },
+    { code: "CAFC", slug: "caf.champions", name: "CAF Champions League" },
+    { code: "CAFCF", slug: "caf.confed", name: "CAF Confederation Cup" },
+    { code: "LCUP", slug: "concacaf.leagues.cup", name: "Leagues Cup" },
 ];
 
 function standingStat(entry, names) {

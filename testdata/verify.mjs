@@ -15,6 +15,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SPORTS, TABLE_COLUMNS } from '../tools/sports.mjs';
+import { parseSportStandings, seasonLabelForSport } from '../tools/prerender.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -38,6 +40,9 @@ function readJSON(file) {
     try { return JSON.parse(text); }
     catch (e) { throw new Error(`does not parse as JSON: ${e.message}`); }
 }
+
+/* Table slugs published for the sports that have no interactive page. */
+const sportTableSlugs = () => SPORTS.filter((s) => s.table).map((s) => s.league);
 
 const ROOT_PAGES = ['index.html', 'news.html', 'about.html', 'predictions.html',
     'standings.html', 'highlights.html', 'transfers.html', 'shop.html', 'previews.html',
@@ -267,7 +272,7 @@ check('every standings link in sitemap.xml is a league this page can render', ()
     const tSlugs = [...sitemap.matchAll(/\/table\/([a-z0-9.]+)\//g)].map((m) => m[1]);
     const slugs = [...qSlugs, ...tSlugs];
     assert(slugs.length, 'no league-table links found in sitemap.xml (neither ?league= nor /table/)');
-    const known = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const known = new Set([...STANDINGS_LEAGUES.map((l) => l.slug), ...sportTableSlugs()]);
     const unknown = slugs.filter((s) => !known.has(s));
     assert(!unknown.length, `sitemap.xml advertises leagues with no table: ${unknown.join(', ')}`);
     if (qSlugs.length) {
@@ -286,7 +291,7 @@ check('every standings link in sitemap.xml is a league this page can render', ()
 check('prerendered table pages (when present) are for known leagues and self-canonical', () => {
     const dir = path.join(HERE, '..', 'table');
     if (!fs.existsSync(dir)) return; // generator has not run yet — nothing to check
-    const known = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const known = new Set([...STANDINGS_LEAGUES.map((l) => l.slug), ...sportTableSlugs()]);
     const dirs = fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, d, 'index.html')));
     assert(dirs.length, 'table/ exists but holds no pages');
     const unknown = dirs.filter((d) => !known.has(d));
@@ -298,6 +303,111 @@ check('prerendered table pages (when present) are for known leagues and self-can
         assert(!/loading-note/i.test(c), `table/${d}: static page contains a loading placeholder`);
         assert(c.includes('prerender-meta'), `table/${d}: missing prerender-meta (sitemap generator depends on it)`);
     }
+});
+
+/* ------------------------------------------------- multi-sport snapshots */
+
+check('multi-sport table pages are for configured leagues and self-canonical', () => {
+    const dir = path.join(ROOT, 'table');
+    if (!fs.existsSync(dir)) return;   // generator has not run yet
+    const soccer = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const config = new Map(SPORTS.filter((s) => s.table).map((s) => [s.league, s]));
+    const dirs = fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, d, 'index.html')));
+    for (const d of dirs.filter((x) => !soccer.has(x))) {
+        assert(config.has(d), `table/${d} is not a configured multi-sport league — a dropped league left a page behind`);
+        const entry = config.get(d);
+        const c = readText(`../table/${d}/index.html`);
+        assert(c.includes(`<link rel="canonical" href="https://livematches.hyper.co.ke/table/${d}/">`),
+            `table/${d}: canonical is not its own /table/${d}/ URL`);
+        const meta = /<!-- prerender-meta: (\{.*?\}) -->/.exec(c);
+        assert(meta, `table/${d}: missing prerender-meta`);
+        const parsed = JSON.parse(meta[1]);
+        assert(parsed.sport === entry.sport, `table/${d}: meta.sport is ${parsed.sport}, expected ${entry.sport}`);
+        assert(c.includes('<table class="full-table">'), `table/${d}: no standings table in the page`);
+        assert(!/loading-note/i.test(c), `table/${d}: static page contains a loading placeholder`);
+        // the page must not advertise a table that is empty: at least a header
+        // row plus one club per configured column
+        const columns = TABLE_COLUMNS[entry.sport] || [];
+        assert(!columns.length, `no TABLE_COLUMNS configured for ${entry.sport}`);
+        assert(c.includes('class="full-team-name"'), `table/${d}: the table has no team rows`);
+    }
+});
+
+check('every multi-sport table page that exists is linked from the sitemap', () => {
+    const dir = path.join(ROOT, 'table');
+    if (!fs.existsSync(dir)) return;
+    const soccer = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const sitemap = readText('../sitemap.xml');
+    for (const d of fs.readdirSync(dir).filter((x) => fs.existsSync(path.join(dir, x, 'index.html')) && !soccer.has(x))) {
+        assert(sitemap.includes(`/table/${d}/`), `sitemap.xml is missing /table/${d}/`);
+    }
+});
+
+check('snapshot pages declare a sport and never hand off to a soccer-only tool', () => {
+    const kinds = ['report', 'preview'];
+    const soccerOnly = /(?:report|preview)\.html\?/;
+    for (const kind of kinds) {
+        const dir = path.join(ROOT, kind);
+        if (!fs.existsSync(dir)) continue;
+        for (const d of fs.readdirSync(dir).filter((x) => fs.existsSync(path.join(dir, x, 'index.html')))) {
+            const c = readText(`../${kind}/${d}/index.html`);
+            const meta = /<!-- prerender-meta: (\{.*?\}) -->/.exec(c);
+            assert(meta, `${kind}/${d}: missing prerender-meta`);
+            const parsed = JSON.parse(meta[1]);
+            const sport = parsed.sport || 'soccer';
+            assert(['soccer', ...new Set(SPORTS.map((s) => s.sport))].includes(sport), `${kind}/${d}: unknown sport ${sport}`);
+            if (sport !== 'soccer') {
+                assert(!soccerOnly.test(c), `${kind}/${d}: a ${sport} snapshot links to the soccer-only report/preview tool`);
+                assert(parsed.league, `${kind}/${d}: non-soccer snapshot has no league in its meta`);
+                assert(SPORTS.some((s) => s.sport === sport && s.league === parsed.league),
+                    `${kind}/${d}: ${sport}/${parsed.league} is not in tools/sports.mjs`);
+            } else {
+                // the original soccer pages keep their link into the interactive hub
+                assert(c.includes(`/${kind}.html?id=${d}`), `${kind}/${d}: soccer snapshot lost its interactive ${kind} link`);
+            }
+        }
+    }
+});
+
+check('the multi-sport parsers survive the recorded ESPN payloads', () => {
+    const base = path.join(ROOT, 'testdata', 'live');
+    if (!fs.existsSync(base)) return;   // no fixtures recorded yet
+    const days = fs.readdirSync(base, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
+    const latest = days[days.length - 1];
+    const dir = path.join(base, latest);
+    load: {
+        const nfl = JSON.parse(fs.readFileSync(path.join(dir, 'standings.football.nfl.json'), 'utf8'));
+        const parsed = parseSportStandings(nfl, 'football');
+        const rows = parsed.groups.reduce((n, g) => n + g.rows.length, 0);
+        assert(rows >= 32, `NFL fixture produced ${rows} rows`);
+        assert(parsed.groups.length >= 2, `NFL fixture produced ${parsed.groups.length} table(s), expected conferences`);
+        const labels = parsed.columns.map((c) => c.label);
+        for (const col of ['W', 'L', 'PCT']) assert(labels.includes(col), `NFL columns lost ${col} (${labels.join(',')})`);
+        assert(parsed.groups[0].rows[0].team && parsed.groups[0].rows[0].team.length > 1, 'NFL rows lost their team name');
+    }
+    load: {
+        const nhl = JSON.parse(fs.readFileSync(path.join(dir, 'standings.hockey.nhl.json'), 'utf8'));
+        const parsed = parseSportStandings(nhl, 'hockey');
+        const labels = parsed.columns.map((c) => c.label);
+        for (const col of ['GP', 'W', 'L', 'OTL', 'PTS']) assert(labels.includes(col), `NHL columns lost ${col} (${labels.join(',')})`);
+    }
+    load: {
+        const mlb = JSON.parse(fs.readFileSync(path.join(dir, 'standings.baseball.mlb.json'), 'utf8'));
+        const parsed = parseSportStandings(mlb, 'baseball');
+        const labels = parsed.columns.map((c) => c.label);
+        for (const col of ['W', 'L', 'PCT', 'GB']) assert(labels.includes(col), `MLB columns lost ${col} (${labels.join(',')})`);
+    }
+    // ESPN rolls season.year over before the new season starts (MLB on
+    // 2026-09-30 still shows the finished 2026 table while the payload says
+    // 2027 with a 2027 startDate) — the label must follow the data on the page.
+    assert(seasonLabelForSport('baseball', { year: 2027, startDate: '2027-02-18T08:00Z', endDate: '2027-12-11T07:59Z' }) === '2026',
+        'a not-yet-started baseball season was labelled with the wrong year');
+    assert(seasonLabelForSport('basketball', { year: 2027, startDate: '2026-09-30T07:00Z', endDate: '2027-06-26T06:59Z' }) === '2026-27',
+        'a split basketball season lost its two-year label');
+    assert(seasonLabelForSport('basketball', { year: 2026, startDate: '2026-04-03T07:00Z', endDate: '2026-11-01T06:59Z' }) === '2026',
+        'a single-year basketball season (WNBA) was labelled as a split season');
+    assert(seasonLabelForSport('football', { year: 2026, startDate: '2026-08-06T07:00Z', endDate: '2027-02-16T07:59Z' }) === '2026',
+        'the NFL season label should be the season year, not a split label');
 });
 
 check('news-sitemap.xml (when present) is well-formed news XML for story pages', () => {

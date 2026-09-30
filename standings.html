@@ -65,40 +65,98 @@
             <h1>Standings</h1>
             <p class="legal-updated">Complete tables — every team, updated live on matchdays. Data: ESPN.</p>
             <section class="page-intro" aria-label="About this page">
-                <p>Live league tables for 30+ competitions: the Premier League, La Liga, Serie A, Bundesliga, Ligue 1 and the Champions League, plus MLS, Liga MX, Brasileir&atilde;o, the Saudi Pro League — and the Kenyan and Ugandan Premier Leagues. Every table shows the full W/D/L record, goals and form, updated live on matchdays, and each league has its own shareable link — for example the <a href="?league=eng.1">Premier League table</a> or the <a href="?league=ken.1">Kenyan Premier League table</a>. Planning around a fixture? See <a href="index.html">today's live scores</a>, read the <a href="previews.html">match previews</a>, or pick results in the free <a href="predictions.html">predictions game</a>.</p>
+                <p>Live league tables for every competition ScoreHub covers — the Premier League, La Liga, Serie A, Bundesliga, Ligue 1 and the Champions League, plus MLS, Liga MX, Brasileir&atilde;o, the Saudi Pro League, the Kenyan and Ugandan Premier Leagues, the second tiers of Europe's big five, women's leagues and the continental competitions. Every table shows the full record, goals and points, updated live on matchdays, and each league has its own shareable link — for example the <a href="?league=eng.1">Premier League table</a>, the <a href="?league=ken.1">Kenyan Premier League table</a> or the <a href="?league=eng.3">League One table</a>. Planning around a fixture? See <a href="index.html">today's live scores</a>, read the <a href="previews.html">match previews</a>, or pick results in the free <a href="predictions.html">predictions game</a>.</p>
             </section>
             <div class="chip-row" id="standings-chips">
+                <p style="flex-basis:100%;margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Top leagues</p>
                 <button class="standings-tab active" data-league="EPL">Premier League</button>
                 <button class="standings-tab" data-league="LaLiga">La Liga</button>
                 <button class="standings-tab" data-league="SerieA">Serie A</button>
                 <button class="standings-tab" data-league="Bundesliga">Bundesliga</button>
                 <button class="standings-tab" data-league="Ligue1">Ligue 1</button>
                 <button class="standings-tab" data-league="UCL">Champions League</button>
-                <button class="standings-tab" data-league="MLS">MLS</button>
-                <button class="standings-tab" data-league="LigaMX">Liga MX</button>
-                <button class="standings-tab" data-league="Brasileirao">Brasileir&atilde;o</button>
                 <button class="standings-tab" data-league="Eredivisie">Eredivisie</button>
                 <button class="standings-tab" data-league="PrimeiraLiga">Primeira Liga</button>
-                <button class="standings-tab" data-league="SuperLig">S&uuml;per Lig</button>
-                <button class="standings-tab" data-league="SaudiPro">Saudi Pro League</button>
+                <button class="standings-tab" data-league="SuperLig">Süper Lig</button>
                 <button class="standings-tab" data-league="BEL">Belgian Pro League</button>
+                <button class="standings-tab" data-league="SCO">Scottish Premiership</button>
+                <button class="standings-tab" data-league="SaudiPro">Saudi Pro League</button>
+                <button class="standings-tab" data-league="MLS">Major League Soccer</button>
+                <button class="standings-tab" data-league="LigaMX">Liga MX</button>
+                <button class="standings-tab" data-league="Brasileirao">Brasileirão Série A</button>
                 <button class="standings-tab" data-league="ARG">Liga Profesional</button>
                 <button class="standings-tab" data-league="J1">J1 League</button>
-                <button class="standings-tab" data-league="SCO">Scottish Premiership</button>
                 <button class="standings-tab" data-league="URU">Liga AUF Uruguaya</button>
                 <button class="standings-tab" data-league="CHN">Chinese Super League</button>
+                <p style="flex-basis:100%;margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Europe — more leagues</p>
+                <button class="standings-tab" data-league="DEN">Danish Superliga</button>
+                <button class="standings-tab" data-league="SWE">Allsvenskan</button>
+                <button class="standings-tab" data-league="NOR">Eliteserien</button>
+                <button class="standings-tab" data-league="GRE">Super League Greece</button>
+                <button class="standings-tab" data-league="AUT">Austrian Bundesliga</button>
+                <button class="standings-tab" data-league="RUS">Russian Premier League</button>
+                <button class="standings-tab" data-league="IRL">League of Ireland Premier Division</button>
+                <button class="standings-tab" data-league="ROU">Liga I Romania</button>
+                <p style="flex-basis:100%;margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Asia, Oceania & the Americas</p>
+                <button class="standings-tab" data-league="AUS">A-League Men</button>
+                <button class="standings-tab" data-league="IND">Indian Super League</button>
+                <button class="standings-tab" data-league="THA">Thai League 1</button>
+                <button class="standings-tab" data-league="MYS">Malaysia Super League</button>
+                <button class="standings-tab" data-league="IDN">Indonesian Super League</button>
+                <button class="standings-tab" data-league="PER">Liga 1 de Perú</button>
+                <button class="standings-tab" data-league="COL">Primera A Colombia</button>
+                <button class="standings-tab" data-league="CHI">Chilean Primera División</button>
+                <button class="standings-tab" data-league="PAR">Paraguayan Primera División</button>
+                <button class="standings-tab" data-league="BOL">Bolivian Liga Profesional</button>
+                <button class="standings-tab" data-league="VEN">Venezuelan Primera División</button>
+                <button class="standings-tab" data-league="BRA2">Brasileirão Série B</button>
+                <button class="standings-tab" data-league="USL">USL Championship</button>
+                <button class="standings-tab" data-league="LCUP">Leagues Cup</button>
+                <p style="flex-basis:100%;margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Africa</p>
                 <button class="standings-tab" data-league="RSA">South African Premiership</button>
                 <button class="standings-tab" data-league="NGA">Nigeria Professional League</button>
                 <button class="standings-tab" data-league="GHA">Ghana Premier League</button>
                 <button class="standings-tab" data-league="KEN">Kenyan Premier League</button>
                 <button class="standings-tab" data-league="UGA">Ugandan Premier League</button>
-                <button class="standings-tab" data-league="IRL">League of Ireland Premier Division</button>
-                <button class="standings-tab" data-league="ROU">Liga I Romania</button>
-                <button class="standings-tab" data-league="PER">Liga 1 de Per&uacute;</button>
-                <button class="standings-tab" data-league="DEN">Danish Superliga</button>
-                <button class="standings-tab" data-league="SWE">Allsvenskan</button>
-                <button class="standings-tab" data-league="NOR">Eliteserien</button>
+                <button class="standings-tab" data-league="CAFC">CAF Champions League</button>
+                <button class="standings-tab" data-league="CAFCF">CAF Confederation Cup</button>
+                <p style="flex-basis:100%;margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Second tiers & lower divisions</p>
+                <button class="standings-tab" data-league="ENG2">Championship</button>
+                <button class="standings-tab" data-league="ENG3">League One</button>
+                <button class="standings-tab" data-league="ENG4">League Two</button>
+                <button class="standings-tab" data-league="ENG5">National League</button>
+                <button class="standings-tab" data-league="ESP2">LaLiga 2</button>
+                <button class="standings-tab" data-league="GER2">2. Bundesliga</button>
+                <button class="standings-tab" data-league="ITA2">Serie B</button>
+                <button class="standings-tab" data-league="FRA2">Ligue 2</button>
+                <button class="standings-tab" data-league="NED2">Eerste Divisie</button>
+                <button class="standings-tab" data-league="SCO2">Scottish Championship</button>
+                <p style="flex-basis:100%;margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Women's football</p>
+                <button class="standings-tab" data-league="WSL">Women’s Super League</button>
+                <button class="standings-tab" data-league="ESPW">Liga F</button>
+                <button class="standings-tab" data-league="FRAW">Première Ligue</button>
+                <button class="standings-tab" data-league="NEDW">Vrouwen Eredivisie</button>
+                <button class="standings-tab" data-league="AUSW">A-League Women</button>
+                <button class="standings-tab" data-league="NSL">Northern Super League</button>
+                <p style="flex-basis:100%;margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Continental competitions</p>
+                <button class="standings-tab" data-league="UEL">UEFA Europa League</button>
+                <button class="standings-tab" data-league="UECL">UEFA Conference League</button>
+                <button class="standings-tab" data-league="UWCL">UEFA Women’s Champions League</button>
+                <button class="standings-tab" data-league="LIB">CONMEBOL Libertadores</button>
+                <button class="standings-tab" data-league="SUD">CONMEBOL Sudamericana</button>
+                <button class="standings-tab" data-league="AFCE">AFC Champions League Elite</button>
             </div>
+            <h2 class="hub-section-title" style="margin-top:18px;">Tables for other sports</h2>
+            <div class="chip-row" style="margin-top:8px;">
+                <a class="legal-nav-link" href="/table/nfl/">NFL</a>
+                <a class="legal-nav-link" href="/table/college-football/">College Football</a>
+                <a class="legal-nav-link" href="/table/nba/">NBA</a>
+                <a class="legal-nav-link" href="/table/wnba/">WNBA</a>
+                <a class="legal-nav-link" href="/table/nbl/">NBL</a>
+                <a class="legal-nav-link" href="/table/mlb/">MLB</a>
+                <a class="legal-nav-link" href="/table/nhl/">NHL</a>
+            </div>
+            <p class="legal-updated">American football, basketball, baseball and ice hockey tables are prerendered snapshots — live scores for every sport are on the <a href="index.html">live scores page</a>.</p>
             <div id="standings-table">
                 <p class="loading-note">Loading table&hellip;</p>
             </div>

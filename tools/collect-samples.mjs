@@ -29,6 +29,7 @@
 import { writeFileSync, mkdirSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { SPORTS } from './sports.mjs';
 
 const argv = process.argv.slice(2);
 const PROBE_ONLY = argv.includes('--probe');
@@ -46,113 +47,44 @@ const MAX_SUMMARIES_PER_LEAGUE = 6;
 const CAP_BYTES = 24 * 1024 * 1024;   // hard stop so a run cannot balloon the repo
 
 /* ---------------------------------------------------------------- what to get
-   `tables: true` means ESPN serves a standings payload worth publishing as a
-   /table/<slug>/ page. Soccer slugs are the ones the site already sweeps; the
-   extra ones are the candidates COMPETITION-COVERAGE.md lists as table-less. */
-const LEAGUES = [
-    // ---- soccer: the 30 existing table leagues are not re-fetched here (the
-    // hand-written MLS sample covers the shape); these are the candidates.
-    { sport: 'soccer', league: 'aus.1', table: true },
-    { sport: 'soccer', league: 'gre.1', table: true },
-    { sport: 'soccer', league: 'sui.1', table: true },
-    { sport: 'soccer', league: 'aut.1', table: true },
-    { sport: 'soccer', league: 'rus.1', table: true },
-    { sport: 'soccer', league: 'ukr.1', table: true },
-    { sport: 'soccer', league: 'col.1', table: true },
-    { sport: 'soccer', league: 'chi.1', table: true },
-    { sport: 'soccer', league: 'ind.1', table: true },
-    { sport: 'soccer', league: 'cze.1', table: true },
-    { sport: 'soccer', league: 'irl.1', table: true },
-    { sport: 'soccer', league: 'rou.1', table: true },
-    { sport: 'soccer', league: 'sco.2', table: true },
-    { sport: 'soccer', league: 'eng.2', table: true },
-    { sport: 'soccer', league: 'esp.2', table: true },
-    { sport: 'soccer', league: 'ger.2', table: true },
-    { sport: 'soccer', league: 'ita.2', table: true },
-    { sport: 'soccer', league: 'fra.2', table: true },
-    { sport: 'soccer', league: 'ned.2', table: true },
-    { sport: 'soccer', league: 'por.2', table: true },
-    { sport: 'soccer', league: 'tha.1', table: true },
-    { sport: 'soccer', league: 'mys.1', table: true },
-    { sport: 'soccer', league: 'idn.1', table: true },
-    { sport: 'soccer', league: 'egy.1', table: true },
-    { sport: 'soccer', league: 'uae.1', table: true },
-    { sport: 'soccer', league: 'qat.1', table: true },
-    { sport: 'soccer', league: 'isr.1', table: true },
-    { sport: 'soccer', league: 'fin.1', table: true },
-    { sport: 'soccer', league: 'isl.1', table: true },
-    { sport: 'soccer', league: 'bul.1', table: true },
-    { sport: 'soccer', league: 'srb.1', table: true },
-    { sport: 'soccer', league: 'svk.1', table: true },
-    { sport: 'soccer', league: 'svn.1', table: true },
-    { sport: 'soccer', league: 'hun.1', table: true },
-    { sport: 'soccer', league: 'cro.1', table: true },
-    { sport: 'soccer', league: 'pol.1', table: true },
-    { sport: 'soccer', league: 'ecu.1', table: true },
-    { sport: 'soccer', league: 'par.1', table: true },
-    { sport: 'soccer', league: 'bol.1', table: true },
-    { sport: 'soccer', league: 'ven.1', table: true },
-    { sport: 'soccer', league: 'bra.2', table: true },
-    { sport: 'soccer', league: 'usa.usl.1', table: true },
-    { sport: 'soccer', league: 'can.w.nsl', table: true },
-    { sport: 'soccer', league: 'eng.w.1', table: true },
-    { sport: 'soccer', league: 'esp.w.1', table: true },
-    { sport: 'soccer', league: 'ita.w.1', table: true },
-    { sport: 'soccer', league: 'ger.w.1', table: true },
-    { sport: 'soccer', league: 'fra.w.1', table: true },
-    { sport: 'soccer', league: 'ned.w.1', table: true },
-    { sport: 'soccer', league: 'aus.w.1', table: true },
-    { sport: 'soccer', league: 'uefa.europa', table: true },
-    { sport: 'soccer', league: 'uefa.europa.conf', table: true },
-    { sport: 'soccer', league: 'uefa.wchampions', table: true },
-    { sport: 'soccer', league: 'conmebol.libertadores', table: true },
-    { sport: 'soccer', league: 'conmebol.sudamericana', table: true },
-    { sport: 'soccer', league: 'concacaf.champions', table: true },
-    { sport: 'soccer', league: 'afc.champions', table: true },
-    { sport: 'soccer', league: 'caf.champions', table: true },
-    { sport: 'soccer', league: 'eng.3', table: true },
-    { sport: 'soccer', league: 'eng.4', table: true },
-    { sport: 'soccer', league: 'eng.5', table: true },
-    { sport: 'soccer', league: 'tur.2', table: true },
-    { sport: 'soccer', league: 'den.2', table: true },
-    { sport: 'soccer', league: 'swe.2', table: true },
-    { sport: 'soccer', league: 'nor.2', table: true },
-    { sport: 'soccer', league: 'usa.usl.l1', table: true },
-    { sport: 'soccer', league: 'concacaf.leagues.cup', table: true },
-    { sport: 'soccer', league: 'caf.confed', table: true },
+   The multi-sport half comes straight from tools/sports.mjs: every league the
+   prerenderer publishes, and only those, so a fixture can never drift from a
+   page the tool would generate. `table` decides whether a standings payload is
+   fetched, `matches` whether the scoreboard window is swept and summaries are
+   kept.
 
-    // ---- other sports: tables + match snapshots
-    { sport: 'football', league: 'nfl', table: true, matches: true },
-    { sport: 'football', league: 'college-football', table: true, matches: true },
-    { sport: 'football', league: 'canadian-football', table: true, matches: true },
-    { sport: 'football', league: 'ufl', table: false, matches: true },
-    { sport: 'baseball', league: 'mlb', table: true, matches: true },
-    { sport: 'baseball', league: 'college-baseball', table: true, matches: false },
-    { sport: 'baseball', league: 'mexican-winter-league', table: false, matches: true },
-    { sport: 'baseball', league: 'dominican-winter-league', table: false, matches: true },
-    { sport: 'basketball', league: 'nba', table: true, matches: true },
-    { sport: 'basketball', league: 'wnba', table: true, matches: true },
-    { sport: 'basketball', league: 'mens-college-basketball', table: true, matches: false },
-    { sport: 'basketball', league: 'womens-college-basketball', table: true, matches: false },
-    { sport: 'basketball', league: 'euroleague', table: true, matches: true },
-    { sport: 'basketball', league: 'nbl', table: true, matches: true },
-    { sport: 'hockey', league: 'nhl', table: true, matches: true },
-    { sport: 'hockey', league: 'mens-college-hockey', table: true, matches: true },
-    { sport: 'hockey', league: 'womens-college-hockey', table: false, matches: false },
-    { sport: 'hockey', league: 'khl', table: true, matches: true },
-    { sport: 'hockey', league: 'shl', table: true, matches: true },
-    { sport: 'hockey', league: 'liiga', table: true, matches: true },
+   Soccer is different: its tables are read by standings.js's own parser, which
+   the hand-written testdata/espn-standings.sample.json already exercises, so
+   soccer fixtures are not recorded here. The candidate list below is a
+   liveness survey only (--probe), used when deciding whether a league can get a
+   /table/<slug>/ page. */
+
+const LEAGUES = SPORTS.map((s) => ({
+    sport: s.sport,
+    league: s.league,
+    table: !!s.table,
+    matches: !!s.matches,
+}));
+
+/* Soccer leagues that probed live but had no table, plus a few worth re-checking
+   when ESPN adds coverage. `--probe` only — no fixtures are written for them. */
+const SOCCER_CANDIDATES = [
+    'soccer/eng.3', 'soccer/eng.4', 'soccer/eng.5', 'soccer/eng.w.2', 'soccer/sco.2',
+    'soccer/sui.1', 'soccer/cze.1', 'soccer/irl.1', 'soccer/rou.1', 'soccer/fin.1',
+    'soccer/isl.1', 'soccer/cyp.1', 'soccer/ukr.1', 'soccer/por.2', 'soccer/tur.2',
+    'soccer/den.2', 'soccer/swe.2', 'soccer/nor.2', 'soccer/usa.usl.l1',
+    'soccer/concacaf.leagues.cup', 'soccer/caf.confed', 'soccer/afc.cup',
 ];
 
 /* Slugs worth a liveness check even when we do not keep payloads. */
 const PROBE_EXTRA = [
-    'soccer/eng.3', 'soccer/eng.4', 'soccer/eng.5', 'soccer/tur.2', 'soccer/bel.2',
-    'soccer/den.2', 'soccer/swe.2', 'soccer/nor.2', 'soccer/gre.2', 'soccer/rus.2',
-    'soccer/ksa.2', 'soccer/jpn.2', 'soccer/chn.2', 'soccer/usa.usl.l1', 'soccer/fifa.worldq',
-    'basketball/nba-development', 'basketball/nba-summer-league', 'baseball/college-softball',
-    'baseball/world-baseball-classic', 'baseball/caribbean-series', 'baseball/llb',
-    'hockey/olympics-mens-ice-hockey', 'football/xfl', 'football/ufl', 'football/cfl',
-    'football/nfl-draft', 'hockey/ahl', 'hockey/echl',
+    ...SOCCER_CANDIDATES,
+    'basketball/nba-development', 'basketball/euroleague', 'basketball/nba-summer-league',
+    'baseball/college-softball', 'baseball/world-baseball-classic', 'baseball/caribbean-series',
+    'baseball/llb', 'baseball/college-baseball',
+    'hockey/olympics-mens-ice-hockey', 'hockey/ahl', 'hockey/echl', 'hockey/khl', 'hockey/shl',
+    'football/xfl', 'football/ufl', 'football/cfl', 'football/canadian-football',
+    'basketball/mens-college-basketball', 'basketball/womens-college-basketball',
 ];
 
 /* ------------------------------------------------------------------- utils */
@@ -271,7 +203,14 @@ function trimSummary(j) {
     }
     out.rawKeys = Object.keys(j).sort();
     for (const key of ['scoringPlays', 'plays', 'winprobability', 'keyPlays', 'drives']) {
-        if (Array.isArray(j[key])) out[key] = j[key].slice(0, key === 'plays' ? 400 : 80).map((p) => {
+        // `plays` is the only source of scoring events for baseball and hockey,
+        // but the full pitch-by-pitch list is megabytes of noise for a fixture:
+        // keep every scoring play plus the opening twelve for context.
+        let list = j[key];
+        if (key === 'plays' && Array.isArray(list)) {
+            list = list.filter((p) => p && p.scoringPlay).concat(list.slice(0, 12));
+        }
+        if (Array.isArray(list)) out[key] = list.slice(0, key === 'plays' ? 220 : 80).map((p) => {
             if (key === 'winprobability') return pick(p, ['homeWinPercentage', 'playId', 'tiePercentage']);
             const x = trimDetail(p);
             if (p.participants) x.participants = arr(p.participants).slice(0, 4).map((pt) => ({ athlete: pt.athlete ? pick(pt.athlete, ['id', 'displayName', 'shortName']) : undefined, type: pt.type }));
