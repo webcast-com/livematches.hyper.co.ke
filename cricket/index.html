@@ -397,6 +397,25 @@
             </div>
         </section>
 
+        <!-- SPORT HUB: recent results + upcoming fixtures for the selected sport (shown on sport pages only; filled by app.js) -->
+        <section class="sport-hub" id="sport-hub" aria-labelledby="sport-hub-title" hidden>
+            <div class="sport-hub-header">
+                <h3 id="sport-hub-title" data-i18n="hub.title">Results &amp; Fixtures</h3>
+                <span class="sport-hub-subtitle" id="sport-hub-sub"></span>
+            </div>
+            <div class="sport-hub-grid">
+                <div class="sport-hub-col">
+                    <h4 class="sport-hub-col-title" data-i18n="hub.results">Recent Results</h4>
+                    <div class="sport-hub-list" id="sport-hub-results" aria-live="polite"></div>
+                </div>
+                <div class="sport-hub-col">
+                    <h4 class="sport-hub-col-title" data-i18n="hub.upcoming">Upcoming Fixtures</h4>
+                    <div class="sport-hub-list" id="sport-hub-upcoming" aria-live="polite"></div>
+                </div>
+            </div>
+            <p class="sport-hub-tip" data-i18n="hub.tip">Pick any day in the date strip below for the full slate.</p>
+        </section>
+
         <!-- HIGHLIGHTS STRIP -->
         <section class="highlights-strip" id="highlights-strip" hidden>
             <div class="highlights-header">
@@ -413,7 +432,7 @@
         <section class="home-news-section" id="home-news-section">
             <div class="home-news-header">
                 <div>
-                    <h3><span class="news-header-icon">📰</span> <span data-i18n="home.newstitle">Latest Football News</span></h3>
+                    <h3><span class="news-header-icon">📰</span> <span id="home-news-title" data-i18n="home.newstitle">Latest Football News</span></h3>
                     <span class="home-news-subtitle" data-i18n="home.newssub">Breaking stories, transfer rumours, match reports &amp; analysis</span>
                 </div>
                 <a href="news.html" class="view-all-link" style="margin-left:auto;" data-i18n="home.newsall">View All News &rarr;</a>

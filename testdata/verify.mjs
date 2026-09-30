@@ -1206,6 +1206,67 @@ check('service worker precaches sport-pages.js and every page that loads it', ()
     assert(html.indexOf('sport-pages.js') < html.indexOf('src="app.js"'), 'sport-pages.js must load before app.js');
 });
 
+/* ------------------------------------------------------- sport news + hub */
+
+const appSrc = readText('../app.js');
+
+check('index.html carries the sport hub (results + fixtures columns) above the highlights strip', () => {
+    const html = readText('../index.html');
+    for (const id of ['sport-hub', 'sport-hub-results', 'sport-hub-upcoming', 'home-news-title']) {
+        assert(html.includes(`id="${id}"`), `index.html is missing #${id}`);
+    }
+    assert(html.indexOf('id="sport-hub"') < html.indexOf('id="highlights-strip"'), 'hub must sit above the highlights strip');
+});
+
+check('every hub string exists in both English and Swahili', () => {
+    const i18n = readText('../i18n.js');
+    const keys = [...new Set([...appSrc.matchAll(/"((?:hub|news\.sport)\.[a-z.]+)"/g)].map((m) => m[1]))];
+    assert(keys.length >= 7, `expected the hub to use several keys, found ${keys.length}`);
+    for (const k of keys) {
+        const n = i18n.split(`"${k}"`).length - 1;
+        assert(n >= 2, `i18n.js defines "${k}" ${n}x — needs one entry in STR.en and one in STR.sw`);
+    }
+});
+
+check('every sport with a hub has its leagues in ESPN_ENDPOINTS / LEAGUE_NAMES', () => {
+    const block = appSrc.match(/const SPORT_HUB_LEAGUES = \{([\s\S]*?)\n\};/);
+    assert(block, 'SPORT_HUB_LEAGUES not found');
+    const slugs = [...block[1].matchAll(/"((?:soccer|basketball|tennis|baseball|hockey|rugby)\/[^"]+)"/g)].map((m) => m[1]);
+    assert(slugs.length > 10, 'suspiciously few hub leagues');
+    for (const slug of slugs) {
+        assert(appSrc.includes(`"${slug}"`) && new RegExp(`"${slug.replace(/[.]/g, '\\.')}":\\s*\\{`).test(appSrc), `${slug} has no LEAGUE_NAMES entry`);
+    }
+});
+
+check('non-football sports never fall back to football MOCK_NEWS / MOCK_HIGHLIGHTS', () => {
+    assert(/scoped \? \[\] : MOCK_NEWS/.test(appSrc), 'renderNews must use an empty list for scoped sports');
+    assert(/isScopedSport\(currentSport\) \? \[\] : MOCK_HIGHLIGHTS/.test(appSrc), 'renderHighlights must not show football mock clips on other sports');
+});
+
+check('hub requests one day per request (ESPN rejects ?dates=FROM-TO ranges)', () => {
+    assert(/scoreboard\?dates=\$\{day\}/.test(appSrc), 'hub must request ?dates=YYYYMMDD per day');
+    assert(!/dates=\$\{[a-zA-Z]+\}-\$\{/.test(appSrc), 'a dates=FROM-TO range request sneaked in');
+});
+
+check('espnEventsOf() flattens tennis tournaments into match events and leaves other sports alone', () => {
+    const start = appSrc.indexOf('function espnEventsOf(');
+    const end = appSrc.indexOf('// Parse every event of a league payload');
+    assert(start > 0 && end > start, 'espnEventsOf not found');
+    const ctx2 = vm.createContext({});
+    vm.runInContext(appSrc.slice(start, end) + '\n;globalThis.fn = espnEventsOf;', ctx2);
+    const comp = (id, state) => ({ id, startDate: '2026-10-03T06:00Z', status: { type: { state, completed: state === 'post' } }, competitors: [
+        { id: 'a', homeAway: 'home', linescores: [{ winner: true }, { winner: true }], athlete: { displayName: 'Ann Able', shortName: 'A. Able' } },
+        { id: 'b', homeAway: 'away', linescores: [{ winner: false }, { winner: false }], athlete: { displayName: 'Bea Baker', shortName: 'B. Baker' } }] });
+    const data = { events: [{ id: 't', shortName: 'Open', date: '2026-10-01', groupings: [{ grouping: { displayName: 'Singles' }, competitions: [comp('m1', 'post'), comp('m2', 'pre')] }] }] };
+    const out = ctx2.fn(data, 'tennis/atp');
+    assert(out.length === 2, `expected 2 flattened matches, got ${out.length}`);
+    const c0 = out[0].competitions[0].competitors;
+    assert(c0[0].team.displayName === 'Ann Able' && c0[0].score === '2' && c0[1].score === '0', 'players must become teams with sets-won as the score');
+    assert(out[0].tournament === 'Open', 'the tournament name must ride along');
+    const nba = { events: [{ id: 'x', competitions: [{}] }] };
+    assert(ctx2.fn(nba, 'basketball/nba') === nba.events, 'non-tennis events must pass through untouched');
+});
+
 /* ------------------------------------------------------------------ report */
 
 function report() {
