@@ -19,6 +19,10 @@ name: Prerender static pages
 on:
   push:
     branches: [main, arena/01a0f3fd-livematches-hyper-co-ke]  # TEMPORARY: run on the working branch
+    # The coverage audit pushes its own report to this branch; regenerating the
+    # pages for a report-only commit is wasted work (and used to make the two
+    # jobs race for the branch tip).
+    paths-ignore: ['COVERAGE-AUDIT.md', 'testdata/coverage-audit.json']
   schedule:
     - cron: '0 4 * * *'
   workflow_dispatch:
@@ -36,6 +40,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # the commit step may have to rebase onto a moved tip
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -58,7 +64,16 @@ jobs:
           git add -A
           if git diff --cached --quiet; then
             echo "No changes to commit."
-          else
-            git commit -m "Prerender: refresh league tables, match snapshots and sitemaps"
-            git push
+            exit 0
           fi
+          git commit -m "Prerender: refresh league tables, match snapshots and sitemaps"
+          # The coverage audit also pushes to this branch, so the tip can move
+          # while this run is generating. Rebase onto it and retry rather than
+          # failing the run (and losing the generated pages).
+          for attempt in 1 2 3; do
+            if git push origin HEAD:"${GITHUB_REF_NAME}"; then exit 0; fi
+            git pull --rebase origin "${GITHUB_REF_NAME}" || { git rebase --abort || true; }
+            sleep 5
+          done
+          echo "could not push after 3 attempts"
+          exit 1

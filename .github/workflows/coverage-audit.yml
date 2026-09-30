@@ -39,6 +39,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # the commit step may have to rebase onto a moved tip
 
       - name: Set up Node
         uses: actions/setup-node@v4

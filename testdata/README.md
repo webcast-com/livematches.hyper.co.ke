@@ -58,6 +58,29 @@ Trimmed: the fixtures hold the fields the parsers read, the opening dozen plays
 of each match plus every scoring play, and nothing else (the full play-by-play
 alone is megabytes per game).
 
+## `coverage-audit.json` — what ESPN is actually serving
+
+`COMPETITION-COVERAGE.md` counts what the code registers (263 competitions).
+`tools/audit-coverage.mjs` asks ESPN the different question — does this slug
+answer, and with content? — one scoreboard request per competition over a ±7
+day window, plus a standings request for every league that advertises a
+`/table/<slug>/` page. It writes `COVERAGE-AUDIT.md` (human-readable, grouped by
+sport and country) and `testdata/coverage-audit.json` (machine-readable), and
+the CI job commits both so the census survives:
+
+```
+node tools/audit-coverage.mjs                # everything (needs network)
+node tools/audit-coverage.mjs --sport soccer
+node tools/audit-coverage.mjs --limit 20     # smoke test
+```
+
+Verdicts: `live` (answered with fixtures or a table), `idle` (answered, out of
+season), `empty` (answered with no league identity), `dead` (HTTP error — a
+slug to drop). The first full run found 255 live, 1 idle, 0 empty and 7 dead
+(the three cricket and three rugby slugs the site registers, plus `ukr.1`).
+Like the fixtures, the audit is committed by CI because this sandbox cannot
+reach ESPN.
+
 ## Verify
 
 ```
