@@ -1,6 +1,6 @@
 {
  "meta": {
-  "at": "2026-09-30T21:31:39.210Z",
+  "at": "2026-09-30T21:41:48.553Z",
   "windowDays": 7,
   "total": 267
  },
@@ -1327,8 +1327,8 @@
    "mode": "month",
    "returned": 52,
    "events": 28,
-   "inPlay": 1,
-   "finished": 11,
+   "inPlay": 0,
+   "finished": 12,
    "upcoming": 16,
    "nextEvent": "2026-09-30",
    "lastEvent": "2026-09-30",
@@ -1337,7 +1337,7 @@
    "tableChecked": false,
    "tableRows": 0,
    "tableGroups": 0,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/bol.ply.rel",
@@ -2753,8 +2753,8 @@
    "mode": "month",
    "returned": 36,
    "events": 7,
-   "inPlay": 1,
-   "finished": 6,
+   "inPlay": 0,
+   "finished": 7,
    "upcoming": 0,
    "nextEvent": "2026-10-17",
    "lastEvent": "2026-09-30",
@@ -2763,7 +2763,7 @@
    "tableChecked": false,
    "tableRows": 0,
    "tableGroups": 0,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/eng.w.promotion.relegation",
@@ -2846,8 +2846,8 @@
    "returned": 24,
    "events": 8,
    "inPlay": 0,
-   "finished": 7,
-   "upcoming": 1,
+   "finished": 8,
+   "upcoming": 0,
    "nextEvent": "",
    "lastEvent": "2026-09-30",
    "ranged": true,
@@ -5467,8 +5467,8 @@
    "mode": "month",
    "returned": 68,
    "events": 68,
-   "inPlay": 1,
-   "finished": 31,
+   "inPlay": 0,
+   "finished": 32,
    "upcoming": 36,
    "nextEvent": "2026-10-01",
    "lastEvent": "2026-09-30",
@@ -5477,7 +5477,7 @@
    "tableChecked": false,
    "tableRows": 0,
    "tableGroups": 0,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/uefa.euro.u19",
@@ -5674,8 +5674,8 @@
    "mode": "month",
    "returned": 44,
    "events": 17,
-   "inPlay": 2,
-   "finished": 15,
+   "inPlay": 0,
+   "finished": 17,
    "upcoming": 0,
    "nextEvent": "",
    "lastEvent": "2026-09-30",
@@ -5684,7 +5684,7 @@
    "tableChecked": false,
    "tableRows": 0,
    "tableGroups": 0,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/uefa.w.nations",
@@ -5720,8 +5720,8 @@
    "mode": "month",
    "returned": 27,
    "events": 9,
-   "inPlay": 2,
-   "finished": 3,
+   "inPlay": 0,
+   "finished": 5,
    "upcoming": 4,
    "nextEvent": "2026-10-01",
    "lastEvent": "2026-09-30",
@@ -5730,7 +5730,7 @@
    "tableChecked": true,
    "tableRows": 18,
    "tableGroups": 1,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/uefa.wchampions_qual",
