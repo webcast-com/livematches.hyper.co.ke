@@ -232,15 +232,17 @@ function introLinks() {
     return `<p>More on ScoreHub: <a href="/">today's live scores</a>, the <a href="/news.html">News Centre</a>, the <a href="/previews.html">previews &amp; reports hub</a> and the free <a href="/predictions.html">predictions game</a>.</p>`;
 }
 
-function chipRowHTML(currentSlug) {
+function chipRowHTML(currentSlug, available) {
+    // Only cross-link tables that were actually written this run: a chip to a
+    // league whose ESPN standings failed that morning would be a 404.
     return CHIP_TABLES
-        .filter(([, slug]) => slug !== currentSlug)
+        .filter(([, slug]) => slug !== currentSlug && available.has(slug))
         .map(([, slug, name]) => `<a class="legal-nav-link" href="/table/${slug}/">${name}</a>`)
         .join('\n                ');
 }
 
 /* ------------------------------------------------------------ table pages */
-function tablePageHTML(L, groups, season, generatedNote, vmCtx) {
+function tablePageHTML(L, groups, season, generatedNote, vmCtx, available = new Set()) {
     const seasonLabel = season || `${NOW.getUTCFullYear()}/${String(NOW.getUTCFullYear() + 1).slice(2)}`;
     const title = `${L.name} Table & Standings — ${seasonLabel} Season | ScoreHub`;
     const description = `${L.name} table (${seasonLabel}): full standings with played, won, drawn, lost, goals for/against, goal difference and points — updated from ESPN data on ScoreHub.`;
@@ -260,7 +262,7 @@ function tablePageHTML(L, groups, season, generatedNote, vmCtx) {
             </div>
             <h2 class="hub-section-title" style="margin-top:18px;">More league tables</h2>
             <div class="chip-row" style="margin-top:8px;">
-                ${chipRowHTML(L.slug)}
+                ${chipRowHTML(L.slug, available)}
             </div>
             <p class="legal-content" style="margin-top:14px;">${introLinks()}</p>`;
     const meta = JSON.stringify({ type: 'table', sport: 'soccer', league: L.slug, updated: ymd(NOW) });
@@ -409,7 +411,7 @@ function standingBadge(abbrev, logo) {
         + `</span>`;
 }
 
-function sportTablePageHTML(entry, parsed, seasonLabel, generatedNote) {
+function sportTablePageHTML(entry, parsed, seasonLabel, generatedNote, available = new Set()) {
     const { groups, columns } = parsed;
     const rows = groups.reduce((n, g) => n + g.rows.length, 0);
     const label = seasonLabel || String(NOW.getUTCFullYear());
@@ -424,7 +426,7 @@ function sportTablePageHTML(entry, parsed, seasonLabel, generatedNote) {
     const body = `
             <h1>${esc(entry.name)} Standings — ${esc(label)}</h1>
             <p class="legal-updated">${esc(entry.name)} (${esc(entry.icon)} ${esc(sportTitle(entry.sport))}) standings, updated from ESPN data. Data: ESPN.</p>
-            <div class="snapshot-banner">Snapshot generated ${generatedNote} from ESPN. This page is static — for the live-updating scores behind it, open <a href="/">ScoreHub's live scores</a> and pick the ${esc(sportTitle(entry.sport))} tab.</div>
+            <div class="snapshot-banner">Snapshot generated ${generatedNote} from ESPN. This page is static — ${LIVE_TABS[entry.sport] ? `for the live-updating scores behind it, open <a href="/">ScoreHub's live scores</a> and pick the ${esc(LIVE_TABS[entry.sport])} tab` : `live scores for the sports ScoreHub carries are on <a href="/">ScoreHub's live scores page</a>`}.</div>
             <section class="page-intro" aria-label="About this page">
                 <p>The complete ${esc(entry.name)} table for ${esc(label)}: ${rows} teams across ${groups.length} ${groups.length === 1 ? 'table' : 'tables'}, with ${esc(statWords)} — exactly as published by ESPN. Soccer tables (Premier League, La Liga, Serie A, the Kenyan and Ugandan Premier Leagues and 60 more) live in the <a href="/standings.html">Standings hub</a>.</p>
             </section>
@@ -433,7 +435,7 @@ function sportTablePageHTML(entry, parsed, seasonLabel, generatedNote) {
             </div>
             <h2 class="hub-section-title" style="margin-top:18px;">More league tables</h2>
             <div class="chip-row" style="margin-top:8px;">
-                ${chipRowHTML(entry.league)}
+                ${chipRowHTML(entry.league, available)}
             </div>
             <p class="legal-content" style="margin-top:14px;">${introLinks()}</p>`;
     const meta = JSON.stringify({ type: 'table', sport: entry.sport, league: entry.league, updated: ymd(NOW) });
@@ -448,6 +450,12 @@ function sportTablePageHTML(entry, parsed, seasonLabel, generatedNote) {
 function sportTitle(sport) {
     return { soccer: 'Football', football: 'American Football', baseball: 'Baseball', basketball: 'Basketball', hockey: 'Ice Hockey' }[sport] || sport;
 }
+
+/* The sport tabs the live scores page really has (index.html data-sport).
+   Snapshots may only send readers to a tab that exists: the college hockey and
+   American football pages used to promise a tab the site does not have. */
+const LIVE_TABS = { soccer: 'Football', baseball: 'Baseball', basketball: 'Basketball', hockey: 'Ice Hockey' };
+
 
 /* ------------------------------------------------------------ match pages */
 function statLabel(name) {
@@ -726,7 +734,7 @@ function matchJSONLD(kind, ev, meta, home, away, venue) {
     });
 }
 
-function matchPageHTML(kind, ev, meta, generatedNote, extra = {}) {
+function matchPageHTML(kind, ev, meta, generatedNote, extra = {}, available = new Set()) {
     const comp = arr(ev.competitions)[0] || {};
     const home = arr(comp.competitors).find((c) => c.homeAway === 'home') || arr(comp.competitors)[0] || {};
     const away = arr(comp.competitors).find((c) => c.homeAway === 'away') || arr(comp.competitors)[1] || {};
@@ -739,7 +747,7 @@ function matchPageHTML(kind, ev, meta, generatedNote, extra = {}) {
     const verb = kind === 'report' ? (statusType.detail || 'Full Time') : 'Kick-off';
 
     if (meta.sport !== 'soccer') {
-        return sportMatchPageHTML(kind, ev, meta, generatedNote, extra);
+        return sportMatchPageHTML(kind, ev, meta, generatedNote, extra, available);
     }
 
     const scoreline = isPost
@@ -794,7 +802,7 @@ function matchPageHTML(kind, ev, meta, generatedNote, extra = {}) {
     });
 }
 
-function sportMatchPageHTML(kind, ev, meta, generatedNote, extra) {
+function sportMatchPageHTML(kind, ev, meta, generatedNote, extra, available = new Set()) {
     const comp = arr(ev.competitions)[0] || {};
     const home = arr(comp.competitors).find((c) => c.homeAway === 'home') || arr(comp.competitors)[0] || {};
     const away = arr(comp.competitors).find((c) => c.homeAway === 'away') || arr(comp.competitors)[1] || {};
@@ -861,12 +869,12 @@ function sportMatchPageHTML(kind, ev, meta, generatedNote, extra) {
     const broadcasts = arr(comp.broadcasts).map((b) => arr(b.names).join(', ')).filter(Boolean).join(' &middot; ');
     const before = !isPost
         ? `<h2 class="hub-section-title" style="margin-top:18px;">Before the game</h2>
-           <p>Follow this ${sportName.toLowerCase()} fixture live on ScoreHub: the live scores page carries the ${esc(meta.name)} scoreboard with the ${esc(sportName)} tab selected${broadcasts ? `, and it is broadcast by ${esc(broadcasts)}` : ''}. Form and standings for both teams are in the <a href="/table/${esc(meta.league)}/">${esc(meta.name)} table</a>.</p>`
+           <p>Follow this ${sportName.toLowerCase()} fixture live on ScoreHub: the live scores page carries the ${esc(meta.name)} scoreboard${LIVE_TABS[meta.sport] ? ` with the ${esc(LIVE_TABS[meta.sport])} tab selected` : ''}${broadcasts ? `, and it is broadcast by ${esc(broadcasts)}` : ''}.${available.has(meta.league) ? ` Form and standings for both teams are in the <a href="/table/${esc(meta.league)}/">${esc(meta.name)} table</a>.` : ''}</p>`
         : '';
     const body = `
             <h1>${esc(home.team.displayName)} vs ${esc(away.team.displayName)}</h1>
             <p class="legal-updated">${esc(meta.name)} &middot; ${dateStr}${isPost ? '' : ` &middot; ${esc(timeStr)} UTC`}${venue ? ` &middot; ${esc(venue)}` : ''}${attendance}</p>
-            <div class="snapshot-banner">Snapshot generated ${generatedNote} from ESPN. This page is static — live ${esc(sportName.toLowerCase())} scores are on <a href="/">ScoreHub's live scores page</a> under the ${esc(sportName)} tab.</div>
+            <div class="snapshot-banner">Snapshot generated ${generatedNote} from ESPN. This page is static — ${LIVE_TABS[meta.sport] ? `live ${esc(sportName.toLowerCase())} scores are on <a href="/">ScoreHub's live scores page</a> under the ${esc(LIVE_TABS[meta.sport])} tab` : `live scores for the sports ScoreHub carries are on <a href="/">ScoreHub's live scores page</a>`}.</div>
             <section class="page-intro" aria-label="About this page">
                 <p>${esc(meta.name)} ${kind === 'report' ? 'match report' : 'preview'} snapshot (${esc(sportName)}): ${kind === 'report' ? 'final score, the line score by period, the scoring plays and the team stats' : 'kickoff time, venue, both teams’ records and the odds where ESPN publishes them'} — published from ESPN's data.</p>
             </section>
@@ -1103,12 +1111,13 @@ async function main() {
     if (!leagues || !leagues.length) throw new Error('STANDINGS_LEAGUES not found in standings.js');
 
     const tablePages = [];
+    const tableJobs = [];      // fetched first, written once every table is known
 
     // 1. Soccer table pages — reuse the site's own fetch + parse + markup
     for (const L of leagues) {
         const res = await fetchTable(vmCtx, L);
         if (!res.groups.length) { log(`  no standings for ${L.slug}, skipped`); continue; }
-        writePage(path.join('table', L.slug), tablePageHTML(L, res.groups, res.season, res.sample ? 'DEMO (testdata sample)' : `${iso(NOW)} UTC`, vmCtx));
+        tableJobs.push({ slug: L.slug, write: (available) => tablePageHTML(L, res.groups, res.season, res.sample ? 'DEMO (testdata sample)' : `${iso(NOW)} UTC`, vmCtx, available) });
         tablePages.push(L.slug);
         log(`  table ${L.slug} (${res.groups.reduce((n, g) => n + g.rows.length, 0)} rows${res.season ? `, ${res.season}` : ''})`);
         if (!OFFLINE) await sleep(FETCH_DELAY_MS);
@@ -1122,11 +1131,16 @@ async function main() {
             if (!OFFLINE) await sleep(FETCH_DELAY_MS);
             continue;
         }
-        writePage(path.join('table', entry.league), sportTablePageHTML(entry, res.parsed, res.season, res.sample ? 'DEMO (offline fixture)' : `${iso(NOW)} UTC`));
+        tableJobs.push({ slug: entry.league, write: (available) => sportTablePageHTML(entry, res.parsed, res.season, res.sample ? 'DEMO (offline fixture)' : `${iso(NOW)} UTC`, available) });
         tablePages.push(entry.league);
         log(`  table ${entry.league} (${res.parsed.groups.reduce((n, g) => n + g.rows.length, 0)} rows across ${res.parsed.groups.length} table(s), ${res.parsed.columns.length} columns${res.season ? `, ${res.season}` : ''})`);
         if (!OFFLINE) await sleep(FETCH_DELAY_MS);
     }
+
+    // Now that every table that will exist this run is known, render them: the
+    // chip rows and the match pages may only link to what was really written.
+    const availableTables = new Set(tablePages);
+    for (const job of tableJobs) writePage(path.join('table', job.slug), job.write(availableTables));
 
     // 2. Match snapshots from scoreboards
     const targets = sweepTargets(vmCtx);
@@ -1183,11 +1197,11 @@ async function main() {
 
     for (const { ev, target } of reports) {
         const meta = { sport: target.sport, league: target.league, name: target.name || leagueNameOf(ev, target) };
-        writePage(path.join('report', ev.id), matchPageHTML('report', ev, meta, OFFLINE ? 'DEMO (offline fixture)' : `${iso(NOW)} UTC`, { summary: summaries.get(ev.id) || null }));
+        writePage(path.join('report', ev.id), matchPageHTML('report', ev, meta, OFFLINE ? 'DEMO (offline fixture)' : `${iso(NOW)} UTC`, { summary: summaries.get(ev.id) || null }, availableTables));
     }
     for (const { ev, target } of previews) {
         const meta = { sport: target.sport, league: target.league, name: target.name || leagueNameOf(ev, target) };
-        writePage(path.join('preview', ev.id), matchPageHTML('preview', ev, meta, OFFLINE ? 'DEMO (offline fixture)' : `${iso(NOW)} UTC`, {}));
+        writePage(path.join('preview', ev.id), matchPageHTML('preview', ev, meta, OFFLINE ? 'DEMO (offline fixture)' : `${iso(NOW)} UTC`, {}, availableTables));
     }
     log(`wrote ${reports.length} report + ${previews.length} preview snapshot pages`);
 

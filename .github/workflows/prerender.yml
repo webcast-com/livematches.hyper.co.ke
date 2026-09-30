@@ -1,7 +1,12 @@
 # Regenerates the prerendered static pages (Phase S1/S2 of SEO-PERF-ROADMAP.md):
-#   table/<league>/index.html   league-table snapshots (30+ leagues)
-#   report/<matchId>/           finished-match snapshots (rolling 7-day window)
-#   preview/<matchId>/          upcoming-match snapshots (rolling 3-day window)
+#   table/<league>/index.html   league-table snapshots — the soccer leagues in
+#                               standings.js plus the multi-sport leagues in
+#                               tools/sports.mjs (NFL, college football, NBA,
+#                               WNBA, NBL, MLB, NHL)
+#   report/<matchId>/           finished-match snapshots (rolling 7-day window,
+#                               every sport, built from the ESPN summary)
+#   preview/<matchId>/          upcoming-match snapshots (soccer 3-day window,
+#                               other sports 7 — they do not play daily)
 #   sitemap.xml                 regenerated to mirror exactly what exists
 #   news-sitemap.xml            story URLs from the last 48h (Google news format)
 #

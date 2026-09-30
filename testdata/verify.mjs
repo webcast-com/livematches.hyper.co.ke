@@ -339,6 +339,20 @@ check('multi-sport table pages are for configured leagues and self-canonical', (
     }
 });
 
+check('every /table/ link on the hand-written pages points at a configured league', () => {
+    // standings.html points readers at the other sports' tables; a typo there
+    // would be a 404 on a page humans edit by hand.
+    const config = new Set([...STANDINGS_LEAGUES.map((l) => l.slug), ...sportTableSlugs()]);
+    for (const file of ROOT_PAGES) {
+        const full = path.join(ROOT, file);
+        if (!fs.existsSync(full)) continue;
+        const html = readText(`../${file}`);
+        for (const m of html.matchAll(/href="\/table\/([^"/]+)\//g)) {
+            assert(config.has(m[1]), `${file} links to /table/${m[1]}/, which no league config defines`);
+        }
+    }
+});
+
 check('every multi-sport table page that exists is linked from the sitemap', () => {
     const dir = path.join(ROOT, 'table');
     if (!fs.existsSync(dir)) return;
