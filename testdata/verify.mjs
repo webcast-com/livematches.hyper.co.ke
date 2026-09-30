@@ -370,6 +370,34 @@ check('highlightLinkHTML generates YouTube links exclusively for finished fixtur
     assert(ctx.__highlightLinkHTML(schedMatch) === '', 'scheduled match must not show highlight link');
 });
 
+check('every league the site names is one it actually fetches, and vice versa', () => {
+    const mockEl = { addEventListener: () => {}, querySelector: () => null, querySelectorAll: () => [] };
+    const ctx = vm.createContext({
+        window: {},
+        document: { getElementById: () => mockEl, querySelector: () => mockEl, querySelectorAll: () => [], addEventListener: () => {}, documentElement: mockEl, createElement: () => mockEl },
+        console,
+        localStorage: { getItem: () => null, setItem: () => {} },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {},
+        LANG: 'en', t: (k) => k
+    });
+    vm.runInContext(
+        readText('../app.js') + '; globalThis.__LEAGUE_NAMES = LEAGUE_NAMES; globalThis.__ESPN_ENDPOINTS = ESPN_ENDPOINTS;',
+        ctx);
+
+    const named = Object.keys(ctx.__LEAGUE_NAMES);
+    const swept = [...new Set(Object.values(ctx.__ESPN_ENDPOINTS).flat())];
+
+    // A league with a name but no endpoint is advertised and then never fetched
+    // (uefa.champions_qual and uefa.europa_qual sat stranded like that).
+    const stranded = named.filter((k) => !swept.includes(k));
+    assert(!stranded.length, `named but never fetched: ${stranded.join(', ')}`);
+
+    // A league with an endpoint but no name renders its raw slug in the UI.
+    const anonymous = swept.filter((k) => !named.includes(k));
+    assert(!anonymous.length, `fetched but never named: ${anonymous.join(', ')}`);
+});
+
 check('every football league in app.js is mapped in PREVIEW_LEAGUES, REPORT_LEAGUES, and MATCH_LEAGUES', () => {
     const mockEl = { addEventListener: () => {}, querySelector: () => null, querySelectorAll: () => [] };
     const appCtx = vm.createContext({
@@ -439,6 +467,293 @@ check('canPreviewMatch accepts scheduled football fixtures across leagues and re
 
     const repHtml = ctx.__exports.reportLinkHTML(ftEPL);
     assert(repHtml.includes('report.html?league=eng.1&id=1004&date=20260915'), `report URL malformed: ${repHtml}`);
+});
+
+/* ------------------------------------------------- odds + sim-stat regressions */
+
+/* Loads one page script into its own sandbox and hands back the named helpers.
+   app.js needs the fuller mock document the checks above already use. */
+function oddsSandbox(file, exports) {
+    const ctx = vm.createContext({
+        window: {},
+        document: {
+            getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
+            addEventListener: () => {}, documentElement: {}, createElement: () => ({ style: {}, classList: { add() {}, remove() {} }, setAttribute() {}, appendChild() {} })
+        },
+        console,
+        localStorage: { getItem: () => null, setItem: () => {} },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {}, clearTimeout: () => {}, clearInterval: () => {},
+        LANG: 'en', t: (k) => k, tf: (k) => k, navigator: {}, location: { search: '', hash: '' },
+        fetch: async () => ({ ok: false, status: 500, json: async () => ({}) })
+    });
+    vm.runInContext(readText(file) + `; globalThis.__x = { ${exports.join(', ')} };`, ctx);
+    return ctx.__x;
+}
+
+const appOdds = oddsSandbox('../app.js', ['parseESPNEvent', 'espnPriceToDecimal', 'americanToDecimal']);
+const matchOdds = oddsSandbox('../match.js', ['oddsFromCompetition', 'espnPriceToDecimal']);
+const prevOdds = oddsSandbox('../preview.js', ['previewOdds', 'espnPriceToDecimal']);
+
+check('espnPriceToDecimal is one implementation across app.js, match.js and preview.js', () => {
+    const inputs = [null, undefined, '', 0, 1, 1.5, 1.91, 2.5, 12, 25, 26, 45.31, 54.69, 100, -110, -115, 105, 250, '1.91', '-110', 'nonsense'];
+    const expected = { '-110': 1.91, '-115': 1.87, 105: 2.05, 100: 2, 250: 3.5 };
+    // 1 is not a price (no return), 25+ and the 45/54 pair are provider
+    // probabilities rather than odds, so all of them must come back null.
+    const dropped = [null, undefined, '', 0, 1, 'nonsense', 25, 26, 45.31, 54.69];
+    for (const fn of [appOdds, matchOdds, prevOdds]) {
+        for (const v of inputs) {
+            const got = fn.espnPriceToDecimal(v);
+            const label = `${JSON.stringify(v)} → ${got}`;
+            if (dropped.includes(v)) {
+                assert(got === null, `a value that is not a price should be dropped, got ${label}`);
+                continue;
+            }
+            if (expected[v] != null) {
+                assert(Math.abs(got - expected[v]) < 0.005, `expected ${expected[v]} for ${label}`);
+            } else {
+                assert(typeof got === 'number' && got > 1, `expected a decimal price, got ${label}`);
+            }
+        }
+    }
+});
+
+/* Every shape ESPN has been seen to publish for the totals and BTTS markets. */
+const ODDS_CASES = [
+    {
+        name: 'moneyline entry that merely carries the total line',
+        odds: [{ provider: { name: 'Draft Kings' }, details: 'ARS -145', overUnder: 2.5, spread: -0.5,
+                 homeTeamOdds: { moneyLine: -145 }, drawOdds: { moneyLine: 260 }, awayTeamOdds: { moneyLine: 380 } }],
+        expect: { overUnder: 2.5, overOdds: null, underOdds: null, bttsYes: null, bttsNo: null, home: -145, away: 380 }
+    },
+    {
+        name: 'entry-level Over/Under prices (the documented ESPN shape)',
+        odds: [{ provider: { name: 'Draft Kings' }, details: 'ARS -145', overUnder: 2.5, overOdds: -115, underOdds: 105,
+                 homeTeamOdds: { moneyLine: -145 }, drawOdds: { moneyLine: 260 }, awayTeamOdds: { moneyLine: 380 } }],
+        expect: { overUnder: 2.5, overOdds: 1.87, underOdds: 2.05, home: -145 }
+    },
+    {
+        name: 'separate entry whose details name the totals market',
+        odds: [
+            { provider: { name: 'Draft Kings' }, details: 'ARS -145', overUnder: 2.5, homeTeamOdds: { moneyLine: -145 }, drawOdds: { moneyLine: 260 }, awayTeamOdds: { moneyLine: 380 } },
+            { provider: { name: 'Draft Kings' }, details: 'O/U 2.5', homeTeamOdds: { moneyLine: -110 }, awayTeamOdds: { moneyLine: -110 } }
+        ],
+        expect: { overOdds: 1.91, underOdds: 1.91 }
+    },
+    {
+        name: 'BTTS entry',
+        odds: [{ provider: { name: 'Draft Kings' }, details: 'Both teams to score', homeTeamOdds: { moneyLine: -125 }, awayTeamOdds: { moneyLine: 105 } }],
+        expect: { bttsYes: 1.8, bttsNo: 2.05 }
+    }
+];
+
+check('parseESPNEvent reads the totals/BTTS markets the way ESPN publishes them', () => {
+    for (const c of ODDS_CASES) {
+        const ev = JSON.parse(JSON.stringify(scoreboard.events[0]));
+        ev.competitions[0].odds = c.odds;
+        const m = appOdds.parseESPNEvent(ev, { name: 'Premier League', code: 'EPL', sport: 'football' }, 'soccer/eng.1');
+        for (const [k, v] of Object.entries(c.expect)) {
+            const got = m.odds[k];
+            if (v === null) assert(got === null, `${c.name}: ${k} should stay empty, got ${JSON.stringify(got)}`);
+            else if (typeof v === 'number' && !Number.isInteger(v)) assert(Math.abs(got - v) < 0.005, `${c.name}: ${k} expected ${v}, got ${got}`);
+            else assert(got === v, `${c.name}: ${k} expected ${v}, got ${JSON.stringify(got)}`);
+        }
+    }
+});
+
+check('a moneyline entry never has its 1X2 prices relabelled as Over/Under payouts', () => {
+    const ev = JSON.parse(JSON.stringify(scoreboard.events[0]));
+    ev.competitions[0].odds = [ODDS_CASES[0].odds[0]];
+    const m = appOdds.parseESPNEvent(ev, { name: 'Premier League', code: 'EPL', sport: 'football' }, 'soccer/eng.1');
+    assert(m.odds.overOdds === null && m.odds.underOdds === null,
+        `Over/Under payouts were invented from the moneyline: ${m.odds.overOdds} / ${m.odds.underOdds}`);
+});
+
+check('app.js and match.js agree on every odds market for the same competition', () => {
+    for (const c of ODDS_CASES) {
+        const comp = { odds: c.odds };
+        const a = appOdds.parseESPNEvent({ id: '1', date: '2026-05-24T15:00Z', status: { type: { state: 'post', completed: true } }, competitions: [{ ...comp, competitors: scoreboard.events[0].competitions[0].competitors }] },
+            { name: 'Premier League', code: 'EPL', sport: 'football' }, 'soccer/eng.1').odds;
+        const b = matchOdds.oddsFromCompetition(comp);
+        for (const k of ['home', 'draw', 'away', 'overUnder', 'overOdds', 'underOdds', 'bttsYes', 'bttsNo']) {
+            const same = (a[k] == null && b[k] == null) || (typeof a[k] === 'number' && Math.abs(a[k] - b[k]) < 1e-9) || a[k] === b[k];
+            assert(same, `${c.name}: ${k} differs — app.js ${JSON.stringify(a[k])} vs match.js ${JSON.stringify(b[k])}`);
+        }
+    }
+});
+
+check('preview.js renders totals prices as decimals, not raw American moneylines', () => {
+    const out = prevOdds.previewOdds({ odds: ODDS_CASES[1].odds });
+    assert(Math.abs(out.overOdds - 1.87) < 0.005 && Math.abs(out.underOdds - 2.05) < 0.005,
+        `preview.js totals prices are ${out.overOdds} / ${out.underOdds}`);
+    const html = readText('../preview.js');
+    assert(!/↑\$\{.*overOdds/.test(html) || html.includes('Number(odds.overOdds).toFixed(2)'),
+        'preview.js oddsCapsulesHTML must format odds.overOdds as a number');
+});
+
+check('a simulated match report keeps every stat the mock match carries', () => {
+    const ctx = oddsSandbox('../report.js', ['simMatchToReportEvent', 'parseSideStats']);
+    const sim = {
+        id: 'fb-1', league: 'UEFA Champions League', leagueSlug: 'uefa.champions', homeTeam: 'Arsenal', homeCode: 'ARS',
+        awayTeam: 'Chelsea', awayCode: 'CHE', homeScore: 2, awayScore: 1, time: 'FT', venue: 'Emirates Stadium',
+        stats: { possession: 55, shots: 8, shotsOnTarget: 4, corners: 4, fouls: 7, yellowCards: 2, redCards: 0 }
+    };
+    const ev = ctx.simMatchToReportEvent(sim);
+    const cs = ev.competitions[0].competitors;
+    const home = cs.find((c) => c.homeAway === 'home');
+    const parsed = ctx.parseSideStats(home);
+    assert(parsed.poss === 55, `possession lost from the simulated report (got ${parsed.poss})`);
+    assert(parsed.shots === 8, `shots lost from the simulated report (got ${parsed.shots})`);
+    assert(parsed.corners === 4, `corners lost from the simulated report (got ${parsed.corners})`);
+    assert(parsed.fouls === 7, `fouls lost from the simulated report (got ${parsed.fouls})`);
+});
+
+/* ------------------------------------------- reload / persistence regressions */
+
+/* app.js sandbox with a working in-memory localStorage and a document that can
+   pretend to own (or not own) the controls a saved view refers to. */
+function persistSandbox({ stored = {}, controls = [] } = {}) {
+    const mem = new Map(Object.entries(stored));
+    const ctx = vm.createContext({
+        window: {},
+        document: {
+            getElementById: () => null,
+            querySelector: (sel) => (controls.some((c) => String(sel).includes(c)) ? { setAttribute() {}, classList: { toggle() {}, add() {}, remove() {} } } : null),
+            querySelectorAll: () => [],
+            addEventListener: () => {}, documentElement: {},
+            createElement: () => ({ style: {}, classList: { add() {}, remove() {} }, setAttribute() {}, appendChild() {} })
+        },
+        console,
+        localStorage: {
+            getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+            setItem: (k, v) => { mem.set(k, String(v)); },
+            removeItem: (k) => { mem.delete(k); }
+        },
+        sessionStorage: { getItem: () => null, setItem: () => {} },
+        setInterval: () => {}, setTimeout: () => {}, clearTimeout: () => {}, clearInterval: () => {},
+        LANG: 'en', t: (k) => k, tf: (k) => k, navigator: {}, location: { search: '', hash: '' },
+        fetch: async () => ({ ok: false, status: 500, json: async () => ({}) })
+    });
+    vm.runInContext(readText('../app.js') + `
+        globalThis.__x = { restoreLiveCache, restoreViewState, saveSessionSnapshot, viewState, syncViewControls };
+        globalThis.__state = {
+            set(s) { Object.assign(this, s); },
+            apply() { currentSport = this.sport; currentFilter = this.filter; currentLeague = this.league; selectedDate = this.date; leadersCategory = this.leaders; currentStandingLeague = this.standings; this.sortByLeague && (sortByLeague = true); },
+            get() { return { sport: currentSport, filter: currentFilter, league: currentLeague, date: selectedDate, leaders: leadersCategory, standings: currentStandingLeague, sortByLeague }; },
+            setLive(list) { apiMatches = list; isApiMode = true; },
+            noLive() { apiMatches = []; isApiMode = false; }
+        };`, ctx);
+    return { x: ctx.__x, state: ctx.__state, mem };
+}
+
+const LIVE_KEY = 'scorehub-live-v1', VIEW_KEY = 'scorehub-view-v1';
+const liveMatch = (over) => Object.assign({
+    id: 'api-1', espnEventId: '1', leagueSlug: 'soccer/eng.1', sport: 'football', league: 'Premier League',
+    homeTeam: 'Arsenal', awayTeam: 'Chelsea', homeScore: 1, awayScore: 0, status: 'live', time: "65'",
+    date: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+}, over);
+
+check('a reload replays the last sweep (the "live data disappears" fix)', () => {
+    const sb = persistSandbox({ stored: { [LIVE_KEY]: JSON.stringify({ at: Date.now(), sport: 'all', date: null, matches: [liveMatch(), liveMatch({ id: 'api-2', status: 'finished', time: 'FT' })] }) } });
+    sb.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+    sb.state.apply();
+    const restored = sb.x.restoreLiveCache();
+    assert(restored && restored.matches.length === 2, 'a fresh snapshot should replay both matches');
+    assert(restored.matches[0].homeTeam === 'Arsenal', 'the saved match data should survive the round-trip');
+});
+
+check('a match cached as live hours ago is closed out, not left on 65\'', () => {
+    const stale = liveMatch({ date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() });
+    const sb = persistSandbox({ stored: { [LIVE_KEY]: JSON.stringify({ at: Date.now(), sport: 'all', date: null, matches: [stale] }) } });
+    sb.state.set({ sport: 'all', date: null }); sb.state.apply();
+    const restored = sb.x.restoreLiveCache();
+    assert(restored.matches[0].status === 'finished' && restored.matches[0].time === 'FT',
+        `a 4-hour-old live match should be finished, got ${restored.matches[0].status}/${restored.matches[0].time}`);
+});
+
+check('nothing dishonest is replayed: expired, wrong view, wrong day or corrupt snapshots', () => {
+    const cases = [
+        ['expired (older than the TTL)', { at: Date.now() - 4 * 60 * 60 * 1000, sport: 'all', date: null, matches: [liveMatch()] }],
+        ['saved for another tab', { at: Date.now(), sport: 'basketball', date: null, matches: [liveMatch()] }],
+        ['saved for another day', { at: Date.now(), sport: 'all', date: '20200101', matches: [liveMatch()] }],
+        ['empty match list', { at: Date.now(), sport: 'all', date: null, matches: [] }],
+        ['matches without an id or teams', { at: Date.now(), sport: 'all', date: null, matches: [{ nope: 1 }, null] }],
+        ['unparsable JSON', '{not json'],
+        ['missing timestamp', { sport: 'all', date: null, matches: [liveMatch()] }]
+    ];
+    for (const [label, payload] of cases) {
+        const sb = persistSandbox({ stored: { [LIVE_KEY]: typeof payload === 'string' ? payload : JSON.stringify(payload) } });
+        sb.state.set({ sport: 'all', date: null }); sb.state.apply();
+        assert(sb.x.restoreLiveCache() === null, `should refuse to replay a snapshot: ${label}`);
+    }
+});
+
+check('the live snapshot is only written while live data is on screen', () => {
+    const withLive = persistSandbox();
+    withLive.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+    withLive.state.apply();
+    withLive.state.setLive([liveMatch()]);
+    withLive.x.saveSessionSnapshot();
+    assert(withLive.mem.get(LIVE_KEY), 'live mode should save the sweep');
+    assert(withLive.mem.get(VIEW_KEY), 'the view should always be saved');
+
+    const simOnly = persistSandbox();
+    simOnly.state.set({ sport: 'all', date: null }); simOnly.state.apply();
+    simOnly.state.noLive();
+    simOnly.x.saveSessionSnapshot();
+    assert(!simOnly.mem.get(LIVE_KEY), 'simulation mode must not overwrite the live snapshot with mock matches');
+    assert(simOnly.mem.get(VIEW_KEY), 'the view should still be saved in simulation mode');
+});
+
+check('the saved view round-trips, and unknown values are ignored rather than restored', () => {
+    const controls = ['data-sport="football"', 'data-filter="live"', 'data-league-id="EPL"', 'data-standing-league="LaLiga"'];
+    const sb = persistSandbox({ controls });
+    sb.state.set({ sport: 'football', filter: 'live', league: 'EPL', date: '20260101', leaders: 'assists', standings: 'LaLiga', sortByLeague: true });
+    sb.state.apply();
+    sb.x.saveSessionSnapshot();
+
+    sb.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL', sortByLeague: false });
+    sb.state.apply();
+    sb.x.restoreViewState();
+    const back = sb.state.get();
+    assert(back.sport === 'football' && back.filter === 'live' && back.league === 'EPL', `view did not round-trip: ${JSON.stringify(back)}`);
+    assert(back.date === '20260101' && back.leaders === 'assists' && back.standings === 'LaLiga', `view did not round-trip: ${JSON.stringify(back)}`);
+
+    // A snapshot referring to controls this page does not have must not be applied,
+    // or the UI would sit in a state with nothing selected.
+    const bare = persistSandbox({ stored: { [VIEW_KEY]: JSON.stringify({ at: Date.now(), sport: 'f1', filter: 'ht', league: 'ZZZ', date: '20260101', leaders: 'assists', standings: 'ZZZ' }) } });
+    bare.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+    bare.state.apply();
+    bare.x.restoreViewState();
+    const kept = bare.state.get();
+    assert(kept.sport === 'all' && kept.filter === 'all' && kept.league === 'all', `unknown controls were applied: ${JSON.stringify(kept)}`);
+    assert(kept.date === '20260101' && kept.leaders === 'assists', `control-independent values should still restore: ${JSON.stringify(kept)}`);
+});
+
+check('a hand-edited or hostile snapshot cannot break boot', () => {
+    // localStorage is user-editable: a value that is not a valid CSS selector used
+    // to make querySelector throw out of init(), leaving a blank page.
+    for (const payload of [
+        { at: Date.now(), sport: 'a"]', filter: 'b"]', league: 'c"]', standings: 'd"]' },
+        { at: Date.now(), sport: { nested: true }, filter: ['x'], league: 42, leaders: 'nope', date: 'yesterday' },
+        { at: Date.now(), sport: 'all', spotlight: 'x'.repeat(5000) },
+        'not an object', 42, null
+    ]) {
+        const sb = persistSandbox({ stored: { [VIEW_KEY]: typeof payload === 'string' ? payload : JSON.stringify(payload) } });
+        sb.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+        sb.state.apply();
+        sb.x.restoreViewState();
+        sb.x.syncViewControls();
+        const kept = sb.state.get();
+        assert(kept.sport === 'all' && kept.filter === 'all' && kept.league === 'all' && kept.date === null,
+            `hostile snapshot changed the view: ${JSON.stringify(kept)}`);
+    }
+});
+
+check('the snapshot keys are the ones the page documents', () => {
+    const app = readText('../app.js');
+    assert(app.includes('"scorehub-live-v1"') && app.includes('"scorehub-view-v1"'),
+        'snapshot storage keys changed — update the docs/tests with them');
 });
 
 /* ------------------------------------------------------------------ report */

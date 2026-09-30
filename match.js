@@ -303,6 +303,8 @@ const MATCH_LEAGUES = {
     "rsa.1": "South African Premiership",
     "nga.1": "Nigeria Professional League",
     "gha.1": "Ghana Premier League",
+    "ken.1": "Kenyan Premier League",
+    "uga.1": "Ugandan Premier League",
     "chn.1": "Chinese Super League",
     "tha.1": "Thai League 1",
     "mys.1": "Malaysia Super League",
@@ -348,6 +350,110 @@ const MATCH_LEAGUES = {
     "arg.copa": "Copa Argentina",
     "usa.open": "U.S. Open Cup",
     "ksa.kings.cup": "Saudi King's Cup",
+    "fifa.shebelieves": "SheBelieves Cup",
+    "fifa.w.champions_cup": "FIFA Women's Champions Cup",
+    "fifa.wcq.ply": "World Cup Qualifying Play-offs",
+    "fifa.worldq.ofc": "OFC World Cup Qualifying",
+    "fifa.friendly.w": "Women's International Friendlies",
+    "fifa.wworldq.uefa": "UEFA Women's World Cup Qualifying",
+    "fifa.wwcq.ply": "Women's World Cup Qualifying Play-offs",
+    "fifa.conmebol.olympicsq": "CONMEBOL Olympic Qualifying",
+    "fifa.concacaf.olympicsq": "CONCACAF Olympic Qualifying",
+    "fifa.w.concacaf.olympicsq": "CONCACAF Women's Olympic Qualifying",
+    "fifa.wworld.u17": "FIFA U-17 Women's World Cup",
+    "fifa.friendly_u21": "U-21 International Friendlies",
+    "fifa.intercontinental.cup": "Intercontinental Cup (India)",
+    "global.finalissima": "CONMEBOL-UEFA Cup of Champions",
+    "global.w.finalissima": "Women's Finalissima",
+    "global.u20.intercontinental_cup": "U-20 Intercontinental Cup",
+    "global.club_challenge": "CONMEBOL-UEFA Club Challenge",
+    "global.pinatar_cup": "Pinatar Cup",
+    "friendly.emirates_cup": "Emirates Cup",
+    "global.arnold.clark_cup": "Arnold Clark Cup",
+    "global.gulf_cup": "Gulf Cup",
+    "club.friendly": "Club Friendlies",
+    "nonfifa": "Non-FIFA Friendly",
+    "uefa.wchampions_qual": "Women's Champions League Qualifying",
+    "uefa.w.europa": "UEFA Women's Europa Cup",
+    "uefa.euro_u21_qual": "UEFA U-21 Championship Qualifying",
+    "uefa.euro.u19": "UEFA U-19 Championship",
+    "concacaf.gold_qual": "CONCACAF Gold Cup Qualifying",
+    "concacaf.w.gold": "CONCACAF W Gold Cup",
+    "concacaf.confederations_playoff": "CONCACAF Confederations Play-off",
+    "concacaf.w.champions_cup": "CONCACAF W Champions Cup",
+    "concacaf.womens.championship": "CONCACAF Women's Championship",
+    "concacaf.central.american.cup": "CONCACAF Central American Cup",
+    "concacaf.champions_cup": "CONCACAF Champions Cup",
+    "concacaf.u23": "CONCACAF U-23 Championship",
+    "conmebol.america.femenina": "Copa América Femenina",
+    "afc.w.asian.cup": "AFC Women's Asian Cup",
+    "afc.cupq": "AFC Cup Qualifying",
+    "afc.champions_qual": "AFC Champions League Qualifying",
+    "afc.cup_qual": "AFC Cup Qualification",
+    "afc.saff.championship": "SAFF Championship",
+    "aff.championship": "ASEAN Championship",
+    "caf.w.nations": "Women's Africa Cup of Nations",
+    "caf.championship": "African Nations Championship",
+    "caf.cosafa": "COSAFA Cup",
+    "usa.nwsl.cup": "NWSL Cup",
+    "usa.w.usl.1": "USL Super League",
+    "usa.usl.l1": "USL League One",
+    "usa.usl.l1.cup": "USL League One Cup",
+    "usa.ncaa.m.1": "NCAA Men's Soccer",
+    "usa.ncaa.w.1": "NCAA Women's Soccer",
+    "can.w.nsl": "Northern Super League",
+    "eng.trophy": "EFL Trophy",
+    "eng.fa_qual": "FA Cup Qualifying",
+    "eng.w.fa": "Women's FA Cup",
+    "eng.w.league_cup": "Women's League Cup",
+    "eng.w.promotion.relegation": "Women's Super League Play-offs",
+    "sco.2": "Scottish Championship",
+    "sco.challenge": "Scottish Challenge Cup",
+    "sco.tennents_qual": "Scottish Cup Qualifying",
+    "sco.1.promotion.relegation": "Scottish Premiership Play-offs",
+    "sco.2.promotion.relegation": "Scottish Championship Play-offs",
+    "esp.copa_de_la_reina": "Copa de la Reina",
+    "esp.joan_gamper": "Joan Gamper Trophy",
+    "ger.playoff.relegation": "Bundesliga Play-offs",
+    "ger.2.promotion.relegation": "2. Bundesliga Play-offs",
+    "fra.1.promotion.relegation": "Ligue 1 Play-offs",
+    "ned.supercup": "Johan Cruyff Shield",
+    "ned.playoff.relegation": "Eredivisie Play-offs",
+    "ned.3.promotion.relegation": "Tweede Divisie Play-offs",
+    "ned.w.knvb_cup": "KNVB Women's Cup",
+    "por.1.promotion.relegation": "Primeira Liga Play-offs",
+    "bel.promotion.relegation": "Belgian Pro League Play-offs",
+    "rus.1.promotion.relegation": "Russian Premier League Play-offs",
+    "swe.1.promotion.relegation": "Allsvenskan Play-offs",
+    "nor.1.promotion.relegation": "Eliteserien Play-offs",
+    "arg.2": "Primera Nacional",
+    "arg.3": "Primera B Metropolitana",
+    "arg.copa_de_la_superliga": "Copa de la Superliga",
+    "arg.trofeo_de_la_campeones": "Trofeo de Campeones",
+    "arg.supercopa": "Supercopa Argentina",
+    "arg.supercopa.internacional": "Supercopa Internacional",
+    "bra.supercopa_do_brazil": "Supercopa do Brasil",
+    "bra.camp.carioca": "Campeonato Carioca",
+    "bra.camp.paulista": "Campeonato Paulista",
+    "bra.camp.gaucho": "Campeonato Gaúcho",
+    "bra.camp.mineiro": "Campeonato Mineiro",
+    "chi.super_cup": "Supercopa de Chile",
+    "chi.copa_chi": "Copa Chile",
+    "chi.1.promotion.relegation": "Primera División Play-offs",
+    "uru.2": "Segunda División Uruguaya",
+    "col.superliga": "Superliga Colombiana",
+    "col.copa": "Copa Colombia",
+    "bol.copa": "Copa Bolivia",
+    "bol.ply.rel": "Bolivian Liga Profesional Promotion/Relegation Playoffs",
+    "par.1.supercopa": "Supercopa Paraguay",
+    "mex.2": "Liga de Expansión MX",
+    "mex.campeon": "Campeón de Campeones",
+    "hon.1": "Liga Nacional de Honduras",
+    "crc.1": "Liga Promerica",
+    "gua.1": "Liga Nacional de Guatemala",
+    "slv.1": "Primera División de El Salvador",
+    "jpn.world_challenge": "Japanese J.League World Challenge",
+    "chn.1.promotion.relegation": "Chinese Super League Play-offs",
 };
 
 function cleanLeagueSlug(slug) {
@@ -484,6 +590,76 @@ function americanToDecimal(ml) {
     const v = parseFloat(ml);
     if (isNaN(v) || v === 0) return null;
     return v > 0 ? 1 + v / 100 : 1 + 100 / Math.abs(v);
+}
+// Prices for the totals (Over/Under) and both-teams-to-score markets. ESPN puts
+// these on the odds entry itself (`overOdds`/`underOdds`/`bttsYes`/`bttsNo`) as
+// American moneylines, e.g. -115. A couple of providers send an already-decimal
+// price (1.91) instead, and one sends a probability (45.31). Convert the first
+// two, drop the rest — a market must never render a number that is not a price.
+// Kept byte-identical to the app.js copy; testdata/verify.mjs asserts they agree.
+function espnPriceToDecimal(v) {
+    if (v == null || v === "") return null;
+    const n = typeof v === "number" ? v : parseFloat(v);
+    if (!isFinite(n) || n === 0) return null;
+    if (Math.abs(n) >= 100) return americanToDecimal(n);  // American moneyline
+    return n > 1 && n < 25 ? n : null;                    // decimal, or a percentage we cannot use
+}
+
+// 1X2 + totals + BTTS out of a competition's `odds` array. Extracted from
+// bootMatch so the same parser can be unit-tested against app.js's.
+function oddsFromCompetition(comp) {
+    let odds = null;
+    const rawOdds = Array.isArray(comp && comp.odds) ? comp.odds.filter((o) => o) : [];
+    if (rawOdds.length) {
+        const primary = rawOdds.find((o) => o.homeTeamOdds || o.drawOdds || o.awayTeamOdds) || rawOdds[0];
+        const pickML = (src, side) => {
+            if (!src || !src[side]) return null;
+            return src[side].moneyLine != null ? src[side].moneyLine
+                 : src[side].odds != null ? src[side].odds : null;
+        };
+        odds = {
+            provider: (primary.provider && primary.provider.name) || "ESPN BET",
+            details: primary.details || "",
+            spread: primary.spread != null ? primary.spread : null,
+            overUnder: primary.overUnder != null ? primary.overUnder : null,
+            overOdds: null, underOdds: null, bttsYes: null, bttsNo: null,
+            home: pickML(primary, "homeTeamOdds"),
+            draw: pickML(primary, "drawOdds"),
+            away: pickML(primary, "awayTeamOdds"),
+        };
+        for (const o of rawOdds) {
+            const det = (o.details || "").toLowerCase();
+            const homeML = pickML(o, "homeTeamOdds");
+            const awayML = pickML(o, "awayTeamOdds");
+            if (o.overUnder != null && odds.overUnder == null) odds.overUnder = o.overUnder;
+            // Totals prices ride on the odds entry itself — read those first.
+            const entryOver = espnPriceToDecimal(o.overOdds), entryUnder = espnPriceToDecimal(o.underOdds);
+            if (entryOver != null && odds.overOdds == null) odds.overOdds = entryOver;
+            if (entryUnder != null && odds.underOdds == null) odds.underOdds = entryUnder;
+            // Only an entry that *names* the totals market carries Over/Under prices on
+            // its sides. The moneyline entry merely carries the line (`overUnder`), so
+            // treating its 1X2 prices as Over/Under made the capsule read "O/U 2.5
+            // ↑1.69 ↓4.80" — the home and away win odds, relabelled as total payouts.
+            if (entryOver == null && entryUnder == null && /over|under|total goals|o\/u/.test(det)) {
+                const h2 = americanToDecimal(homeML), a2 = americanToDecimal(awayML);
+                const overIsHome = /over/.test(det) || !/under/.test(det);
+                if (odds.overOdds == null) odds.overOdds = (overIsHome ? h2 : a2) || (overIsHome ? a2 : h2);
+                if (odds.underOdds == null) odds.underOdds = (overIsHome ? a2 : h2) || (overIsHome ? h2 : a2);
+            }
+            // Both teams to score: entry-level Yes/No prices, else a market-named entry.
+            const entryYes = espnPriceToDecimal(o.bttsYes), entryNo = espnPriceToDecimal(o.bttsNo);
+            if (entryYes != null && odds.bttsYes == null) odds.bttsYes = entryYes;
+            if (entryNo != null && odds.bttsNo == null) odds.bttsNo = entryNo;
+            if (odds.bttsYes == null && odds.bttsNo == null && /both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
+                odds.bttsYes = americanToDecimal(homeML);
+                odds.bttsNo = americanToDecimal(awayML);
+            }
+            if (!odds.home && homeML) odds.home = homeML;
+            if (!odds.draw) odds.draw = pickML(o, "drawOdds");
+            if (!odds.away && awayML) odds.away = awayML;
+        }
+    }
+    return odds;
 }
 function oddsSummary(odds) {
     if (!odds) return "";
@@ -1053,46 +1229,7 @@ async function bootMatch() {
     // Broadcast + odds
     let broadcast = "";
     if (Array.isArray(comp.broadcasts) && comp.broadcasts[0] && Array.isArray(comp.broadcasts[0].names)) broadcast = comp.broadcasts[0].names.join(", ");
-    let odds = null;
-    const rawOdds = Array.isArray(comp.odds) ? comp.odds.filter((o) => o) : [];
-    if (rawOdds.length) {
-        const primary = rawOdds.find((o) => o.homeTeamOdds || o.drawOdds || o.awayTeamOdds) || rawOdds[0];
-        const pickML = (src, side) => {
-            if (!src || !src[side]) return null;
-            return src[side].moneyLine != null ? src[side].moneyLine
-                 : src[side].odds != null ? src[side].odds : null;
-        };
-        odds = {
-            provider: (primary.provider && primary.provider.name) || "ESPN BET",
-            details: primary.details || "",
-            spread: primary.spread != null ? primary.spread : null,
-            overUnder: primary.overUnder != null ? primary.overUnder : null,
-            overOdds: null, underOdds: null, bttsYes: null, bttsNo: null,
-            home: pickML(primary, "homeTeamOdds"),
-            draw: pickML(primary, "drawOdds"),
-            away: pickML(primary, "awayTeamOdds"),
-        };
-        for (const o of rawOdds) {
-            const det = (o.details || "").toLowerCase();
-            const homeML = pickML(o, "homeTeamOdds");
-            const awayML = pickML(o, "awayTeamOdds");
-            if (o.overUnder != null && odds.overUnder == null) odds.overUnder = o.overUnder;
-            if (/over[/ ]?under|total goals|o\/u/.test(det) || o.overUnder != null) {
-                const h2 = americanToDecimal(homeML), a2 = americanToDecimal(awayML);
-                if (/over/.test(det) || !odds.overOdds) odds.overOdds = odds.overOdds || h2 || a2;
-                if (/under/.test(det)) odds.underOdds = odds.underOdds || a2 || h2;
-                if (!odds.overOdds && h2) odds.overOdds = h2;
-                if (!odds.underOdds && a2) odds.underOdds = a2;
-            }
-            if (/both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
-                odds.bttsYes = odds.bttsYes || americanToDecimal(homeML);
-                odds.bttsNo = odds.bttsNo || americanToDecimal(awayML);
-            }
-            if (!odds.home && homeML) odds.home = homeML;
-            if (!odds.draw) odds.draw = pickML(o, "drawOdds");
-            if (!odds.away && awayML) odds.away = awayML;
-        }
-    }
+    const odds = oddsFromCompetition(comp);
 
     const isPre = st.state === "pre";
     const isLive = st.state === "in";

@@ -558,6 +558,113 @@ function persistFavorites() { store.set(FAVS_KEY, [...favoriteIds]); }
 // Re-apply saved stars to the simulation dataset (API matches: after each fetch)
 MOCK_MATCHES.forEach(m => { m.favorites = favoriteIds.has(m.id); });
 
+// --- LAST-KNOWN-LIVE SNAPSHOT (survives a reload) ---
+// The sweep result and every view choice used to live only in memory. A reload
+// therefore threw the live scores away and dropped the user on the simulation
+// dataset until the next sweep landed — and if ESPN was slow or blocked, that is
+// where they stayed, which is the "live data disappears on reload" report. Both
+// are now mirrored into localStorage and replayed during boot: the page paints
+// the matches that were on screen, then the normal refresh runs over the top.
+// Nothing is invented — if the refresh cannot land, the existing stale-data
+// banner and the "showing last saved scores" line say so.
+const LIVE_CACHE_KEY = "scorehub-live-v1";
+const VIEW_CACHE_KEY = "scorehub-view-v1";
+const LIVE_CACHE_TTL_MS = 3 * 60 * 60 * 1000;   // older than this: start clean
+const LIVE_CACHE_MAX_MATCHES = 250;             // ~950 B/match, far inside quota
+const MATCH_LENGTH_MS = 3 * 60 * 60 * 1000;     // a match is over ~3 h after kickoff
+
+function viewState() {
+    return {
+        sport: currentSport, filter: currentFilter, league: currentLeague,
+        date: selectedDate, leaders: leadersCategory, sortByLeague,
+        standings: currentStandingLeague, spotlight: spotlightMatchId
+    };
+}
+
+// Called after every successful sweep and again on the way out of the page
+// (pagehide / tab hidden), so the snapshot always describes the last screen.
+function saveSessionSnapshot() {
+    try {
+        if (isApiMode && apiMatches.length) {
+            store.set(LIVE_CACHE_KEY, {
+                at: Date.now(),
+                sport: currentSport,
+                date: selectedDate,
+                matches: apiMatches.slice(0, LIVE_CACHE_MAX_MATCHES)
+            });
+        }
+        store.set(VIEW_CACHE_KEY, Object.assign({ at: Date.now() }, viewState()));
+    } catch (e) { /* storage full or blocked — stay in-memory, as before */ }
+}
+
+// Restore the view first: it is what the controls show, and it decides whether the
+// saved matches still belong to this screen.
+function restoreViewState() {
+    const saved = store.get(VIEW_CACHE_KEY, null);
+    if (!saved || typeof saved !== "object") return;
+    // Only values this page actually offers are restored, so a snapshot from
+    // another page (or an older build) can never leave the UI in a dead state.
+    // Storage is user-editable, so a malformed selector must not break boot either.
+    const hasControl = (sel) => { try { return !!document.querySelector(sel); } catch (e) { return false; } };
+    if (typeof saved.sport === "string" && hasControl(`.sport-tab[data-sport="${saved.sport}"]`)) currentSport = saved.sport;
+    if (typeof saved.filter === "string" && hasControl(`.filter-tab[data-filter="${saved.filter}"]`)) currentFilter = saved.filter;
+    if (saved.league === "all" || (typeof saved.league === "string" && hasControl(`.league-row[data-league-id="${saved.league}"]`))) currentLeague = saved.league;
+    if (saved.leaders === "goals" || saved.leaders === "assists") leadersCategory = saved.leaders;
+    if (typeof saved.standings === "string" && hasControl(`.standings-tab[data-standing-league="${saved.standings}"]`)) currentStandingLeague = saved.standings;
+    if (typeof saved.date === "string" && /^\d{8}$/.test(saved.date)) selectedDate = saved.date;
+    sortByLeague = !!saved.sortByLeague;
+    if (typeof saved.spotlight === "string" && saved.spotlight.length < 100) spotlightMatchId = saved.spotlight;
+}
+
+// The markup ships with "all" active, so mirror the restored view back onto the
+// controls instead of waiting for the user to touch one.
+function syncViewControls() {
+    document.querySelectorAll(".sport-tab").forEach((el) => el.classList.toggle("active", el.getAttribute("data-sport") === currentSport));
+    document.querySelectorAll(".filter-tab").forEach((el) => el.classList.toggle("active", el.getAttribute("data-filter") === currentFilter));
+    document.querySelectorAll(".league-row").forEach((el) => el.classList.toggle("active", el.getAttribute("data-league-id") === currentLeague));
+    document.querySelectorAll(".standings-tab").forEach((el) => el.classList.toggle("active", el.getAttribute("data-standing-league") === currentStandingLeague));
+    document.querySelectorAll("[data-leaders-cat]").forEach((el) => {
+        const on = el.getAttribute("data-leaders-cat") === leadersCategory;
+        el.classList.toggle("active", on);
+        el.setAttribute("aria-selected", on ? "true" : "false");
+    });
+}
+
+// Returns { at, matches } for the last sweep, or null when there is nothing
+// honest to replay.
+function restoreLiveCache() {
+    const cached = store.get(LIVE_CACHE_KEY, null);
+    if (!cached || !Array.isArray(cached.matches) || !cached.matches.length) return null;
+    const at = Number(cached.at);
+    if (!isFinite(at) || at <= 0 || Date.now() - at > LIVE_CACHE_TTL_MS) return null;
+    // Saved for a different tab or day than the one being restored — let the
+    // sweep answer instead of showing matches that do not belong to this view.
+    if (cached.sport !== currentSport || (cached.date || null) !== selectedDate) return null;
+    const matches = cached.matches.filter((m) => m && m.id && (m.homeTeam || m.awayTeam));
+    if (!matches.length) return null;
+    // A match cached as live hours ago has long finished; leaving it on "65'" would
+    // be a lie, so close it out the way the sweep would have.
+    const now = Date.now();
+    matches.forEach((m) => {
+        const ko = m.date ? Date.parse(m.date) : NaN;
+        if (m.status === "live" && isFinite(ko) && now - ko > MATCH_LENGTH_MS) {
+            m.status = "finished";
+            m.time = "FT";
+        }
+    });
+    return { at, matches };
+}
+
+// Live-match counter shown on the badge and the hero stat (shared by the restored
+// snapshot and every sweep so the two cannot drift).
+function applyLiveCountUI() {
+    const liveCount = apiMatches.filter((m) => m.status === "live").length;
+    const badge = document.getElementById("live-match-count-badge");
+    const statNum = document.getElementById("stat-live-matches");
+    if (badge) badge.textContent = `${liveCount || apiMatches.length} Matches (API)`;
+    if (statNum) statNum.textContent = liveCount || apiMatches.length;
+}
+
 let currentSport = "all";
 let currentFilter = "all";
 let currentLeague = "all";
@@ -708,13 +815,13 @@ const ESPN_ENDPOINTS = {
         "soccer/rou.1", "soccer/per.1", "soccer/uru.1",
         "soccer/par.1", "soccer/ecu.1", "soccer/bol.1",
         "soccer/ven.1", "soccer/bra.2", "soccer/usa.usl.1",
-        "soccer/rsa.1", "soccer/nga.1", "soccer/gha.1",
+        "soccer/rsa.1", "soccer/nga.1", "soccer/gha.1", "soccer/ken.1", "soccer/uga.1",
         "soccer/chn.1", "soccer/tha.1", "soccer/mys.1",
         "soccer/idn.1", "soccer/fifa.friendly", "soccer/fifa.intercontinental_cup",
         "soccer/fifa.world.u20", "soccer/fifa.world.u17", "soccer/fifa.olympics",
         "soccer/fifa.w.olympics", "soccer/fifa.worldq.uefa", "soccer/fifa.worldq.caf",
         "soccer/fifa.worldq.afc", "soccer/fifa.worldq.concacaf", "soccer/fifa.worldq.conmebol",
-        "soccer/uefa.europa.conf_qual", "soccer/uefa.super_cup", "soccer/uefa.weuro",
+        "soccer/uefa.champions_qual", "soccer/uefa.europa_qual", "soccer/uefa.europa.conf_qual", "soccer/uefa.super_cup", "soccer/uefa.weuro",
         "soccer/uefa.euro_u21", "soccer/uefa.w.nations", "soccer/caf.nations",
         "soccer/caf.nations_qual", "soccer/caf.champions", "soccer/caf.confed",
         "soccer/conmebol.america", "soccer/conmebol.recopa", "soccer/concacaf.gold",
@@ -724,6 +831,42 @@ const ESPN_ENDPOINTS = {
         "soccer/fra.super_cup", "soccer/ned.cup", "soccer/por.taca.portugal",
         "soccer/sco.tennents", "soccer/sco.cis", "soccer/bra.copa_do_brazil",
         "soccer/arg.copa", "soccer/usa.open", "soccer/ksa.kings.cup",
+        // Full ESPN catalogue
+        "soccer/fifa.shebelieves", "soccer/fifa.w.champions_cup", "soccer/fifa.wcq.ply",
+        "soccer/fifa.worldq.ofc", "soccer/fifa.friendly.w", "soccer/fifa.wworldq.uefa",
+        "soccer/fifa.wwcq.ply", "soccer/fifa.conmebol.olympicsq", "soccer/fifa.concacaf.olympicsq",
+        "soccer/fifa.w.concacaf.olympicsq", "soccer/fifa.wworld.u17", "soccer/fifa.friendly_u21",
+        "soccer/fifa.intercontinental.cup", "soccer/global.finalissima", "soccer/global.w.finalissima",
+        "soccer/global.u20.intercontinental_cup", "soccer/global.club_challenge", "soccer/global.pinatar_cup",
+        "soccer/friendly.emirates_cup", "soccer/global.arnold.clark_cup", "soccer/global.gulf_cup",
+        "soccer/club.friendly", "soccer/nonfifa", "soccer/uefa.wchampions_qual",
+        "soccer/uefa.w.europa", "soccer/uefa.euro_u21_qual", "soccer/uefa.euro.u19",
+        "soccer/concacaf.gold_qual", "soccer/concacaf.w.gold", "soccer/concacaf.confederations_playoff",
+        "soccer/concacaf.w.champions_cup", "soccer/concacaf.womens.championship", "soccer/concacaf.central.american.cup",
+        "soccer/concacaf.champions_cup", "soccer/concacaf.u23", "soccer/conmebol.america.femenina",
+        "soccer/afc.w.asian.cup", "soccer/afc.cupq", "soccer/afc.champions_qual",
+        "soccer/afc.cup_qual", "soccer/afc.saff.championship", "soccer/aff.championship",
+        "soccer/caf.w.nations", "soccer/caf.championship", "soccer/caf.cosafa",
+        "soccer/usa.nwsl.cup", "soccer/usa.w.usl.1", "soccer/usa.usl.l1",
+        "soccer/usa.usl.l1.cup", "soccer/usa.ncaa.m.1", "soccer/usa.ncaa.w.1",
+        "soccer/can.w.nsl", "soccer/eng.trophy", "soccer/eng.fa_qual",
+        "soccer/eng.w.fa", "soccer/eng.w.league_cup", "soccer/eng.w.promotion.relegation",
+        "soccer/sco.2", "soccer/sco.challenge", "soccer/sco.tennents_qual",
+        "soccer/sco.1.promotion.relegation", "soccer/sco.2.promotion.relegation", "soccer/esp.copa_de_la_reina",
+        "soccer/esp.joan_gamper", "soccer/ger.playoff.relegation", "soccer/ger.2.promotion.relegation",
+        "soccer/fra.1.promotion.relegation", "soccer/ned.supercup", "soccer/ned.playoff.relegation",
+        "soccer/ned.3.promotion.relegation", "soccer/ned.w.knvb_cup", "soccer/por.1.promotion.relegation",
+        "soccer/bel.promotion.relegation", "soccer/rus.1.promotion.relegation", "soccer/swe.1.promotion.relegation",
+        "soccer/nor.1.promotion.relegation", "soccer/arg.2", "soccer/arg.3",
+        "soccer/arg.copa_de_la_superliga", "soccer/arg.trofeo_de_la_campeones", "soccer/arg.supercopa",
+        "soccer/arg.supercopa.internacional", "soccer/bra.supercopa_do_brazil", "soccer/bra.camp.carioca",
+        "soccer/bra.camp.paulista", "soccer/bra.camp.gaucho", "soccer/bra.camp.mineiro",
+        "soccer/chi.super_cup", "soccer/chi.copa_chi", "soccer/chi.1.promotion.relegation",
+        "soccer/uru.2", "soccer/col.superliga", "soccer/col.copa",
+        "soccer/bol.copa", "soccer/bol.ply.rel", "soccer/par.1.supercopa",
+        "soccer/mex.2", "soccer/mex.campeon", "soccer/hon.1",
+        "soccer/crc.1", "soccer/gua.1", "soccer/slv.1",
+        "soccer/jpn.world_challenge", "soccer/chn.1.promotion.relegation",
     ],
     basketball: [
         "basketball/nba", "basketball/wnba", "basketball/euroleague",
@@ -788,13 +931,13 @@ const ESPN_ENDPOINTS = {
         "soccer/rou.1", "soccer/per.1", "soccer/uru.1",
         "soccer/par.1", "soccer/ecu.1", "soccer/bol.1",
         "soccer/ven.1", "soccer/bra.2", "soccer/usa.usl.1",
-        "soccer/rsa.1", "soccer/nga.1", "soccer/gha.1",
+        "soccer/rsa.1", "soccer/nga.1", "soccer/gha.1", "soccer/ken.1", "soccer/uga.1",
         "soccer/chn.1", "soccer/tha.1", "soccer/mys.1",
         "soccer/idn.1", "soccer/fifa.friendly", "soccer/fifa.intercontinental_cup",
         "soccer/fifa.world.u20", "soccer/fifa.world.u17", "soccer/fifa.olympics",
         "soccer/fifa.w.olympics", "soccer/fifa.worldq.uefa", "soccer/fifa.worldq.caf",
         "soccer/fifa.worldq.afc", "soccer/fifa.worldq.concacaf", "soccer/fifa.worldq.conmebol",
-        "soccer/uefa.europa.conf_qual", "soccer/uefa.super_cup", "soccer/uefa.weuro",
+        "soccer/uefa.champions_qual", "soccer/uefa.europa_qual", "soccer/uefa.europa.conf_qual", "soccer/uefa.super_cup", "soccer/uefa.weuro",
         "soccer/uefa.euro_u21", "soccer/uefa.w.nations", "soccer/caf.nations",
         "soccer/caf.nations_qual", "soccer/caf.champions", "soccer/caf.confed",
         "soccer/conmebol.america", "soccer/conmebol.recopa", "soccer/concacaf.gold",
@@ -804,6 +947,42 @@ const ESPN_ENDPOINTS = {
         "soccer/fra.super_cup", "soccer/ned.cup", "soccer/por.taca.portugal",
         "soccer/sco.tennents", "soccer/sco.cis", "soccer/bra.copa_do_brazil",
         "soccer/arg.copa", "soccer/usa.open", "soccer/ksa.kings.cup",
+        // Full ESPN catalogue
+        "soccer/fifa.shebelieves", "soccer/fifa.w.champions_cup", "soccer/fifa.wcq.ply",
+        "soccer/fifa.worldq.ofc", "soccer/fifa.friendly.w", "soccer/fifa.wworldq.uefa",
+        "soccer/fifa.wwcq.ply", "soccer/fifa.conmebol.olympicsq", "soccer/fifa.concacaf.olympicsq",
+        "soccer/fifa.w.concacaf.olympicsq", "soccer/fifa.wworld.u17", "soccer/fifa.friendly_u21",
+        "soccer/fifa.intercontinental.cup", "soccer/global.finalissima", "soccer/global.w.finalissima",
+        "soccer/global.u20.intercontinental_cup", "soccer/global.club_challenge", "soccer/global.pinatar_cup",
+        "soccer/friendly.emirates_cup", "soccer/global.arnold.clark_cup", "soccer/global.gulf_cup",
+        "soccer/club.friendly", "soccer/nonfifa", "soccer/uefa.wchampions_qual",
+        "soccer/uefa.w.europa", "soccer/uefa.euro_u21_qual", "soccer/uefa.euro.u19",
+        "soccer/concacaf.gold_qual", "soccer/concacaf.w.gold", "soccer/concacaf.confederations_playoff",
+        "soccer/concacaf.w.champions_cup", "soccer/concacaf.womens.championship", "soccer/concacaf.central.american.cup",
+        "soccer/concacaf.champions_cup", "soccer/concacaf.u23", "soccer/conmebol.america.femenina",
+        "soccer/afc.w.asian.cup", "soccer/afc.cupq", "soccer/afc.champions_qual",
+        "soccer/afc.cup_qual", "soccer/afc.saff.championship", "soccer/aff.championship",
+        "soccer/caf.w.nations", "soccer/caf.championship", "soccer/caf.cosafa",
+        "soccer/usa.nwsl.cup", "soccer/usa.w.usl.1", "soccer/usa.usl.l1",
+        "soccer/usa.usl.l1.cup", "soccer/usa.ncaa.m.1", "soccer/usa.ncaa.w.1",
+        "soccer/can.w.nsl", "soccer/eng.trophy", "soccer/eng.fa_qual",
+        "soccer/eng.w.fa", "soccer/eng.w.league_cup", "soccer/eng.w.promotion.relegation",
+        "soccer/sco.2", "soccer/sco.challenge", "soccer/sco.tennents_qual",
+        "soccer/sco.1.promotion.relegation", "soccer/sco.2.promotion.relegation", "soccer/esp.copa_de_la_reina",
+        "soccer/esp.joan_gamper", "soccer/ger.playoff.relegation", "soccer/ger.2.promotion.relegation",
+        "soccer/fra.1.promotion.relegation", "soccer/ned.supercup", "soccer/ned.playoff.relegation",
+        "soccer/ned.3.promotion.relegation", "soccer/ned.w.knvb_cup", "soccer/por.1.promotion.relegation",
+        "soccer/bel.promotion.relegation", "soccer/rus.1.promotion.relegation", "soccer/swe.1.promotion.relegation",
+        "soccer/nor.1.promotion.relegation", "soccer/arg.2", "soccer/arg.3",
+        "soccer/arg.copa_de_la_superliga", "soccer/arg.trofeo_de_la_campeones", "soccer/arg.supercopa",
+        "soccer/arg.supercopa.internacional", "soccer/bra.supercopa_do_brazil", "soccer/bra.camp.carioca",
+        "soccer/bra.camp.paulista", "soccer/bra.camp.gaucho", "soccer/bra.camp.mineiro",
+        "soccer/chi.super_cup", "soccer/chi.copa_chi", "soccer/chi.1.promotion.relegation",
+        "soccer/uru.2", "soccer/col.superliga", "soccer/col.copa",
+        "soccer/bol.copa", "soccer/bol.ply.rel", "soccer/par.1.supercopa",
+        "soccer/mex.2", "soccer/mex.campeon", "soccer/hon.1",
+        "soccer/crc.1", "soccer/gua.1", "soccer/slv.1",
+        "soccer/jpn.world_challenge", "soccer/chn.1.promotion.relegation",
     ]
 };
 
@@ -897,6 +1076,8 @@ const LEAGUE_NAMES = {
     "soccer/rsa.1": { name: "South African Premiership", code: "RSA", sport: "football" },
     "soccer/nga.1": { name: "Nigeria Professional League", code: "NGA", sport: "football" },
     "soccer/gha.1": { name: "Ghana Premier League", code: "GHA", sport: "football" },
+    "soccer/ken.1": { name: "Kenyan Premier League", code: "KEN", sport: "football" },
+    "soccer/uga.1": { name: "Ugandan Premier League", code: "UGA", sport: "football" },
     "soccer/chn.1": { name: "Chinese Super League", code: "CHN", sport: "football" },
     "soccer/tha.1": { name: "Thai League 1", code: "THA", sport: "football" },
     "soccer/mys.1": { name: "Malaysia Super League", code: "MYS", sport: "football" },
@@ -942,6 +1123,111 @@ const LEAGUE_NAMES = {
     "soccer/arg.copa": { name: "Copa Argentina", code: "CAR", sport: "football" },
     "soccer/usa.open": { name: "U.S. Open Cup", code: "USOC", sport: "football" },
     "soccer/ksa.kings.cup": { name: "Saudi King's Cup", code: "KSC", sport: "football" },
+    // Full ESPN catalogue
+    "soccer/fifa.shebelieves": { name: "SheBelieves Cup", code: "SBC", sport: "football" },
+    "soccer/fifa.w.champions_cup": { name: "FIFA Women's Champions Cup", code: "FWCC", sport: "football" },
+    "soccer/fifa.wcq.ply": { name: "World Cup Qualifying Play-offs", code: "WCQP", sport: "football" },
+    "soccer/fifa.worldq.ofc": { name: "OFC World Cup Qualifying", code: "WCQO", sport: "football" },
+    "soccer/fifa.friendly.w": { name: "Women's International Friendlies", code: "WFRI", sport: "football" },
+    "soccer/fifa.wworldq.uefa": { name: "UEFA Women's World Cup Qualifying", code: "WWQU", sport: "football" },
+    "soccer/fifa.wwcq.ply": { name: "Women's World Cup Qualifying Play-offs", code: "WWQP", sport: "football" },
+    "soccer/fifa.conmebol.olympicsq": { name: "CONMEBOL Olympic Qualifying", code: "OCQ", sport: "football" },
+    "soccer/fifa.concacaf.olympicsq": { name: "CONCACAF Olympic Qualifying", code: "OCN", sport: "football" },
+    "soccer/fifa.w.concacaf.olympicsq": { name: "CONCACAF Women's Olympic Qualifying", code: "WOC", sport: "football" },
+    "soccer/fifa.wworld.u17": { name: "FIFA U-17 Women's World Cup", code: "U17W", sport: "football" },
+    "soccer/fifa.friendly_u21": { name: "U-21 International Friendlies", code: "U21F", sport: "football" },
+    "soccer/fifa.intercontinental.cup": { name: "Intercontinental Cup (India)", code: "ICI", sport: "football" },
+    "soccer/global.finalissima": { name: "CONMEBOL-UEFA Cup of Champions", code: "CUCC", sport: "football" },
+    "soccer/global.w.finalissima": { name: "Women's Finalissima", code: "WFS", sport: "football" },
+    "soccer/global.u20.intercontinental_cup": { name: "U-20 Intercontinental Cup", code: "U20I", sport: "football" },
+    "soccer/global.club_challenge": { name: "CONMEBOL-UEFA Club Challenge", code: "CUCL", sport: "football" },
+    "soccer/global.pinatar_cup": { name: "Pinatar Cup", code: "PIN", sport: "football" },
+    "soccer/friendly.emirates_cup": { name: "Emirates Cup", code: "EMR", sport: "football" },
+    "soccer/global.arnold.clark_cup": { name: "Arnold Clark Cup", code: "ARC", sport: "football" },
+    "soccer/global.gulf_cup": { name: "Gulf Cup", code: "GULF", sport: "football" },
+    "soccer/club.friendly": { name: "Club Friendlies", code: "CF", sport: "football" },
+    "soccer/nonfifa": { name: "Non-FIFA Friendly", code: "NONF", sport: "football" },
+    "soccer/uefa.wchampions_qual": { name: "Women's Champions League Qualifying", code: "UWCLQ", sport: "football" },
+    "soccer/uefa.w.europa": { name: "UEFA Women's Europa Cup", code: "UWEC", sport: "football" },
+    "soccer/uefa.euro_u21_qual": { name: "UEFA U-21 Championship Qualifying", code: "U21Q", sport: "football" },
+    "soccer/uefa.euro.u19": { name: "UEFA U-19 Championship", code: "U19", sport: "football" },
+    "soccer/concacaf.gold_qual": { name: "CONCACAF Gold Cup Qualifying", code: "GCQ", sport: "football" },
+    "soccer/concacaf.w.gold": { name: "CONCACAF W Gold Cup", code: "WGC", sport: "football" },
+    "soccer/concacaf.confederations_playoff": { name: "CONCACAF Confederations Play-off", code: "CFP", sport: "football" },
+    "soccer/concacaf.w.champions_cup": { name: "CONCACAF W Champions Cup", code: "WCC", sport: "football" },
+    "soccer/concacaf.womens.championship": { name: "CONCACAF Women's Championship", code: "CWCH", sport: "football" },
+    "soccer/concacaf.central.american.cup": { name: "CONCACAF Central American Cup", code: "CAC", sport: "football" },
+    "soccer/concacaf.champions_cup": { name: "CONCACAF Champions Cup", code: "CCC", sport: "football" },
+    "soccer/concacaf.u23": { name: "CONCACAF U-23 Championship", code: "U23C", sport: "football" },
+    "soccer/conmebol.america.femenina": { name: "Copa América Femenina", code: "CAMF", sport: "football" },
+    "soccer/afc.w.asian.cup": { name: "AFC Women's Asian Cup", code: "AWC", sport: "football" },
+    "soccer/afc.cupq": { name: "AFC Cup Qualifying", code: "ACQ", sport: "football" },
+    "soccer/afc.champions_qual": { name: "AFC Champions League Qualifying", code: "ACLQ", sport: "football" },
+    "soccer/afc.cup_qual": { name: "AFC Cup Qualification", code: "ACQL", sport: "football" },
+    "soccer/afc.saff.championship": { name: "SAFF Championship", code: "SAFF", sport: "football" },
+    "soccer/aff.championship": { name: "ASEAN Championship", code: "AFF", sport: "football" },
+    "soccer/caf.w.nations": { name: "Women's Africa Cup of Nations", code: "WAFCON", sport: "football" },
+    "soccer/caf.championship": { name: "African Nations Championship", code: "CHAN", sport: "football" },
+    "soccer/caf.cosafa": { name: "COSAFA Cup", code: "COSAFA", sport: "football" },
+    "soccer/usa.nwsl.cup": { name: "NWSL Cup", code: "NWC", sport: "football" },
+    "soccer/usa.w.usl.1": { name: "USL Super League", code: "USLW", sport: "football" },
+    "soccer/usa.usl.l1": { name: "USL League One", code: "USL1", sport: "football" },
+    "soccer/usa.usl.l1.cup": { name: "USL League One Cup", code: "USL1C", sport: "football" },
+    "soccer/usa.ncaa.m.1": { name: "NCAA Men's Soccer", code: "NCAAM", sport: "football" },
+    "soccer/usa.ncaa.w.1": { name: "NCAA Women's Soccer", code: "NCAAW", sport: "football" },
+    "soccer/can.w.nsl": { name: "Northern Super League", code: "NSL", sport: "football" },
+    "soccer/eng.trophy": { name: "EFL Trophy", code: "EFLT", sport: "football" },
+    "soccer/eng.fa_qual": { name: "FA Cup Qualifying", code: "FAQ", sport: "football" },
+    "soccer/eng.w.fa": { name: "Women's FA Cup", code: "WFA", sport: "football" },
+    "soccer/eng.w.league_cup": { name: "Women's League Cup", code: "WLC", sport: "football" },
+    "soccer/eng.w.promotion.relegation": { name: "Women's Super League Play-offs", code: "WSLP", sport: "football" },
+    "soccer/sco.2": { name: "Scottish Championship", code: "SCO2", sport: "football" },
+    "soccer/sco.challenge": { name: "Scottish Challenge Cup", code: "SCC", sport: "football" },
+    "soccer/sco.tennents_qual": { name: "Scottish Cup Qualifying", code: "SCQ", sport: "football" },
+    "soccer/sco.1.promotion.relegation": { name: "Scottish Premiership Play-offs", code: "SPFP", sport: "football" },
+    "soccer/sco.2.promotion.relegation": { name: "Scottish Championship Play-offs", code: "SCFP", sport: "football" },
+    "soccer/esp.copa_de_la_reina": { name: "Copa de la Reina", code: "CDLR", sport: "football" },
+    "soccer/esp.joan_gamper": { name: "Joan Gamper Trophy", code: "JGT", sport: "football" },
+    "soccer/ger.playoff.relegation": { name: "Bundesliga Play-offs", code: "BLP", sport: "football" },
+    "soccer/ger.2.promotion.relegation": { name: "2. Bundesliga Play-offs", code: "2BLP", sport: "football" },
+    "soccer/fra.1.promotion.relegation": { name: "Ligue 1 Play-offs", code: "L1P", sport: "football" },
+    "soccer/ned.supercup": { name: "Johan Cruyff Shield", code: "JCS", sport: "football" },
+    "soccer/ned.playoff.relegation": { name: "Eredivisie Play-offs", code: "EREP", sport: "football" },
+    "soccer/ned.3.promotion.relegation": { name: "Tweede Divisie Play-offs", code: "TDP", sport: "football" },
+    "soccer/ned.w.knvb_cup": { name: "KNVB Women's Cup", code: "KNVBC", sport: "football" },
+    "soccer/por.1.promotion.relegation": { name: "Primeira Liga Play-offs", code: "PLP", sport: "football" },
+    "soccer/bel.promotion.relegation": { name: "Belgian Pro League Play-offs", code: "BPLP", sport: "football" },
+    "soccer/rus.1.promotion.relegation": { name: "Russian Premier League Play-offs", code: "RPLP", sport: "football" },
+    "soccer/swe.1.promotion.relegation": { name: "Allsvenskan Play-offs", code: "ALSP", sport: "football" },
+    "soccer/nor.1.promotion.relegation": { name: "Eliteserien Play-offs", code: "ELIP", sport: "football" },
+    "soccer/arg.2": { name: "Primera Nacional", code: "ARG2", sport: "football" },
+    "soccer/arg.3": { name: "Primera B Metropolitana", code: "ARG3", sport: "football" },
+    "soccer/arg.copa_de_la_superliga": { name: "Copa de la Superliga", code: "CDS", sport: "football" },
+    "soccer/arg.trofeo_de_la_campeones": { name: "Trofeo de Campeones", code: "TDC", sport: "football" },
+    "soccer/arg.supercopa": { name: "Supercopa Argentina", code: "SCA", sport: "football" },
+    "soccer/arg.supercopa.internacional": { name: "Supercopa Internacional", code: "SCI", sport: "football" },
+    "soccer/bra.supercopa_do_brazil": { name: "Supercopa do Brasil", code: "SDB", sport: "football" },
+    "soccer/bra.camp.carioca": { name: "Campeonato Carioca", code: "CARI", sport: "football" },
+    "soccer/bra.camp.paulista": { name: "Campeonato Paulista", code: "PAUL", sport: "football" },
+    "soccer/bra.camp.gaucho": { name: "Campeonato Gaúcho", code: "GAU", sport: "football" },
+    "soccer/bra.camp.mineiro": { name: "Campeonato Mineiro", code: "MIN", sport: "football" },
+    "soccer/chi.super_cup": { name: "Supercopa de Chile", code: "SCCH", sport: "football" },
+    "soccer/chi.copa_chi": { name: "Copa Chile", code: "CCH", sport: "football" },
+    "soccer/chi.1.promotion.relegation": { name: "Primera División Play-offs", code: "CHP", sport: "football" },
+    "soccer/uru.2": { name: "Segunda División Uruguaya", code: "URU2", sport: "football" },
+    "soccer/col.superliga": { name: "Superliga Colombiana", code: "SLC", sport: "football" },
+    "soccer/col.copa": { name: "Copa Colombia", code: "CCO", sport: "football" },
+    "soccer/bol.copa": { name: "Copa Bolivia", code: "CBL", sport: "football" },
+    "soccer/bol.ply.rel": { name: "Bolivian Liga Profesional Promotion/Relegation Playoffs", code: "BOLP", sport: "football" },
+    "soccer/par.1.supercopa": { name: "Supercopa Paraguay", code: "SPY", sport: "football" },
+    "soccer/mex.2": { name: "Liga de Expansión MX", code: "MX2", sport: "football" },
+    "soccer/mex.campeon": { name: "Campeón de Campeones", code: "CDC", sport: "football" },
+    "soccer/hon.1": { name: "Liga Nacional de Honduras", code: "HON", sport: "football" },
+    "soccer/crc.1": { name: "Liga Promerica", code: "CRC", sport: "football" },
+    "soccer/gua.1": { name: "Liga Nacional de Guatemala", code: "GUA", sport: "football" },
+    "soccer/slv.1": { name: "Primera División de El Salvador", code: "SLV", sport: "football" },
+    "soccer/jpn.world_challenge": { name: "Japanese J.League World Challenge", code: "JWC", sport: "football" },
+    "soccer/chn.1.promotion.relegation": { name: "Chinese Super League Play-offs", code: "CSLP", sport: "football" },
     // More countries, women's leagues & tournaments
     // Other sports - expanded
     "basketball/nba":               { name: "NBA",                     code: "NBA",      sport: "basketball" },
@@ -1032,7 +1318,7 @@ const ESPN_PROBE_TIMEOUT_MS = 3500;            // one transport, reachability ch
 const ESPN_TRANSPORT_COOLDOWN_MS = 5 * 60 * 1000;
 const ESPN_TRANSPORT_FAIL_LIMIT = 2;           // consecutive failures before cooling down
 const ESPN_SWEEP_WATCHDOG_MS = 12000;          // nothing fetched yet → stop and fall back
-const ESPN_SWEEP_MAX_MS = 60000;               // hard cap on a sweep that is limping along
+const ESPN_SWEEP_MAX_MS = 90000;               // hard cap on a sweep that is limping along (the full ESPN catalogue is 231 leagues)
 const ESPN_REFRESH_MS = 60000;                 // live data: refresh cadence
 const ESPN_RECOVERY_MS = 5 * 60 * 1000;        // simulation mode: how often to look for live data
 
@@ -1355,20 +1641,27 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
             if (o.overUnder != null && odds.overUnder == null) {
                 odds.overUnder = o.overUnder;
             }
-            if (/over[/ ]?under|total goals|o\/u/.test(det) || o.overUnder != null) {
+            // Totals prices ride on the odds entry itself — read those first.
+            const entryOver = espnPriceToDecimal(o.overOdds), entryUnder = espnPriceToDecimal(o.underOdds);
+            if (entryOver != null && odds.overOdds == null) odds.overOdds = entryOver;
+            if (entryUnder != null && odds.underOdds == null) odds.underOdds = entryUnder;
+            // Only an entry that *names* the totals market carries Over/Under prices on
+            // its sides. The moneyline entry merely carries the line (`overUnder`), so
+            // treating its 1X2 prices as Over/Under made the capsule read "O/U 2.5
+            // ↑1.69 ↓4.80" — the home and away win odds, relabelled as total payouts.
+            if (entryOver == null && entryUnder == null && /over|under|total goals|o\/u/.test(det)) {
                 const h = americanToDecimal(homeML), a = americanToDecimal(awayML);
-                // "Over" is typically published as the home/team1 side, "Under" as away/team2.
-                if (/over/.test(det) || !odds.overOdds) odds.overOdds = odds.overOdds || h || a;
-                if (/under/.test(det)) odds.underOdds = odds.underOdds || a || h;
-                // If the detail string is just "O/U 2.5" with no Over/Under label,
-                // treat home as Over and away as Under (standard ESPN ordering).
-                if (!odds.overOdds && h) odds.overOdds = h;
-                if (!odds.underOdds && a) odds.underOdds = a;
+                const overIsHome = /over/.test(det) || !/under/.test(det);
+                if (odds.overOdds == null) odds.overOdds = (overIsHome ? h : a) || (overIsHome ? a : h);
+                if (odds.underOdds == null) odds.underOdds = (overIsHome ? a : h) || (overIsHome ? h : a);
             }
-            if (/both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
-                // ESPN usually puts "Yes" on the home side and "No" on the away side.
-                odds.bttsYes = odds.bttsYes || americanToDecimal(homeML);
-                odds.bttsNo = odds.bttsNo || americanToDecimal(awayML);
+            // Both teams to score: entry-level Yes/No prices, else a market-named entry.
+            const entryYes = espnPriceToDecimal(o.bttsYes), entryNo = espnPriceToDecimal(o.bttsNo);
+            if (entryYes != null && odds.bttsYes == null) odds.bttsYes = entryYes;
+            if (entryNo != null && odds.bttsNo == null) odds.bttsNo = entryNo;
+            if (odds.bttsYes == null && odds.bttsNo == null && /both teams? to score|btts|yes\s*\/\s*no/.test(det)) {
+                odds.bttsYes = americanToDecimal(homeML);
+                odds.bttsNo = americanToDecimal(awayML);
             }
             // Backfill missing 1X2 from a later provider if primary didn't carry moneylines
             if (!odds.home && homeML) odds.home = homeML;
@@ -1446,8 +1739,24 @@ function showSkeletons(count = 4) {
     }
 }
 
-// Fetch and load all matches for the selected sport from the ESPN API - now worldwide with chunked fetching
+// Fetch and load all matches for the selected sport from the ESPN API - now worldwide with chunked fetching.
+//
+// The sweep is single-flight, but the full ESPN catalogue means it can run for a
+// while: if the user switches tabs mid-sweep the request used to be dropped and the
+// old tab's matches stayed on screen until the next auto-refresh. Keep one request
+// queued and re-run the sweep for whatever tab is selected when it lands.
+let sweepQueued = false;
 async function loadAPIMatches(opts = {}) {
+    if (apiLoading) { sweepQueued = true; return; }
+    let again = true;
+    while (again) {
+        sweepQueued = false;
+        await runAPIMatches(opts);
+        again = sweepQueued && currentSport !== "f1";
+    }
+}
+
+async function runAPIMatches(opts = {}) {
     if (currentSport === "f1") { loadF1Data(); return; }
     if (apiLoading) return;
     apiLoading = true;
@@ -1473,7 +1782,10 @@ async function loadAPIMatches(opts = {}) {
 
     try {
         // Chunked parallel fetching to support 50+ worldwide leagues without hammering the browser/ESPN
-        const CHUNK_SIZE = 6;
+        // 8 rather than 6: the full ESPN catalogue doubled the per-tab endpoint count
+        // (210 football / 231 worldwide), and the extra two in flight per chunk keep a
+        // healthy sweep well inside the cap instead of truncating it at the obscure end.
+        const CHUNK_SIZE = 8;
         for (let i = 0; i < endpoints.length; i += CHUNK_SIZE) {
             if (sweepAbort.signal.aborted) break;
             const chunk = endpoints.slice(i, i + CHUNK_SIZE);
@@ -1549,12 +1861,8 @@ async function loadAPIMatches(opts = {}) {
     apiLoading = false;
 
     // Update live match counter badge
-    const liveCount = apiMatches.filter(m => m.status === "live").length;
     try{ updateHomeSEO(window._lastMatches || []); }catch(e){}
-    const badge = document.getElementById("live-match-count-badge");
-    const statNum = document.getElementById("stat-live-matches");
-    if (badge) badge.textContent = `${liveCount || apiMatches.length} Matches (API)`;
-    if (statNum) statNum.textContent = liveCount || apiMatches.length;
+    applyLiveCountUI();
 
     // Update status bar timestamp (includes active transport for transparency)
     hideNetBanner(); // fresh data — clear any stale warning
@@ -1567,6 +1875,10 @@ async function loadAPIMatches(opts = {}) {
 
     renderMatches();
     renderTicker();
+
+    // Mirror this sweep (and the view behind it) so a reload replays it instantly
+    // instead of starting from the simulation dataset.
+    saveSessionSnapshot();
 
     storyPick = null;
     storyLocked = false;
@@ -1691,6 +2003,19 @@ function americanToDecimal(moneyLine) {
     const v = parseFloat(moneyLine);
     if (isNaN(v) || v === 0) return null;
     return v > 0 ? 1 + v / 100 : 1 + 100 / Math.abs(v);
+}
+
+// Prices for the totals (Over/Under) and both-teams-to-score markets. ESPN puts
+// these on the odds entry itself (`overOdds`/`underOdds`/`bttsYes`/`bttsNo`) as
+// American moneylines, e.g. -115. A couple of providers send an already-decimal
+// price (1.91) instead, and one sends a probability (45.31). Convert the first
+// two, drop the rest — a market must never render a number that is not a price.
+function espnPriceToDecimal(v) {
+    if (v == null || v === "") return null;
+    const n = typeof v === "number" ? v : parseFloat(v);
+    if (!isFinite(n) || n === 0) return null;
+    if (Math.abs(n) >= 100) return americanToDecimal(n);  // American moneyline
+    return n > 1 && n < 25 ? n : null;                    // decimal, or a percentage we cannot use
 }
 
 function oddsSummary(odds) {
@@ -3037,7 +3362,7 @@ const LEAGUE_FLAG_CODES = {
     LIB: "eu",
     CWC: "eu",
     WC: "eu",
-    RSA: "za", NGA: "ng", GHA: "gh", CHN: "cn", URU: "uy", PAR: "py",
+    RSA: "za", NGA: "ng", GHA: "gh", KEN: "ke", UGA: "ug", CHN: "cn", URU: "uy", PAR: "py",
     ECU: "ec", BOL: "bo", VEN: "ve", ROU: "ro", IRL: "ie", PER: "pe",
     CYP: "cy", THA: "th", MYS: "my", IDN: "id", USL: "us", BRA2: "br",
     ENG4: "gb-eng", ENG5: "gb-eng", WSL: "gb-eng", LIGAF: "es",
@@ -4680,9 +5005,30 @@ async function runLiveRefresh() {
 function init() {
     applyStoredTheme();
     initEventHandlers();
+
+    // Restore the previous view (sport / filter / league / day / tab) before the
+    // first render, so a reload comes back to the screen the user left.
+    restoreViewState();
+    syncViewControls();
     renderDateStrip();
     enhanceLeagueFlags();
-    
+
+    // Replay the last successful sweep, if it is recent and belongs to this view.
+    // Without it a reload fell straight to the simulation dataset — live scores
+    // "disappearing" on refresh. With it the matches are on screen immediately and
+    // setApiMode(true) below refreshes over the top; if that refresh cannot land,
+    // the existing "showing last data" path keeps them instead of blanking.
+    const cachedLive = restoreLiveCache();
+    if (cachedLive) {
+        apiMatches = cachedLive.matches;
+        apiMatches.forEach((m) => { m.favorites = favoriteIds.has(m.id); });
+        isApiMode = true;
+        if (!apiMatches.some((m) => m.id === spotlightMatchId)) {
+            const firstLive = apiMatches.find((m) => m.status === "live");
+            spotlightMatchId = (firstLive || apiMatches[0]).id;
+        }
+    }
+
     // Initial Render
     renderTicker();
     renderHighlights();
@@ -4690,11 +5036,33 @@ function init() {
     renderScorers();
     renderNews();
     renderMatches();
-    setSpotlightMatch("fb-1");
-    
+    setSpotlightMatch(spotlightMatchId);
+
     // Start in Live API mode — automatically falls back to Simulation Mode
     // if ESPN is unreachable (loadAPIMatches handles the fallback)
     setApiMode(true);
+
+    if (cachedLive) {
+        // setApiMode() has just written "Fetching…": replace that with the age of
+        // the data on screen, so a user opening a stale snapshot is told so until
+        // the sweep lands (which rewrites the line) or reports the failure.
+        applyLiveCountUI();
+        const lastUpdatedEl = document.getElementById("api-last-updated");
+        if (lastUpdatedEl && Date.now() - cachedLive.at > 60000) {
+            const when = new Date(cachedLive.at);
+            lastUpdatedEl.textContent = tf("upd.cached", {
+                time: when.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" }),
+                n: apiMatches.length
+            });
+        }
+    }
+
+    // Keep the snapshot current for the cases that do not pass through a sweep:
+    // closing the tab, backgrounding it, or reloading straight after a tap.
+    window.addEventListener("pagehide", saveSessionSnapshot);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") saveSessionSnapshot();
+    });
     
     // Start Live Match Simulation (guarded — skips when isApiMode === true)
     setInterval(simulationLoop, 6000);   // clock ticks every 6 s
