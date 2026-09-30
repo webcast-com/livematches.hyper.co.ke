@@ -175,44 +175,62 @@ async function probeScoreboard(sport, league) {
     const from = yyyymmdd(shift(-WINDOW_DAYS));
     const to = yyyymmdd(shift(WINDOW_DAYS));
     const base = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard`;
-    // A date range is one request instead of fifteen. Not every league accepts
-    // it, so fall back to the plain scoreboard (today) before calling it dead.
-    for (const url of [`${base}?dates=${from}-${to}&limit=400`, `${base}?limit=400`]) {
+    /* A date range is one request instead of fifteen, but ESPN is picky about
+       the shape and rejects some combinations outright — the first version of
+       this audit had every single ranged call fail and never noticed, because
+       the plain fallback answered. Try the shapes in order of how much they
+       tell us and record which one won, so a silent downgrade is visible in
+       the output instead of quietly narrowing the window to "today". */
+    const attempts = [
+        ['range+limit', `${base}?dates=${from}-${to}&limit=400`],
+        ['range', `${base}?dates=${from}-${to}`],
+        ['limit', `${base}?limit=400`],
+        ['plain', base],
+    ];
+    const errors = [];
+    for (const [mode, url] of attempts) {
+        let j;
         try {
-            const j = await getJSON(url);
-            const events = Array.isArray(j.events) ? j.events : [];
-            const lg = (j.leagues && j.leagues[0]) || {};
-            /* An out-of-season league does not error: the plain scoreboard hands
-               back its most recent match, which can be months old. Counting that
-               as coverage is how "265 live" happened. Judge every event by its
-               own date instead, so "active" means ESPN has something for this
-               league inside the window and nothing else counts. */
-            const lo = shift(-WINDOW_DAYS).getTime();
-            const hi = shift(WINDOW_DAYS).getTime();
-            const state = (e) => (e.status && e.status.type && e.status.type.state) || '';
-            const at = (e) => { const t = Date.parse(e.date || ''); return Number.isFinite(t) ? t : NaN; };
-            const inWindow = events.filter((e) => { const t = at(e); return Number.isFinite(t) && t >= lo && t <= hi; });
-            const stamps = events.map(at).filter(Number.isFinite).sort((a, b) => a - b);
-            const isoDay = (t) => new Date(t).toISOString().slice(0, 10);
-            return {
-                ok: true,
-                espnName: lg.name || lg.abbreviation || '',
-                season: (lg.season && (lg.season.displayName || lg.season.year)) || (j.season && j.season.year) || '',
-                returned: events.length,
-                events: inWindow.length,
-                inPlay: inWindow.filter((e) => state(e) === 'in').length,
-                finished: inWindow.filter((e) => state(e) === 'post').length,
-                upcoming: inWindow.filter((e) => state(e) === 'pre').length,
-                lastEvent: stamps.length ? isoDay(stamps[stamps.length - 1]) : '',
-                firstEvent: stamps.length ? isoDay(stamps[0]) : '',
-                ranged: url.includes('dates='),
-            };
+            j = await getJSON(url);
         } catch (e) {
-            var lastError = e.message; // eslint-disable-line no-var
+            errors.push(`${mode}: ${e.message}`);
+            await sleep(DELAY_MS);
+            continue;
         }
-        await sleep(DELAY_MS);
+        const events = Array.isArray(j.events) ? j.events : [];
+        const lg = (j.leagues && j.leagues[0]) || {};
+        /* An out-of-season league does not error: the scoreboard hands back a
+           matchday regardless of how far away it is. Judge every event by its
+           own date so "active" means ESPN has something inside the window,
+           and keep the next fixture separately — a league on an international
+           break is running, it just is not running this week. */
+        const now = NOW.getTime();
+        const lo = shift(-WINDOW_DAYS).getTime();
+        const hi = shift(WINDOW_DAYS).getTime();
+        const state = (e) => (e.status && e.status.type && e.status.type.state) || '';
+        const at = (e) => { const t = Date.parse(e.date || ''); return Number.isFinite(t) ? t : NaN; };
+        const inWindow = events.filter((e) => { const t = at(e); return Number.isFinite(t) && t >= lo && t <= hi; });
+        const stamps = events.map(at).filter(Number.isFinite).sort((a, b) => a - b);
+        const future = stamps.filter((t) => t >= now);
+        const past = stamps.filter((t) => t < now);
+        const isoDay = (t) => new Date(t).toISOString().slice(0, 10);
+        return {
+            ok: true,
+            mode,
+            modeErrors: errors.join('; '),
+            espnName: lg.name || lg.abbreviation || '',
+            season: (lg.season && (lg.season.displayName || lg.season.year)) || (j.season && j.season.year) || '',
+            returned: events.length,
+            events: inWindow.length,
+            inPlay: inWindow.filter((e) => state(e) === 'in').length,
+            finished: inWindow.filter((e) => state(e) === 'post').length,
+            upcoming: inWindow.filter((e) => state(e) === 'pre').length,
+            nextEvent: future.length ? isoDay(future[0]) : '',
+            lastEvent: past.length ? isoDay(past[past.length - 1]) : '',
+            ranged: mode.startsWith('range'),
+        };
     }
-    return { ok: false, error: lastError || 'unknown error' };
+    return { ok: false, error: errors.join('; ') || 'unknown error' };
 }
 
 async function probeStandings(sport, league) {
@@ -240,8 +258,12 @@ function verdict(sb, st) {
     if (!sb.ok) return 'dead';
     if (sb.inPlay > 0) return 'inplay';
     if (sb.events > 0) return 'active';
-    // No fixtures in the window. A populated table still means ESPN holds a
-    // current season for the league, which is worth separating from silence.
+    // Nothing this week, but ESPN is holding a date for the next round: the
+    // league is in season and on a break (October is an international window
+    // for most of European football), not dormant.
+    if (sb.nextEvent) return 'scheduled';
+    // No fixtures at all. A populated table still means ESPN carries a current
+    // season for the league, which is worth separating from silence.
     if (st && st.ok && st.rows > 0) return 'table';
     if (!sb.espnName) return 'empty';
     return 'idle';
@@ -252,12 +274,13 @@ function verdict(sb, st) {
 const BADGE = {
     inplay: '🔴 in play',
     active: '🟢 active',
+    scheduled: '🟣 scheduled',
     table: '🔵 table only',
     idle: '🟡 idle',
     empty: '⚪ empty',
     dead: '⛔ dead',
 };
-const VERDICTS = ['inplay', 'active', 'table', 'idle', 'empty', 'dead'];
+const VERDICTS = ['inplay', 'active', 'scheduled', 'table', 'idle', 'empty', 'dead'];
 
 function buildMarkdown(rows, meta) {
     const bySport = new Map();
@@ -281,8 +304,9 @@ function buildMarkdown(rows, meta) {
     out.push('|---|---|');
     out.push('| 🔴 in play | A match was actually in progress when the audit ran |');
     out.push('| 🟢 active | ESPN has fixtures for this league dated inside the window |');
-    out.push('| 🔵 table only | No fixtures in the window, but ESPN holds a populated standings table |');
-    out.push('| 🟡 idle | ESPN answers, but has nothing in the window — out of season |');
+    out.push('| 🟣 scheduled | In season with a confirmed next fixture, just none this week (international break, mid-week gap) |');
+    out.push('| 🔵 table only | No fixtures at all, but ESPN holds a populated standings table |');
+    out.push('| 🟡 idle | ESPN answers, but has nothing scheduled — out of season |');
     out.push('| ⚪ empty | ESPN answered with a payload carrying no league identity |');
     out.push('| ⛔ dead | HTTP error or timeout — the slug should be dropped |');
     out.push('');
@@ -293,12 +317,13 @@ function buildMarkdown(rows, meta) {
     out.push('## Totals');
     out.push('');
     const feeding = (list) => count(list, 'inplay') + count(list, 'active');
-    out.push('| Sport | Registered | 🔴 in play | 🟢 active | 🔵 table only | 🟡 idle | ⚪ empty | ⛔ dead | Feeding now | Fixtures |');
-    out.push('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
+    const inSeason = (list) => feeding(list) + count(list, 'scheduled');
+    out.push('| Sport | Registered | 🔴 in play | 🟢 active | 🟣 scheduled | 🔵 table only | 🟡 idle | ⛔ dead | This week | In season | Fixtures |');
+    out.push('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
     const sportRow = (label, list, bold) => {
         const b = bold ? '**' : '';
         const fx = list.reduce((n, r) => n + (r.events || 0), 0);
-        out.push(`| ${b}${label}${b} | ${b}${list.length}${b} | ${b}${count(list, 'inplay')}${b} | ${b}${count(list, 'active')}${b} | ${b}${count(list, 'table')}${b} | ${b}${count(list, 'idle')}${b} | ${b}${count(list, 'empty')}${b} | ${b}${count(list, 'dead')}${b} | ${b}${feeding(list)}${b} | ${b}${fx}${b} |`);
+        out.push(`| ${b}${label}${b} | ${b}${list.length}${b} | ${b}${count(list, 'inplay')}${b} | ${b}${count(list, 'active')}${b} | ${b}${count(list, 'scheduled')}${b} | ${b}${count(list, 'table')}${b} | ${b}${count(list, 'idle')}${b} | ${b}${count(list, 'dead')}${b} | ${b}${feeding(list)}${b} | ${b}${inSeason(list)}${b} | ${b}${fx}${b} |`);
     };
     for (const [sport, list] of [...bySport].sort((a, b) => b[1].length - a[1].length)) sportRow(sport, list);
     sportRow('all', rows, true);
@@ -316,22 +341,25 @@ function buildMarkdown(rows, meta) {
         region,
         total: list.length,
         feeding: feeding(list),
+        inSeason: inSeason(list),
+        nextUp: list.map((r) => r.nextEvent).filter(Boolean).sort()[0] || '',
         fixtures: list.reduce((n, r) => n + (r.events || 0), 0),
         tables: list.filter((r) => r.tableRows > 0).length,
         sports: [...new Set(list.map((r) => r.sport))].sort().join(', '),
     })).sort((a, b) => b.fixtures - a.fixtures || b.total - a.total || a.region.localeCompare(b.region));
     const fed = regionRows.filter((r) => r.feeding > 0);
-    out.push(`## Countries and confederations — ${fed.length} of ${regionRows.length} feeding data`);
+    const inSeasonRegions = regionRows.filter((r) => r.inSeason > 0);
+    out.push(`## Countries and confederations — ${fed.length} of ${regionRows.length} playing this week, ${inSeasonRegions.length} in season`);
     out.push('');
-    out.push('| Country / body | Leagues | Feeding now | Fixtures ±' + WINDOW_DAYS + 'd | Tables | Sports |');
-    out.push('|---|---:|---:|---:|---:|---|');
-    for (const r of regionRows) {
-        out.push(`| ${r.region} | ${r.total} | ${r.feeding} | ${r.fixtures} | ${r.tables} | ${r.sports} |`);
+    out.push('| Country / body | Leagues | Playing this week | In season | Fixtures ±' + WINDOW_DAYS + 'd | Next fixture | Tables | Sports |');
+    out.push('|---|---:|---:|---:|---:|---|---:|---|');
+    for (const r of regionRows.sort((a, b) => b.fixtures - a.fixtures || b.inSeason - a.inSeason || a.region.localeCompare(b.region))) {
+        out.push(`| ${r.region} | ${r.total} | ${r.feeding} | ${r.inSeason} | ${r.fixtures} | ${r.nextUp || '—'} | ${r.tables} | ${r.sports} |`);
     }
     out.push('');
-    const silent = regionRows.filter((r) => r.feeding === 0);
+    const silent = regionRows.filter((r) => r.inSeason === 0);
     if (silent.length) {
-        out.push(`Nothing scheduled anywhere in: ${silent.map((r) => r.region).join(', ')}.`);
+        out.push(`No fixture on ESPN's books anywhere in: ${silent.map((r) => r.region).join(', ')}.`);
         out.push('');
     }
 
@@ -362,7 +390,7 @@ function buildMarkdown(rows, meta) {
     out.push('## By sport and country');
     out.push('');
     for (const [sport, list] of [...bySport].sort((a, b) => b[1].length - a[1].length)) {
-        out.push(`### ${sport} — ${list.length} competitions (${count(list, 'inplay') + count(list, 'active')} feeding data)`);
+        out.push(`### ${sport} — ${list.length} competitions (${count(list, 'inplay') + count(list, 'active')} playing this week, ${count(list, 'inplay') + count(list, 'active') + count(list, 'scheduled')} in season)`);
         out.push('');
         const byRegion = new Map();
         for (const r of list) {
@@ -373,14 +401,14 @@ function buildMarkdown(rows, meta) {
         for (const [region, items] of regions) {
             out.push(`#### ${region}`);
             out.push('');
-            out.push(`| Status | Slug | Site name | ESPN name | Season | Fixtures ±${WINDOW_DAYS}d (done / to come) | Last event | Table |`);
-            out.push('|---|---|---|---|---|---|---|---|');
+            out.push(`| Status | Slug | Site name | ESPN name | Season | Fixtures ±${WINDOW_DAYS}d (done / to come) | Last | Next | Table |`);
+            out.push('|---|---|---|---|---|---|---|---|---|');
             for (const r of items.sort((a, b) => a.league.localeCompare(b.league))) {
                 const fixtures = r.verdict === 'dead' ? '—' : `${r.events} (${r.finished} / ${r.upcoming})`;
                 const table = r.tableChecked
                     ? (r.tableRows > 0 ? `${r.tableRows} rows in ${r.tableGroups} ${r.tableGroups === 1 ? 'table' : 'tables'}` : 'none')
                     : '—';
-                out.push(`| ${BADGE[r.verdict]} | \`${r.league}\` | ${r.siteName || '—'} | ${r.espnName || '—'} | ${r.season || '—'} | ${fixtures} | ${r.lastEvent || '—'} | ${table} |`);
+                out.push(`| ${BADGE[r.verdict]} | \`${r.league}\` | ${r.siteName || '—'} | ${r.espnName || '—'} | ${r.season || '—'} | ${fixtures} | ${r.lastEvent || '—'} | ${r.nextEvent || '—'} | ${table} |`);
             }
             out.push('');
         }
@@ -540,11 +568,13 @@ async function main() {
             region: regionOf(entry.sport, entry.league),
             espnName: sb.espnName || '',
             season: sb.season || '',
+            mode: sb.mode || '',
             returned: sb.returned || 0,
             events: sb.events || 0,
             inPlay: sb.inPlay || 0,
             finished: sb.finished || 0,
             upcoming: sb.upcoming || 0,
+            nextEvent: sb.nextEvent || '',
             lastEvent: sb.lastEvent || '',
             ranged: Boolean(sb.ranged),
             error: sb.error || '',
@@ -566,7 +596,10 @@ async function main() {
 
     const tally = (v) => rows.filter((r) => r.verdict === v).length;
     log(`done: ${VERDICTS.map((v) => `${tally(v)} ${v}`).join(', ')}`);
-    log(`feeding data right now: ${tally('inplay') + tally('active')}/${rows.length} competitions, ${rows.reduce((n, r) => n + (r.events || 0), 0)} fixtures in the window`);
+    log(`playing this week: ${tally('inplay') + tally('active')}/${rows.length}; in season: ${tally('inplay') + tally('active') + tally('scheduled')}/${rows.length}; ${rows.reduce((n, r) => n + (r.events || 0), 0)} fixtures in the window`);
+    const modes = {};
+    rows.forEach((r) => { modes[r.mode || 'dead'] = (modes[r.mode || 'dead'] || 0) + 1; });
+    log('query shapes that answered: ' + Object.entries(modes).map(([k, v]) => `${k}=${v}`).join(', '));
     if (tally('dead')) {
         log('dead slugs: ' + rows.filter((r) => r.verdict === 'dead').map((r) => r.path).join(', '));
     }
