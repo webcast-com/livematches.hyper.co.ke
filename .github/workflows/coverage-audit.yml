@@ -25,6 +25,11 @@ on:
     paths:
       - 'tools/audit-coverage.mjs'
       - '.github/workflows/coverage-audit.yml'
+      # Re-audit whenever the registry itself changes: adding or repointing a
+      # competition is exactly when we want to know if ESPN answers it.
+      - 'app.js'
+      - 'standings.js'
+      - 'tools/sports.mjs'
 
 permissions:
   contents: write
