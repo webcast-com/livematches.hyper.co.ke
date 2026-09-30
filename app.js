@@ -890,12 +890,27 @@ const ESPN_ENDPOINTS = {
         "hockey/mens-college-hockey", "hockey/womens-college-hockey", "hockey/hockey-world-cup",
         "hockey/olympics-mens-ice-hockey", "hockey/olympics-womens-ice-hockey"
     ],
+    // ESPN keys rugby by numeric league id, not by name: "rugby/6-nations" and
+    // friends 400 on every request. These ids came out of ESPN's own league
+    // directory (tools/audit-coverage.mjs --discover rugby) and every one of
+    // them answers the scoreboard endpoint.
     rugby: [
-        "rugby/premiership", "rugby/6-nations", "rugby/rugby-world-cup"
+        "rugby/270559",   // French Top 14
+        "rugby/270557",   // United Rugby Championship
+        "rugby/267979",   // Premiership Rugby
+        "rugby/242041",   // Super Rugby Pacific
+        "rugby/289262",   // Major League Rugby
+        "rugby/271937",   // European Rugby Champions Cup
+        "rugby/272073",   // European Rugby Challenge Cup
+        "rugby/180659",   // Six Nations
+        "rugby/244293",   // The Rugby Championship
+        "rugby/164205"    // Rugby World Cup
     ],
-    cricket: [
-        "cricket/ipl", "cricket/pak-psl", "cricket/eng-vitality-blast"
-    ],
+    // Cricket is deliberately absent: ESPN's public site API serves no cricket
+    // scoreboard at all (no core-API league directory, and the sport-level
+    // scoreboard is empty), so the three slugs that used to sit here — ipl,
+    // pak-psl, eng-vitality-blast — 404'd on every request and the Cricket tab
+    // could only ever be empty. See COVERAGE-AUDIT.md.
     all: [
         // Football top + continental + US
         "soccer/eng.1", "soccer/esp.1", "soccer/ger.1", "soccer/ita.1", "soccer/fra.1",
@@ -903,7 +918,7 @@ const ESPN_ENDPOINTS = {
         "soccer/uefa.champions", "soccer/uefa.europa", "soccer/fifa.world", "soccer/conmebol.libertadores",
         // Other sports
         "basketball/nba", "tennis/atp", "tennis/wta", "baseball/mlb", "hockey/nhl",
-        "rugby/premiership", "cricket/ipl",
+        "rugby/270559",
         // Added coverage
         "soccer/arg.1", "soccer/bel.1", "soccer/sco.1",
         "soccer/uefa.europa.conf"
@@ -917,7 +932,7 @@ const ESPN_ENDPOINTS = {
         "soccer/fra.1", "soccer/fra.2", "soccer/fra.coupe_de_france",
         "soccer/ned.1", "soccer/ned.2", "soccer/por.1", "soccer/bel.1", "soccer/tur.1",
         "soccer/sco.1", "soccer/sui.1", "soccer/aut.1", "soccer/den.1", "soccer/swe.1", "soccer/nor.1",
-        "soccer/gre.1", "soccer/rus.1", "soccer/ukr.1",
+        "soccer/gre.1", "soccer/rus.1",
         "soccer/usa.1", "soccer/usa.nwsl", "soccer/mex.1", "soccer/bra.1", "soccer/arg.1", "soccer/col.1", "soccer/chi.1",
         "soccer/jpn.1", "soccer/aus.1", "soccer/ind.1", "soccer/ksa.1",
         "soccer/uefa.champions", "soccer/uefa.europa", "soccer/uefa.europa.conf",
@@ -1023,7 +1038,6 @@ const LEAGUE_NAMES = {
     "soccer/nor.1":           { name: "Eliteserien",               code: "NOR",      sport: "football" },
     "soccer/gre.1":           { name: "Super League Greece",       code: "GRE",      sport: "football" },
     "soccer/rus.1":           { name: "Russian Premier League",    code: "RUS",      sport: "football" },
-    "soccer/ukr.1":           { name: "Ukrainian Premier League",  code: "UKR",      sport: "football" },
     // Americas
     "soccer/usa.1":           { name: "Major League Soccer",       code: "MLS",      sport: "football" },
     "soccer/usa.nwsl":        { name: "NWSL",                      code: "NWSL",     sport: "football" },
@@ -1240,12 +1254,16 @@ const LEAGUE_NAMES = {
     "baseball/mlb":                 { name: "MLB",                     code: "MLB",      sport: "baseball" },
     "baseball/college-baseball":    { name: "College Baseball",        code: "NCAA-B",   sport: "baseball" },
     "hockey/nhl":                   { name: "NHL",                     code: "NHL",      sport: "icehockey" },
-    "rugby/premiership":            { name: "Rugby Premiership",       code: "RUG",      sport: "rugby" },
-    "rugby/6-nations":              { name: "Six Nations",             code: "6NAT",     sport: "rugby" },
-    "rugby/rugby-world-cup":        { name: "Rugby World Cup",         code: "RWC",      sport: "rugby" },
-    "cricket/ipl":                  { name: "Indian Premier League",   code: "IPL",      sport: "cricket" },
-    "cricket/pak-psl":              { name: "Pakistan Super League",   code: "PSL",      sport: "cricket" },
-    "cricket/eng-vitality-blast":   { name: "Vitality Blast",          code: "BLAST",    sport: "cricket" },
+    "rugby/270559":                 { name: "Top 14",                  code: "TOP14",    sport: "rugby" },
+    "rugby/270557":                 { name: "United Rugby Championship", code: "URC",    sport: "rugby" },
+    "rugby/267979":                 { name: "Premiership Rugby",       code: "RUG",      sport: "rugby" },
+    "rugby/242041":                 { name: "Super Rugby Pacific",     code: "SRP",      sport: "rugby" },
+    "rugby/289262":                 { name: "Major League Rugby",      code: "MLR",      sport: "rugby" },
+    "rugby/271937":                 { name: "Champions Cup",           code: "ERCC",     sport: "rugby" },
+    "rugby/272073":                 { name: "Challenge Cup",           code: "ERCH",     sport: "rugby" },
+    "rugby/180659":                 { name: "Six Nations",             code: "6NAT",     sport: "rugby" },
+    "rugby/244293":                 { name: "The Rugby Championship",  code: "TRC",      sport: "rugby" },
+    "rugby/164205":                 { name: "Rugby World Cup",         code: "RWC",      sport: "rugby" },
     "basketball/nbl": { name: "NBL (Australia)", code: "NBL", sport: "basketball" },
     "basketball/nba-development": { name: "NBA G League", code: "GL", sport: "basketball" },
     "hockey/mens-college-hockey": { name: "NCAA Hockey", code: "NCAA-H", sport: "icehockey" },
@@ -1469,6 +1487,16 @@ async function fetchESPNPath(path, opts = {}) {
     throw new Error(`All transports failed for ${host}${path} (${lastError ? lastError.message : "unknown error"})`);
 }
 
+// Which leagues a tab sweeps, or null when the site has no ESPN coverage for
+// that sport at all. The old `ESPN_ENDPOINTS[sport] || ESPN_ENDPOINTS.all`
+// fallback meant the Cricket, Esports, Volleyball, Handball and MMA tabs
+// quietly served football fixtures under someone else's badge; a tab we cannot
+// fill should say so instead.
+function endpointsForSport(sport) {
+    const list = ESPN_ENDPOINTS[sport];
+    return Array.isArray(list) && list.length ? list : null;
+}
+
 // Fetch ESPN scoreboard for a specific endpoint slug
 async function fetchESPNLeague(slug, signal) {
     const qs = selectedDate ? `?dates=${selectedDate}` : "";
@@ -1479,7 +1507,7 @@ async function fetchESPNLeague(slug, signal) {
 // sweeping every league. Bypasses the transport cooldowns (that is the point)
 // but with a short timeout, and it never counts against the cooldown counters.
 async function espnProbe() {
-    const endpoints = ESPN_ENDPOINTS[currentSport] || ESPN_ENDPOINTS["all"];
+    const endpoints = endpointsForSport(currentSport) || ESPN_ENDPOINTS["all"];
     const slug = endpoints[0] || "soccer/eng.1";
     const qs = selectedDate ? `?dates=${selectedDate}` : "";
     try {
@@ -1765,7 +1793,20 @@ async function runAPIMatches(opts = {}) {
     // says "Fetching…", and the list fills in the moment live data lands.
     if (!matchesContainer.children.length) showSkeletons(5);
 
-    const endpoints = ESPN_ENDPOINTS[currentSport] || ESPN_ENDPOINTS["all"];
+    const endpoints = endpointsForSport(currentSport);
+    if (!endpoints) {
+        // No ESPN coverage for this sport. Say that plainly rather than
+        // falling through to the football sweep.
+        apiLoading = false;
+        apiMatches = [];
+        matchesContainer.innerHTML = `
+            <div class="no-matches" style="text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 13px;">
+                ${t("scores.nocoverage")}
+            </div>
+        `;
+        try { applyLiveCountUI(); } catch (e) {}
+        return;
+    }
     const fetched = [];
     const sweepStart = Date.now();
 
