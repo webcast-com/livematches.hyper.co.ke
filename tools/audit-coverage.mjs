@@ -352,7 +352,38 @@ async function discover(sports) {
                 await sleep(DELAY_MS);
             }
         } catch (e) {
-            log(`${sport}: directory unavailable (${e.message})`);
+            log(`${sport}: core directory unavailable (${e.message})`);
+        }
+        /* Cricket has no core-API league directory. The sport-level scoreboard
+           does carry one: it answers with whatever competitions are running
+           and names them, which is exactly the list we need. */
+        if (!found.length) {
+            for (const url of [
+                `https://site.api.espn.com/apis/site/v2/sports/${sport}/scoreboard`,
+                `https://site.api.espn.com/apis/site/v2/sports/${sport}/scoreboard?dates=${yyyymmdd(shift(-30))}-${yyyymmdd(shift(30))}`,
+            ]) {
+                try {
+                    const j = await getJSON(url);
+                    const buckets = [
+                        ...(Array.isArray(j.leagues) ? j.leagues : []),
+                        ...((j.sports && j.sports[0] && j.sports[0].leagues) || []),
+                    ];
+                    for (const lg of buckets) {
+                        const id = String(lg.id || '');
+                        if (!id || found.some((f) => f.id === id)) continue;
+                        found.push({
+                            id,
+                            slug: lg.slug || id,
+                            abbreviation: lg.abbreviation || '',
+                            name: lg.name || lg.shortName || '',
+                            isTournament: Boolean(lg.isTournament),
+                            via: 'sport-scoreboard',
+                        });
+                    }
+                } catch (e) { /* try the next shape */ }
+                await sleep(DELAY_MS);
+            }
+            log(`${sport}: sport-level scoreboard offered ${found.length} leagues`);
         }
         // Which of them actually answer the scoreboard endpoint the site uses?
         for (const lg of found) {
