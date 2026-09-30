@@ -50,7 +50,9 @@ const sportTableSlugs = () => SPORTS.filter((s) => s.table).map((s) => s.league)
 const ROOT_PAGES = ['index.html', 'news.html', 'about.html', 'predictions.html',
     'standings.html', 'highlights.html', 'transfers.html', 'shop.html', 'previews.html',
     'privacy.html', 'terms.html', 'match.html', 'story.html', 'preview.html',
-    'report.html', 'offline.html'];
+    'report.html', 'offline.html',
+    // the generated per-sport dashboards (worldwide.html, nfl.html, tennis.html …) get the same page-level checks
+    ...SportPages.pages.filter((p) => p.slug).map((p) => p.slug + '.html')];
 
 const FLATTENED = /^@\{|System\.Object\[\]|(^|;)\s*[A-Za-z_][A-Za-z0-9_]*=/;
 
@@ -989,7 +991,7 @@ check('the saved view round-trips, and unknown values are ignored rather than re
 });
 
 check('the address decides the sport: sport pages open their tab, a saved league never leaks across sports', () => {
-    const controls = ['data-sport="all"', 'data-sport="football"', 'data-sport="basketball"', 'data-sport="icehockey"', 'data-sport="f1"',
+    const controls = ['data-sport="all"', 'data-sport="football"', 'data-sport="basketball"', 'data-sport="nfl"', 'data-sport="icehockey"', 'data-sport="f1"',
         'data-filter="live"', 'data-league-id="EPL"'];
     const saved = { at: Date.now(), sport: 'football', filter: 'live', league: 'EPL', date: '20260101', leaders: 'goals', standings: 'EPL' };
     const boot = (pathname, view) => {
@@ -1000,7 +1002,8 @@ check('the address decides the sport: sport pages open their tab, a saved league
         return sb.state.get();
     };
     const cases = [
-        ['/basketball/', 'basketball'], ['/ice-hockey/', 'icehockey'], ['/formula-1/', 'f1'],
+        ['/basketball.html', 'basketball'], ['/ice-hockey.html', 'icehockey'], ['/formula-1.html', 'f1'], ['/nfl.html', 'nfl'],
+        ['/basketball/', 'basketball'], ['/ice-hockey/', 'icehockey'],   // legacy folder addresses
         ['/football', 'football'], ['/football/index.html', 'football'],
         ['/', 'all'], ['/index.html', 'all'], ['/news.html', 'all'], ['/nope/', 'all']
     ];
@@ -1149,21 +1152,28 @@ check('sport-pages.js path helpers round-trip every sport', () => {
         assert(SportPages.sportForPath(SportPages.pathFor(p.sport)) === p.sport, `${p.sport} does not round-trip through ${SportPages.pathFor(p.sport)}`);
     }
     assert(SportPages.sportForPath('/index.html') === 'all' && SportPages.sportForPath('/standings.html') === 'all', 'non-sport pages must resolve to the home tab');
+    assert(SportPages.pathFor('tennis') === '/tennis.html' && SportPages.pathFor('nfl') === '/nfl.html' && SportPages.pathFor('all') === '/', 'sport pages are flat <slug>.html files');
+    assert(SportPages.sportForPath('/tennis/') === 'tennis' && SportPages.sportForPath('/tennis') === 'tennis', 'the old folder addresses must still resolve');
     assert(SportPages.sportForPath('/table/eng.1/') === 'all' && SportPages.sportForPath('/report/123/') === 'all', 'nested pages must not be mistaken for sport pages');
 });
 
 check('a slug never shadows a folder that already holds something else', () => {
     for (const p of SportPages.pages.filter((x) => x.slug)) {
         assert(!['table', 'report', 'preview', 'testdata', 'tools', '.github'].includes(p.slug), `slug "${p.slug}" collides with an existing folder`);
-        assert(!fs.existsSync(path.join(ROOT, p.slug + '.html')), `${p.slug}.html exists next to /${p.slug}/`);
+        const folder = path.join(ROOT, p.slug);
+        if (fs.existsSync(folder)) {
+            assert(JSON.stringify(fs.readdirSync(folder)) === JSON.stringify(['index.html']), `/${p.slug}/ must hold nothing but the redirect stub`);
+        }
     }
 });
 
 check('every sport page is generated, current, and identical to index.html apart from its head + hidden heading + active tab', () => {
     const index = readText('../index.html');
     for (const p of SportPages.pages.filter((x) => x.slug)) {
-        const file = path.join(ROOT, p.slug, 'index.html');
-        assert(fs.existsSync(file), `/${p.slug}/index.html is missing — run: node tools/build-sport-pages.mjs`);
+        const file = path.join(ROOT, p.slug + '.html');
+        assert(fs.existsSync(file), `/${p.slug}.html is missing — run: node tools/build-sport-pages.mjs`);
+        const stub = readText(`../${p.slug}/index.html`);
+        assert(stub.includes(`url=/${p.slug}.html`) && stub.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `/${p.slug}/ must redirect to /${p.slug}.html`);
         const html = fs.readFileSync(file, 'utf8');
         assert(html.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `${p.slug}: canonical is wrong`);
         assert(html.includes(`<button class="sport-tab active" data-sport="${p.sport}">`), `${p.slug}: its tab is not pre-selected`);

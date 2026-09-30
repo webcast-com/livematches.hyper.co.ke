@@ -88,7 +88,7 @@ const CHIP_TABLES = [
 const SPORT_PAGES = createRequire(import.meta.url)('../sport-pages.js');
 const SPORT_SITEMAP_PAGES = SPORT_PAGES.pages
     .filter((p) => p.slug && p.covered)
-    .map((p) => [`${p.slug}/`, p.sport === 'football' ? '0.9' : '0.8', 'always']);
+    .map((p) => [`${p.slug}.html`, p.sport === 'football' ? '0.9' : '0.8', 'always']);
 
 const STATIC_PAGES = [
     ['', '1.0', 'always'], ['index.html', '1.0', 'always'],

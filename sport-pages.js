@@ -1,7 +1,7 @@
 /* ScoreHub sport pages — one URL per sport tab.
 
    The dashboard used to live at a single URL whatever sport tab was selected.
-   Every tab now also has a real address (/basketball/, /tennis/, /formula-1/ …)
+   Every tab now also has a real address (/basketball.html, /tennis.html, /formula-1.html …)
    that opens the very same dashboard with that tab already selected. Nothing
    about the dashboard itself changes: the pages are generated copies of
    index.html (tools/build-sport-pages.mjs) that differ only in their <head>
@@ -51,6 +51,14 @@
             keywords: 'live football scores, soccer scores, Premier League, LaLiga, Serie A, Bundesliga, Champions League, football fixtures, football results, league tables',
             heading: 'Live football scores, fixtures and results',
             blurb: 'Live football scores, fixtures, results, league tables and top scorers from the Premier League, LaLiga, Serie A, Bundesliga, Ligue 1, the Champions League, the Kenyan Premier League and over a hundred more competitions.'
+        },
+        {
+            sport: 'nfl', slug: 'nfl', name: 'NFL', icon: '🏈', covered: true,
+            title: 'Live NFL Scores, Schedule & Results | ScoreHub',
+            description: 'Live NFL scores, this week’s schedule and recent results: every game, final score and upcoming kickoff, plus the latest NFL news on ScoreHub.',
+            keywords: 'live NFL scores, NFL schedule, NFL results, NFL games today, American football scores, NFL news',
+            heading: 'Live NFL scores, schedule and results',
+            blurb: 'Live NFL scores, recent final scores and upcoming kickoffs, with the latest NFL headlines.'
         },
         {
             sport: 'basketball', slug: 'basketball', name: 'Basketball', icon: '🏀', covered: true,
@@ -146,17 +154,27 @@
     var bySlug = {};
     PAGES.forEach(function (p) { bySport[p.sport] = p; bySlug[p.slug] = p; });
 
+    // Every sport is a flat page in the site root, like news.html and highlights.html:
+    // /tennis.html, /nfl.html, /formula-1.html … (the home page stays '/').
     function pathFor(sport) {
         var p = bySport[sport];
-        return p && p.slug ? '/' + p.slug + '/' : '/';
+        return p && p.slug ? '/' + p.slug + '.html' : '/';
+    }
+
+    // The folder form these pages used to have ('/tennis/'). It now only holds a
+    // redirect stub that forwards to pathFor(), so old links and bookmarks still work.
+    function legacyPathFor(sport) {
+        var p = bySport[sport];
+        return p && p.slug ? '/' + p.slug + '/' : null;
     }
 
     function urlFor(sport) { return ORIGIN + pathFor(sport); }
 
-    // '/basketball/' (or '/basketball', '/basketball/index.html') → 'basketball'.
-    // Anything else — '/', '/index.html', '/news.html' — is the home page → 'all'.
+    // '/basketball.html' (or '/basketball', '/basketball/', '/basketball/index.html')
+    // → 'basketball'. Anything else — '/', '/index.html', '/news.html' — is the
+    // home page → 'all'.
     function sportForPath(pathname) {
-        var m = /^\/([a-z0-9-]+)(?:\/(?:index\.html)?)?$/.exec(String(pathname || ''));
+        var m = /^\/([a-z0-9-]+)(?:\.html|\/(?:index\.html)?)?$/.exec(String(pathname || ''));
         var p = m ? bySlug[m[1]] : null;
         return p && p.slug ? p.sport : 'all';
     }
@@ -237,6 +255,7 @@
         pages: PAGES,
         pageFor: function (sport) { return bySport[sport] || null; },
         pathFor: pathFor,
+        legacyPathFor: legacyPathFor,
         urlFor: urlFor,
         sportForPath: sportForPath,
         applyHead: applyHead,

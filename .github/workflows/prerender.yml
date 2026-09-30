@@ -7,8 +7,9 @@
 #                               every sport, built from the ESPN summary)
 #   preview/<matchId>/          upcoming-match snapshots (soccer 3-day window,
 #                               other sports 7 — they do not play daily)
-#   <sport>/index.html          per-sport dashboard pages (/basketball/, /tennis/ ...),
-#                               copies of index.html with their own head metadata
+#   <sport>.html                per-sport dashboard pages (/basketball.html, /nfl.html ...),
+#                               copies of index.html with their own head metadata;
+#                               <sport>/index.html are redirect stubs for the old folder URLs
 #                               (tools/build-sport-pages.mjs, mapping in sport-pages.js)
 #   sitemap.xml                 regenerated to mirror exactly what exists
 #   news-sitemap.xml            story URLs from the last 48h (Google news format)

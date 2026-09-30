@@ -619,7 +619,7 @@ function syncSportUrl(mode) {
 // Restore the view first: it is what the controls show, and it decides whether the
 // saved matches still belong to this screen.
 function restoreViewState() {
-    // The address decides the sport: /basketball/ opens the Basketball tab, the
+    // The address decides the sport: /basketball.html opens the Basketball tab, the
     // home page opens All Sports. (Before the sport pages existed the last-used
     // tab came back from storage — it still does for everything below.)
     const pageSport = sportFromUrl();
@@ -893,6 +893,10 @@ const ESPN_ENDPOINTS = {
         "soccer/mex.2", "soccer/mex.campeon", "soccer/hon.1",
         "soccer/crc.1", "soccer/gua.1", "soccer/slv.1",
         "soccer/jpn.world_challenge", "soccer/chn.1.promotion.relegation",
+    ],
+    // American football: ESPN keys it football/nfl (the "Football" tab is soccer).
+    nfl: [
+        "football/nfl"
     ],
     basketball: [
         "basketball/nba", "basketball/wnba", "basketball/euroleague",
@@ -1272,6 +1276,7 @@ const LEAGUE_NAMES = {
     // Other sports - expanded
     "basketball/nba":               { name: "NBA",                     code: "NBA",      sport: "basketball" },
     "basketball/wnba":              { name: "WNBA",                    code: "WNBA",     sport: "basketball" },
+    "football/nfl":                 { name: "NFL",                     code: "NFL",      sport: "nfl" },
     "basketball/euroleague":        { name: "EuroLeague",              code: "EUROL",    sport: "basketball" },
     "basketball/mens-college-basketball": { name: "NCAA Men",          code: "NCAAM",    sport: "basketball" },
     "basketball/womens-college-basketball": { name: "NCAA Women",      code: "NCAAW",    sport: "basketball" },
@@ -2309,6 +2314,7 @@ async function loadLiveStandings(leagueKey) {
 const SOCCER_NEWS_SPORTS = new Set(["all", "worldwide", "football"]);
 function isScopedSport(sport) { return !SOCCER_NEWS_SPORTS.has(sport); }
 const SPORT_NEWS_FEEDS = {
+    nfl: ["football/nfl"],
     basketball: ["basketball/nba", "basketball/wnba", "basketball/mens-college-basketball"],
     tennis: ["tennis/atp", "tennis/wta"],
     baseball: ["baseball/mlb"],
@@ -2316,6 +2322,7 @@ const SPORT_NEWS_FEEDS = {
     f1: ["racing/f1"]
 };
 const SPORT_NEWS_FALLBACK_LINK = {
+    nfl: "https://www.espn.com/nfl/",
     basketball: "https://www.espn.com/nba/",
     tennis: "https://www.espn.com/tennis/",
     baseball: "https://www.espn.com/mlb/",
@@ -3399,6 +3406,7 @@ function initHighlightsDrag() {
    for five minutes. The hub reads only its own cache — the main list below keeps its own
    sweep and date strip untouched. Simulation Mode filters MOCK_MATCHES instead. */
 const SPORT_HUB_LEAGUES = {
+    nfl: ["football/nfl"],
     football: ["soccer/eng.1", "soccer/esp.1", "soccer/ger.1", "soccer/ita.1", "soccer/fra.1",
                "soccer/uefa.champions", "soccer/uefa.europa", "soccer/ken.1"],
     basketball: ["basketball/nba", "basketball/wnba", "basketball/euroleague", "basketball/mens-college-basketball"],
@@ -3412,6 +3420,9 @@ SPORT_HUB_LEAGUES.worldwide = SPORT_HUB_LEAGUES.football;
 
 const HUB_DAYS_BACK = 3;
 const HUB_DAYS_AHEAD = 4;
+// Weekly sports would be empty most days on the default window
+const HUB_WINDOWS = { nfl: { back: 7, ahead: 7 }, rugby: { back: 4, ahead: 7 } };
+function hubWindow(sport) { return HUB_WINDOWS[sport] || { back: HUB_DAYS_BACK, ahead: HUB_DAYS_AHEAD }; }
 const HUB_LIST_MAX = 8;
 const HUB_TTL_MS = 5 * 60 * 1000;
 const HUB_MAX_MS = 45000;
@@ -3420,11 +3431,12 @@ const sportHubLoading = {};   // sport -> bool
 const sportHubFailed = {};    // sport -> bool
 let sportHubShown = new Map(); // match id -> match, for the click handler
 
-function hubDayList() {
+function hubDayList(sport) {
     const base = new Date();
     base.setHours(12, 0, 0, 0);
     const out = [];
-    for (let i = -HUB_DAYS_BACK; i <= HUB_DAYS_AHEAD; i++) {
+    const win = hubWindow(sport);
+    for (let i = -win.back; i <= win.ahead; i++) {
         const d = new Date(base);
         d.setDate(d.getDate() + i);
         out.push(toYYYYMMDD(d));
@@ -3434,7 +3446,7 @@ function hubDayList() {
 
 async function loadSportHub(sport) {
     const leagues = SPORT_HUB_LEAGUES[sport] || [];
-    const days = hubDayList();
+    const days = hubDayList(sport);
     const tasks = [];
     leagues.forEach(slug => days.forEach(day => tasks.push({ slug, day })));
     const byId = new Map();
@@ -3569,7 +3581,7 @@ function renderSportHub() {
     const sub = document.getElementById("sport-hub-sub");
     if (!resEl || !upEl) return;
     if (sub) sub.textContent = isF1 ? sportDisplayName(sport)
-        : tf("hub.sub", { sport: sportDisplayName(sport), b: HUB_DAYS_BACK, a: HUB_DAYS_AHEAD });
+        : tf("hub.sub", { sport: sportDisplayName(sport), b: hubWindow(sport).back, a: hubWindow(sport).ahead });
 
     sportHubShown = new Map();
     if (isF1) {
@@ -3604,9 +3616,9 @@ function renderSportHub() {
     const { results, upcoming } = hubSplit(matches);
     results.concat(upcoming).forEach(m => sportHubShown.set(m.id, m));
     resEl.innerHTML = results.length ? results.map(hubRowHTML).join("")
-        : `<div class="sport-hub-empty">${escHtml(tf("hub.none.results", { n: HUB_DAYS_BACK }))}</div>`;
+        : `<div class="sport-hub-empty">${escHtml(tf("hub.none.results", { n: hubWindow(sport).back }))}</div>`;
     upEl.innerHTML = upcoming.length ? upcoming.map(hubRowHTML).join("")
-        : `<div class="sport-hub-empty">${escHtml(tf("hub.none.upcoming", { n: HUB_DAYS_AHEAD }))}</div>`;
+        : `<div class="sport-hub-empty">${escHtml(tf("hub.none.upcoming", { n: hubWindow(sport).ahead }))}</div>`;
 }
 
 // Rows open the same match page the cards do
@@ -4979,7 +4991,7 @@ function initEventHandlers() {
     const selectSport = (sport, urlMode) => {
         sportTabs.forEach((t) => t.classList.toggle("active", t.getAttribute("data-sport") === sport));
         currentSport = sport;
-        // Each sport has its own address (/basketball/ …); move there without reloading
+        // Each sport has its own address (/basketball.html …); move there without reloading
         syncSportUrl(urlMode);
         // Reset league filter when switching sports/tabs so the new sport isn't hidden
         const wasLeagueFilter = currentLeague !== "all";
@@ -5589,7 +5601,7 @@ function updateHomeSEO(matches) {
                 url: 'https://livematches.hyper.co.ke/' + matchPageUrl(m)
             }));
         if (!items.length) return;
-        // On a sport page (/basketball/ …) describe that page rather than "football"
+        // On a sport page (/basketball.html …) describe that page rather than "football"
         const sp = window.SportPages;
         const sportPage = sp && currentSport !== 'all' ? sp.pageFor(currentSport) : null;
         if (sportPage) {
