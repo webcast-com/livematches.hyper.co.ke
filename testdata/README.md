@@ -45,9 +45,13 @@ league and probe (which slugs are live, which answer 400, how many rows each
 table has). The league list comes from `tools/sports.mjs`, so a fixture can
 never drift from a page the prerenderer would publish.
 
-`node tools/prerender.mjs --offline` then builds every page from these files —
-soccer from the two hand-written samples, the other sports from `live/` — which
-is how the sport-aware renderers are tested without network access:
+`node tools/prerender.mjs --offline` then builds a demo from these files — the
+other sports from `live/`, soccer from the hand-written samples — which is how
+the sport-aware renderers are tested without network access. It refuses to run
+without `--out`: offline it only has the MLS sample for one league and the
+recorded fixtures for the rest, so writing into the repository would overwrite
+the live-generated pages with demo data (the hand-written standings sample is
+used for `usa.1` alone, for the same reason):
 
 ```
 node tools/prerender.mjs --offline --out /tmp/check

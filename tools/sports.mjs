@@ -44,6 +44,21 @@ export const SPORTS = [
     { sport: 'basketball', league: 'wnba', name: 'WNBA', icon: '🏀', table: true, matches: true, order: 2, reportCap: 12, previewCap: 10 },
     { sport: 'basketball', league: 'nbl', name: 'NBL (Australia)', icon: '🏀', table: true, matches: true, order: 3, reportCap: 10, previewCap: 8 },
 
+    /* ---------------------------------------------------------------- rugby */
+    /* ESPN keys rugby by numeric league id — rugby/premiership and friends 400.
+       These are the ids from ESPN's own league directory, the same ones the live
+       Rugby tab sweeps (app.js), so a snapshot can never point at a dead id. */
+    { sport: 'rugby', league: '270559', name: 'French Top 14', icon: '🏉', table: false, matches: true, order: 1, reportCap: 6, previewCap: 6 },
+    { sport: 'rugby', league: '270557', name: 'United Rugby Championship', icon: '🏉', table: false, matches: true, order: 2, reportCap: 6, previewCap: 6 },
+    { sport: 'rugby', league: '267979', name: 'Premiership Rugby', icon: '🏉', table: false, matches: true, order: 3, reportCap: 6, previewCap: 6 },
+    { sport: 'rugby', league: '242041', name: 'Super Rugby Pacific', icon: '🏉', table: false, matches: true, order: 4, reportCap: 4, previewCap: 4 },
+    { sport: 'rugby', league: '289262', name: 'Major League Rugby', icon: '🏉', table: false, matches: true, order: 5, reportCap: 4, previewCap: 4 },
+    { sport: 'rugby', league: '271937', name: 'European Rugby Champions Cup', icon: '🏉', table: false, matches: true, order: 6, reportCap: 4, previewCap: 4 },
+    { sport: 'rugby', league: '272073', name: 'European Rugby Challenge Cup', icon: '🏉', table: false, matches: true, order: 7, reportCap: 4, previewCap: 4 },
+    { sport: 'rugby', league: '180659', name: 'Six Nations', icon: '🏉', table: false, matches: true, order: 8, reportCap: 4, previewCap: 4 },
+    { sport: 'rugby', league: '244293', name: 'The Rugby Championship', icon: '🏉', table: false, matches: true, order: 9, reportCap: 4, previewCap: 4 },
+    { sport: 'rugby', league: '164205', name: 'Rugby World Cup', icon: '🏉', table: false, matches: true, order: 10, reportCap: 4, previewCap: 4 },
+
     /* --------------------------------------------------------------- hockey */
     { sport: 'hockey', league: 'nhl', name: 'NHL', icon: '🏒', table: true, matches: true, order: 1, reportCap: 18, previewCap: 14 },
     { sport: 'hockey', league: 'mens-college-hockey', name: 'NCAA Men’s Ice Hockey', icon: '🏒', table: false, matches: true, order: 2, reportCap: 6, previewCap: 6 },
@@ -56,6 +71,7 @@ export const SPORTS = [
    covers one full round in every one of them. */
 export const PREVIEW_DAYS_BY_SPORT = {
     baseball: 7,
+    rugby: 7,
     football: 7,
     basketball: 7,
     hockey: 7,
@@ -64,6 +80,7 @@ export const PREVIEW_DAYS_BY_SPORT = {
 /* Schema.org sport names for the SportsEvent JSON-LD. */
 export const SCHEMA_SPORT = {
     soccer: 'Football',
+    rugby: 'Rugby',
     baseball: 'Baseball',
     football: 'American Football',
     basketball: 'Basketball',
@@ -131,6 +148,7 @@ export const PERIOD_NOUN = {
     football: 'Quarter',
     basketball: 'Quarter',
     hockey: 'Period',
+    rugby: 'Half',
     soccer: 'Half',
 };
 

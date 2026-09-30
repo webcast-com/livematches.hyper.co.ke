@@ -1,6 +1,8 @@
 # Competition coverage — which countries, leagues and tournaments are integrated
 
-Audit + expansion run 2026-09-30, checked into the code with `node testdata/verify.mjs` (80 checks).
+Audit + expansion run 2026-09-30, checked into the code with `node testdata/verify.mjs` (92 checks).
+A second pass the same day extended the prerendered tables and match snapshots to
+five sports — see "Tables beyond football" below.
 
 ## Result
 
@@ -16,7 +18,7 @@ plus 13 more that ESPN serves but does not list in that catalogue.**
 | ESPN catalogue integrated | 114 of 218 | **218 of 218** |
 | Competitions named but never fetched | 2 | **0** |
 | Competitions fetched but never named | 0 | **0** |
-| Full standings tables | 28 | **30** |
+| Full standings tables | 28 | **72** (plus 7 for other sports) |
 
 ## How a competition becomes "integrated"
 
@@ -93,11 +95,13 @@ women's tournament.
    `{"code":400,"message":"Failed to get events endpoint."}`. They are absent from
    ESPN's catalogue too — membership in that catalogue is a reliable liveness
    signal, absence from it is not.
-3. **Not every competition needs a table.** `STANDINGS_LEAGUES` covers 30 leagues;
-   cups, qualifiers and play-offs have no table to show. The remaining candidates
-   for a table are top divisions the site already sweeps — `aus.1`, `gre.1`,
-   `sui.1`, `aut.1`, `rus.1`, `ukr.1`, `col.1`, `chi.1`, `ind.1` — each needing a
-   row in `standings.js`, a chip in `standings.html` and a URL in `sitemap.xml`.
+3. **Not every competition needs a table.** `STANDINGS_LEAGUES` covers the 72
+   competitions ESPN actually publishes a table for; cups, qualifiers and
+   play-offs have no table to show. Each entry needs a row in `standings.js`, a
+   chip in `standings.html` and a URL in `sitemap.xml`, and the verifier keeps
+   those three in step. `sui.1`, `cze.1`, `irl.1`, `rou.1`, `fin.1`, `ecu.1`,
+   `conmebol`/`concacaf` cup competitions and the four second tiers that answer
+   with no entries are deliberately absent — ESPN serves no table for them.
 4. **The predictions game still covers 6 leagues** (`eng.1`, `esp.1`, `ita.1`,
    `ger.1`, `fra.1`, `uefa.champions`) — a product choice, not a coverage gap.
 
@@ -109,3 +113,28 @@ Worldwide. To keep that honest the sweep was tuned with it: `CHUNK_SIZE` 6 → 8
 obscure end) and the hard cap `ESPN_SWEEP_MAX_MS` 60 s → 90 s. A tab switch that
 lands mid-sweep is no longer dropped — the request is queued and the sweep re-runs
 for the newly selected tab when the current one finishes.
+
+## Tables beyond football
+
+The same pass gave the prerenderer a second job: publish the sports that have no
+interactive page on the site as static snapshots — `/table/<slug>/`,
+`/report/<matchId>/` and `/preview/<matchId>/`, all linked from `sitemap.xml`.
+
+| Sport | Table pages | Match snapshots (cap: reports / previews) | Preview window |
+|---|---|---|---|
+| Football (soccer) | the leagues in `STANDINGS_LEAGUES` that ESPN serves a table for | 40 / 40 per run | 3 days |
+| American football | NFL, NCAA | NFL 20/18, NCAA 18/14 | 7 days |
+| Basketball | NBA, WNBA, NBL | NBA 18/14, WNBA 12/10, NBL 10/8 | 7 days |
+| Baseball | MLB | 24/14 | 7 days |
+| Ice hockey | NHL | NHL 18/14, NCAA hockey 6/6 | 7 days |
+| Rugby | — (ESPN serves no table) | 4–6 / 4–6 per league | 7 days |
+
+`tools/sports.mjs` is the one list of those leagues; `tools/prerender.mjs`
+builds the pages and `testdata/verify.mjs` asserts that every page belongs to a
+configured league, is self-canonical and never hands a reader off to a
+soccer-only tool. Each league's snapshots are capped and the surplus is pruned,
+so a busy Saturday cannot fill the repository.
+
+The other sports play on weekly rhythms — an NFL Sunday, a college Saturday, a
+baseball series — which is why their preview window is 7 days while football
+keeps 3.

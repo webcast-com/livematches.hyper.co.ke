@@ -49,6 +49,10 @@ import {
 const argv = process.argv.slice(2);
 const OFFLINE = argv.includes('--offline');
 const outIdx = argv.indexOf('--out');
+if (argv.includes('--offline') && outIdx < 0) {
+    console.error('[prerender] --offline is a demo build (fixtures only). Pass --out DIR so it cannot overwrite the committed pages.');
+    process.exit(2);
+}
 const TOOLSDIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = outIdx >= 0 ? path.resolve(argv[outIdx + 1]) : path.resolve(TOOLSDIR, '..');
 const NOW = new Date();
@@ -448,13 +452,13 @@ function sportTablePageHTML(entry, parsed, seasonLabel, generatedNote, available
 }
 
 function sportTitle(sport) {
-    return { soccer: 'Football', football: 'American Football', baseball: 'Baseball', basketball: 'Basketball', hockey: 'Ice Hockey' }[sport] || sport;
+    return { soccer: 'Football', football: 'American Football', baseball: 'Baseball', basketball: 'Basketball', hockey: 'Ice Hockey', rugby: 'Rugby' }[sport] || sport;
 }
 
 /* The sport tabs the live scores page really has (index.html data-sport).
    Snapshots may only send readers to a tab that exists: the college hockey and
    American football pages used to promise a tab the site does not have. */
-const LIVE_TABS = { soccer: 'Football', baseball: 'Baseball', basketball: 'Basketball', hockey: 'Ice Hockey' };
+const LIVE_TABS = { soccer: 'Football', baseball: 'Baseball', basketball: 'Basketball', hockey: 'Ice Hockey', rugby: 'Rugby' };
 
 
 /* ------------------------------------------------------------ match pages */
@@ -580,7 +584,8 @@ function scoringEvents(sport, ev, extra) {
 function periodTag(sport, p) {
     if (!p) return '';
     const n = (p.period && p.period.number) || p.period;
-    const label = PERIOD_NOUN[sport] === 'Inning' ? 'Inn' : (sport === 'hockey' ? 'P' : 'Q');
+    const noun = PERIOD_NOUN[sport] || 'Quarter';
+    const label = noun === 'Inning' ? 'Inn' : noun.charAt(0).toUpperCase();
     if (!n) return '';
     return `${label}${n}`;
 }
@@ -931,8 +936,12 @@ async function fetchTable(vmCtx, L) {
         ? null
         : [`https://site.web.api.espn.com${path_}`, `https://site.api.espn.com${path_}`];
     if (OFFLINE) {
-        const raw = readFileSync(path.join(TOOLSDIR, '..', 'testdata', 'espn-standings.sample.json'), 'utf8');
-        const j = JSON.parse(raw);
+        const fixture = FIXTURES.standings.get(`soccer/${L.slug}`);
+        if (fixture) return { groups: vmCtx.parseStandingsGroups(fixture), season: vmCtx.payloadSeasonLabel(fixture), sample: true };
+        const j = JSON.parse(readFileSync(path.join(TOOLSDIR, '..', 'testdata', 'espn-standings.sample.json'), 'utf8'));
+        // That sample is one league (MLS). Rendering it under every other
+        // league's URL is how an offline build used to produce 70 wrong pages.
+        if (j.slug !== L.slug) return { groups: [], season: null };
         return { groups: vmCtx.parseStandingsGroups(j), season: vmCtx.payloadSeasonLabel(j), sample: true };
     }
     for (const u of urls) {
