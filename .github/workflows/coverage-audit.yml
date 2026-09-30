@@ -66,12 +66,39 @@ jobs:
 
       - name: Commit the audit
         run: |
+          set -eu
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add COVERAGE-AUDIT.md testdata/coverage-audit.json testdata/espn-league-directory.json
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
+
+          FILES="COVERAGE-AUDIT.md testdata/coverage-audit.json testdata/espn-league-directory.json"
+
+          # The prerender job commits to this same branch and the audit takes a
+          # couple of minutes, so the tip regularly moves underneath us. Keep the
+          # generated files outside the work tree and replay them onto whatever
+          # landed, rather than losing a run to a non-fast-forward.
+          mkdir -p /tmp/audit-out
+          for f in $FILES; do
+            [ -f "$f" ] && cp "$f" "/tmp/audit-out/$(basename "$f")"
+          done
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${GITHUB_REF_NAME}"
+            git reset --hard "origin/${GITHUB_REF_NAME}"
+            for f in $FILES; do
+              [ -f "/tmp/audit-out/$(basename "$f")" ] && cp "/tmp/audit-out/$(basename "$f")" "$f"
+            done
+            git add $FILES
+            if git diff --cached --quiet; then
+              echo "No changes to commit."
+              exit 0
+            fi
             git commit -m "Coverage audit: refresh which competitions ESPN is actually serving"
-            git push origin HEAD:${GITHUB_REF_NAME}
-          fi
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Pushed on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push rejected on attempt ${attempt}; replaying onto the new tip."
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not push the audit after five attempts."
+          exit 1
