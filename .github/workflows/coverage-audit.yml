@@ -45,6 +45,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Ask ESPN which leagues it publishes for the numeric-id sports
+        run: node tools/audit-coverage.mjs --discover rugby,cricket
+
       - name: Probe every registered competition
         run: node tools/audit-coverage.mjs
 
@@ -58,7 +61,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add COVERAGE-AUDIT.md testdata/coverage-audit.json
+          git add COVERAGE-AUDIT.md testdata/coverage-audit.json testdata/espn-league-directory.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

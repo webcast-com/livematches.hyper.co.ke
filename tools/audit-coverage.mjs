@@ -34,6 +34,11 @@
      node tools/audit-coverage.mjs --sport soccer   one sport only
      node tools/audit-coverage.mjs --limit 20   first N competitions (smoke test)
      node tools/audit-coverage.mjs --out DIR    write somewhere else
+     node tools/audit-coverage.mjs --discover rugby,cricket
+                                               ask ESPN which leagues it
+                                               publishes for a sport, instead
+                                               of auditing (writes
+                                               testdata/espn-league-directory.json)
 
    Zero dependencies, node >= 18. */
 
@@ -52,6 +57,8 @@ const sportIdx = argv.indexOf('--sport');
 const ONLY_SPORT = sportIdx >= 0 ? argv[sportIdx + 1] : null;
 const limitIdx = argv.indexOf('--limit');
 const LIMIT = limitIdx >= 0 ? parseInt(argv[limitIdx + 1], 10) : Infinity;
+const discoverIdx = argv.indexOf('--discover');
+const DISCOVER = discoverIdx >= 0 ? String(argv[discoverIdx + 1] || '').split(',').filter(Boolean) : null;
 
 const NOW = new Date();
 const WINDOW_DAYS = 7;
@@ -317,9 +324,68 @@ function buildMarkdown(rows, meta) {
     return out.join('\n');
 }
 
+/* ---------------------------------------------------------------- discovery
+   The scoreboard API is keyed by league slug, but ESPN does not document the
+   slugs and the ones for rugby and cricket are numeric ids rather than the
+   readable names the site guessed at. The core API publishes the real list
+   per sport; resolve it so a fix can be based on ESPN's own answer instead of
+   another guess. */
+async function discover(sports) {
+    const directory = {};
+    for (const sport of sports) {
+        const found = [];
+        try {
+            const index = await getJSON(`https://sports.core.api.espn.com/v2/sports/${sport}/leagues?lang=en&region=us&limit=200`);
+            log(`${sport}: ESPN lists ${(index.items || []).length} leagues`);
+            for (const item of index.items || []) {
+                if (!item || !item.$ref) continue;
+                try {
+                    const lg = await getJSON(item.$ref.replace(/^http:/, 'https:'));
+                    found.push({
+                        id: String(lg.id || ''),
+                        slug: lg.slug || '',
+                        abbreviation: lg.abbreviation || '',
+                        name: lg.displayName || lg.name || '',
+                        isTournament: Boolean(lg.isTournament),
+                    });
+                } catch (e) { /* one bad ref should not sink the sport */ }
+                await sleep(DELAY_MS);
+            }
+        } catch (e) {
+            log(`${sport}: directory unavailable (${e.message})`);
+        }
+        // Which of them actually answer the scoreboard endpoint the site uses?
+        for (const lg of found) {
+            const key = lg.slug || lg.id;
+            const sb = await probeScoreboard(sport, key);
+            lg.scoreboardOk = sb.ok;
+            lg.events = sb.events || 0;
+            lg.espnName = sb.espnName || '';
+            if (!sb.ok && lg.id && lg.slug && lg.id !== lg.slug) {
+                const byId = await probeScoreboard(sport, lg.id);
+                lg.scoreboardOkById = byId.ok;
+                lg.eventsById = byId.events || 0;
+                await sleep(DELAY_MS);
+            }
+            await sleep(DELAY_MS);
+        }
+        directory[sport] = found.sort((a, b) => (b.events || 0) - (a.events || 0) || a.name.localeCompare(b.name));
+        const usable = found.filter((l) => l.scoreboardOk || l.scoreboardOkById);
+        log(`${sport}: ${usable.length}/${found.length} answer the scoreboard endpoint`);
+        for (const l of usable.slice(0, 40)) {
+            log(`   ${(l.slug || l.id).padEnd(28)} id=${String(l.id).padEnd(8)} events=${l.events || l.eventsById || 0}  ${l.name}`);
+        }
+    }
+    mkdirSync(path.join(ROOT, 'testdata'), { recursive: true });
+    writeFileSync(path.join(ROOT, 'testdata', 'espn-league-directory.json'),
+        JSON.stringify({ at: new Date().toISOString(), directory }, null, 1) + '\n');
+    log('wrote testdata/espn-league-directory.json');
+}
+
 /* -------------------------------------------------------------------- main */
 
 async function main() {
+    if (DISCOVER) { await discover(DISCOVER); return; }
     const { ESPN_ENDPOINTS, LEAGUE_NAMES } = loadAppTables();
     const standingsLeagues = loadStandingsLeagues();
 
