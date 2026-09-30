@@ -40,6 +40,9 @@ jobs:
       - name: Generate prerendered pages and sitemaps
         run: node tools/prerender.mjs
 
+      - name: Refresh the offline ESPN fixtures
+        run: node tools/collect-samples.mjs
+
       - name: Verify the result
         run: node testdata/verify.mjs
 
