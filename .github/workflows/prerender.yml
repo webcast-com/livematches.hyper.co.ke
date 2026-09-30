@@ -18,7 +18,7 @@ name: Prerender static pages
 
 on:
   push:
-    branches: [main, arena/01a0f3fd-livematches-hyper-co-ke]  # TEMPORARY: run on the working branch
+    branches: [main]
     # The coverage audit pushes its own report to this branch; regenerating the
     # pages for a report-only commit is wasted work (and used to make the two
     # jobs race for the branch tip).
