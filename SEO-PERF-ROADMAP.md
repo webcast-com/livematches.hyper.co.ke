@@ -147,16 +147,32 @@ forces instant indexing.
 
 | # | Idea | Where | Effort | Risk | Fallback / verification |
 |---|------|-------|--------|------|------------------------|
-| P1 ✅✅ | **Remove `amp-auto-ads`**: the `<script src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">` + `<amp-auto-ads>` element in `index.html`. AMP-only tech on a non-AMP page; the real AdSense loader (`adsbygoogle.js`) stays and continues to serve auto ads | `index.html` | S | Very low | Verify ad slots still fill for 24 h after deploy; restore tag if revenue dips (it won't — it does nothing here) |
-| P2 | **`defer` on `app.js`, `i18n.js`, `seo.js`, `pwa.js`** (and each page's own script). Order-preserving, runs after parse — removes ~290 KB of parser-blocking main-thread work. The inline theme bootstrap in `<head>` stays as-is | All pages | S | Low | Full smoke: theme persistence, i18n toggle, view restore, offline banner. `verify.mjs` renders pages canned + offline — extend it to assert boot completes |
-| P3 | **Non-blocking webfont**: keep `&display=swap`; load the fonts CSS with `rel="preload" as="style"` + `media="print"` onload-swap + `<noscript>` fallback. Later (S3): self-host a 2-weight subset | All pages with fonts | S | Very low | Visual check that Outfit still applies; system-font fallback already exists in `--font-sans` |
-| P4 | **`preconnect` hints** for the hosts the app actually hits: `site.api.espn.com`, `site.web.api.espn.com`, `cdn.espn.com` (core API), `a.espncdn.com` (logos/headshots), `flagcdn.com` — saves a full DNS+TLS round trip per host on the critical image/fetch path | All pages | S | Very low | N/A (pure hint) |
-| P5 ✅✅ | **`width`/`height` on every generated `<img>`** (team logos, headshots, flags, story images) + `decoding="async"`; reserve space in CSS (`aspect-ratio` already partly in place for badges). Directly attacks CLS **and** the agentic CLS check | `app.js`, `match.js`, `story.js`, hub JS, static pages | M | Low | CLS ~0 in PSI field/lab; verify.mjs extended to assert every `<img>` has dimensions |
-| P6 | **Fix the last eager images**: 16 `<img>` tags across static pages lack `loading="lazy"` — above-fold ones get explicit dimensions instead, below-fold get lazy | Static pages | S | Very low | N/A |
-| P7 | **Slim `icon-512.png`** (55 KB for an OG image; recompress or export a 1200×630 share default under ~40 KB) | Assets | S | Very low | OG preview check |
+| P1 ✅ | **Remove `amp-auto-ads`**: the `<script src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">` + `<amp-auto-ads>` element in `index.html`. AMP-only tech on a non-AMP page; the real AdSense loader (`adsbygoogle.js`) stays and continues to serve auto ads | `index.html` | S | Very low | Verify ad slots still fill for 24 h after deploy; restore tag if revenue dips (it won't — it does nothing here) |
+| P2 ✅ | **`defer` on `app.js`, `i18n.js`, `seo.js`, `pwa.js`** (and each page's own script). Order-preserving, runs after parse — removes ~290 KB of parser-blocking main-thread work. The inline theme bootstrap in `<head>` stays as-is | All pages | S | Low | Full smoke: theme persistence, i18n toggle, view restore, offline banner. `verify.mjs` renders pages canned + offline — extend it to assert boot completes |
+| P3 ✅ | **Non-blocking webfont**: keep `&display=swap`; load the fonts CSS with `rel="preload" as="style"` + `media="print"` onload-swap + `<noscript>` fallback. Later (S3): self-host a 2-weight subset | All pages with fonts | S | Very low | Visual check that Outfit still applies; system-font fallback already exists in `--font-sans` |
+| P4 ✅ | **`preconnect` hints** for the hosts the app actually hits: `site.api.espn.com`, `site.web.api.espn.com`, `cdn.espn.com` (core API), `a.espncdn.com` (logos/headshots), `flagcdn.com` — saves a full DNS+TLS round trip per host on the critical image/fetch path | All pages | S | Very low | N/A (pure hint) |
+| P5 ✅ | **`width`/`height` on every generated `<img>`** (team logos, headshots, flags, story images) + `decoding="async"`; reserve space in CSS (`aspect-ratio` already partly in place for badges). Directly attacks CLS **and** the agentic CLS check | `app.js`, `match.js`, `story.js`, hub JS, static pages | M | Low | CLS ~0 in PSI field/lab; verify.mjs extended to assert every `<img>` has dimensions |
+| P6 ✅ | **Above-fold static images dimensioned**: 16 `<img>` tags across static pages lack `loading="lazy"` — above-fold ones get explicit dimensions instead, below-fold get lazy | Static pages | S | Very low | N/A |
+| P7 ✅ | **Slim `icon-512.png`** (55 KB for an OG image; recompress or export a 1200×630 share default under ~40 KB) | Assets | S | Very low | OG preview check |
 | P8 | **Host-level**: confirm the host serves Brotli/gzip + long-lived cache for `*.css/js/png` (automatic on Vercel; check on the current host). If the host can't, this is an infra decision, not a code change | Hosting | S | — | PSI "serve static assets with efficient cache policy" audit |
 | P9 *(opt-in, revenue trade-off)* | **Load AdSense on idle/first interaction** instead of in `<head>`. Cuts significant mobile main-thread time, but delays ad viewability — measure revenue for a week before keeping | 12 pages | M | Medium | Default = keep current head loader; the feature ships behind a flag-like constant |
 | P10 *(only if P1–P6 insufficient)* | **Split `app.js`**: extract the league-sweep engine into `sweep.js` loaded `defer` after boot render — behind the same interfaces, no rewrite | `app.js` | L | Medium | verify.mjs sweep tests must stay green (210-slug Football tab, queued tab-switch) |
+
+**Shipped — PR-P "Speed" (2026-09-30):** P1 (amp-auto-ads script + element
+removed from index), P2 (all 55 local script tags across 16 pages now
+`defer` — order-preserving; the one inline script on shop.html was audited
+and is self-contained DOM code with no dependency on the deferred externals;
+no `readyState`/`currentScript`/`document.write` anywhere), P3 (Outfit CSS
+now preload + print/onload-swap + noscript fallback on index — the only page
+that loaded it), P4 (preconnect to site.api.espn.com, site.web.api.espn.com,
+a.espncdn.com + dns-prefetch flagcdn on the 12 feed pages), P5/P6 (width,
+height and `decoding="async"` on every generated `<img>` in 11 JS files,
+matched to their CSS boxes; the 14 header logo.svg imgs dimensioned — this
+also fixes the story-hero image, the one image that genuinely shifted
+layout), P7 (icon-512.png 55K → 39K lossless). P8/P9/P10 intentionally open
+(host config / revenue trade-off / only if needed). verify.mjs grew 80 → 83
+checks: no amp references, no non-deferred local scripts, every `<img>`
+(static and generated) declares width/height.
 
 ## Phase A — Accessibility 93 → ~100 + the agentic a11y tree
 

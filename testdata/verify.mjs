@@ -39,6 +39,11 @@ function readJSON(file) {
     catch (e) { throw new Error(`does not parse as JSON: ${e.message}`); }
 }
 
+const ROOT_PAGES = ['index.html', 'news.html', 'about.html', 'predictions.html',
+    'standings.html', 'highlights.html', 'transfers.html', 'shop.html', 'previews.html',
+    'privacy.html', 'terms.html', 'match.html', 'story.html', 'preview.html',
+    'report.html', 'offline.html'];
+
 const FLATTENED = /^@\{|System\.Object\[\]|(^|;)\s*[A-Za-z_][A-Za-z0-9_]*=/;
 
 function walkStrings(value, visit, trail = '') {
@@ -754,6 +759,42 @@ check('the snapshot keys are the ones the page documents', () => {
     const app = readText('../app.js');
     assert(app.includes('"scorehub-live-v1"') && app.includes('"scorehub-view-v1"'),
         'snapshot storage keys changed — update the docs/tests with them');
+});
+
+check('no page loads the legacy amp-auto-ads scripts', () => {
+    for (const f of ROOT_PAGES) {
+        const c = readText('../' + f);
+        assert(!c.includes('amp-auto-ads') && !c.includes('cdn.ampproject.org'),
+            `${f} still loads the AMP runtime (dead ~100KB of third-party JS on a non-AMP page)`);
+    }
+});
+
+check('every local <script src> is deferred (no parser-blocking JS at the end of body)', () => {
+    for (const f of ROOT_PAGES) {
+        const c = readText('../' + f);
+        for (const m of c.matchAll(/<script src="([a-z0-9.\-]+\.js)"><\/script>/g)) {
+            assert(false, `${f}: <script src="${m[1]}"> is missing defer`);
+        }
+    }
+});
+
+check('every <img> declares width and height (layout stability, CLS and the agentic audits)', () => {
+    const jsFiles = fs.readdirSync(HERE).filter((x) => x.endsWith('.js') && x !== 'sw.js');
+    for (const f of jsFiles) {
+        const c = readText('../' + f);
+        for (const m of c.matchAll(/<img\b[^>]*>/g)) {
+            assert(/\swidth="/.test(m[0]) && /\sheight="/.test(m[0]),
+                `${f}: <img> without width/height: ${m[0].replace(/\s+/g, ' ').slice(0, 90)}`);
+        }
+    }
+    for (const f of ROOT_PAGES) {
+        const c = readText('../' + f);
+        for (const m of c.matchAll(/<img\b[^>]*>/g)) {
+            if (m[0].includes('data:image')) continue; // inline SVG carries its own intrinsic size
+            assert(/\swidth="/.test(m[0]) && /\sheight="/.test(m[0]),
+                `${f}: <img> without width/height: ${m[0].replace(/\s+/g, ' ').slice(0, 90)}`);
+        }
+    }
 });
 
 /* ------------------------------------------------------------------ report */

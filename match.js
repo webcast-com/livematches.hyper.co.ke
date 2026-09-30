@@ -789,7 +789,7 @@ async function fetchTable(slug) {
 // --- Render helpers ---
 
 function logoImg(url, cls) {
-    return url ? `<img class="${cls || "pred-logo"}" src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+    return url ? `<img class="${cls || "pred-logo"}" src="${esc(url)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : "";
 }
 function statusPill(ev) {
     const st = (ev && ev.status && ev.status.type) || {};

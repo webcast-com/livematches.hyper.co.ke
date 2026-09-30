@@ -146,7 +146,7 @@ function currentSeasonLabel(now) {
 function standingBadgeHTML(abbrev, logo) {
     return `<span class="team-logo-wrap" style="width:22px;height:22px;">`
         + `<span class="player-avatar-mini" style="font-size:7px;width:100%;height:100%;">${esc(abbrev)}</span>`
-        + (logo ? `<img class="team-logo-img" src="${esc(logo)}" alt="" loading="lazy" onerror="this.remove()">` : "")
+        + (logo ? `<img class="team-logo-img" src="${esc(logo)}" alt="" width="32" height="32" loading="lazy" decoding="async" onerror="this.remove()">` : "")
         + `</span>`;
 }
 

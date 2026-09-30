@@ -1506,13 +1506,13 @@ function teamBadgeHTML(code, logo, px) {
     const size = px || 20;
     return `<span class="team-logo-wrap" style="width:${size}px;height:${size}px;">`
         + `<span class="player-avatar-mini" style="font-size:8px;width:100%;height:100%;">${code}</span>`
-        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "")
+        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" width="32" height="32" loading="lazy" decoding="async" onerror="this.remove()">` : "")
         + `</span>`;
 }
 
 function spotlightLogoHTML(code, color, logo) {
     return generateTeamSVG(code, color)
-        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "");
+        + (logo ? `<img class="team-logo-img" src="${logo}" alt="" width="32" height="32" loading="lazy" decoding="async" onerror="this.remove()">` : "");
 }
 
 // Convert ESPN event JSON → internal match object
@@ -2914,7 +2914,7 @@ function renderStandings() {
             ? `<i class="zone-dot" style="background:${row.zone.color}" title="${row.zone.desc}"></i>`
             : "";
         const teamVisual = (live && row.logo)
-            ? `<img class="table-team-logo" src="${row.logo}" alt="" loading="lazy" onerror="this.style.display='none'">`
+            ? `<img class="table-team-logo" src="${row.logo}" alt="" width="18" height="18" loading="lazy" decoding="async" onerror="this.style.display='none'">`
             : `<div class="player-avatar-mini" style="font-size: 8px; width: 18px; height: 18px;">${row.logo || row.abbrev || ""}</div>`;
 
         tr.innerHTML = `
@@ -2942,7 +2942,7 @@ function scorerAvatarHTML(r) {
     const safeName = escHtml(r.name);
     return `
         <div class="player-avatar-mini scorer-avatar">
-            <img class="scorer-headshot" src="${safeSrc}" alt="${safeName}" loading="lazy"
+            <img class="scorer-headshot" src="${safeSrc}" alt="${safeName}" width="32" height="32" loading="lazy" decoding="async"
                  onload="var p=this.parentElement; if(p){var s=p.querySelector('.avatar-initials'); if(s) s.style.display='none';}"
                  onerror="this.style.display='none'; var p=this.parentElement; if(p){var s=p.querySelector('.avatar-initials'); if(s) s.style.display='flex';}" />
             <span class="avatar-initials">${init}</span>
@@ -3248,7 +3248,7 @@ async function loadF1Data(force = false) {
 function f1FlagImg(nationality) {
     const code = F1_NATIONALITY_FLAGS[nationality];
     if (!code) return "";
-    return `<img class="f1-flag" src="https://flagcdn.com/w40/${code}.png" alt="" loading="lazy" onerror="this.remove()">`;
+    return `<img class="f1-flag" src="https://flagcdn.com/w40/${code}.png" alt="" width="20" height="13" loading="lazy" decoding="async" onerror="this.remove()">`;
 }
 
 function renderF1() {

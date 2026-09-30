@@ -137,7 +137,7 @@ function eventCardHTML(ev) {
     const nm = (c, fb) => esc((c.team && (c.team.displayName || c.team.shortDisplayName)) || fb);
     const logo = (c) => {
         const u = storyTeamLogo(c.team);
-        return u ? `<img class="pred-logo" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+        return u ? `<img class="pred-logo" src="${esc(u)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : "";
     };
     const isPre = st.state === "pre";
     const when = isPre ? formatStoryDate(ev.date) : esc(st.shortDetail || "");
@@ -151,7 +151,7 @@ function eventCardHTML(ev) {
 function relatedCardHTML(a) {
     const img = storyImage(a);
     return `<a class="story-rel-card" href="story.html" data-story="${a.id}">`
-        + (img ? `<img src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">` : "")
+        + (img ? `<img src="${esc(img)}" alt="" width="64" height="48" loading="lazy" decoding="async" onerror="this.remove()">` : "")
         + `<div style="min-width:0;"><h4>${esc(a.headline || "Untitled")}</h4><span>${esc(formatStoryDate(a.published))}</span></div></a>`;
 }
 
@@ -229,7 +229,7 @@ function bootStory() {
     const teams = storyTeams(art);
     const clubs = teams.length
         ? `<span class="transfer-clubs">` + teams.map((t) =>
-            `<img src="${storyTeamLogoURL(t.id)}" alt="${esc(t.abbr)}" title="${esc(t.abbr)}" loading="lazy" onerror="this.remove()">`
+            `<img src="${storyTeamLogoURL(t.id)}" alt="${esc(t.abbr)}" title="${esc(t.abbr)}" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">`
         ).join("") + `</span><span>${esc(teams.map((t) => t.abbr).join(" · "))}</span>`
         : "";
     const evt = storyEvent(art);
@@ -239,7 +239,7 @@ function bootStory() {
         + (art.type ? ` <span class="league-tag">${esc(art.type)}</span>` : "")
         + `<h1 style="margin-top:10px;">${esc(art.headline)}</h1>`
         + `<p class="legal-updated">${esc(art.byline || "ESPN")} · ${esc(formatStoryDate(art.published))}</p>`
-        + (img ? `<img class="story-hero" src="${esc(img)}" alt="" onerror="this.remove()">` : "")
+        + (img ? `<img class="story-hero" src="${esc(img)}" alt="" width="676" height="380" decoding="async" onerror="this.remove()">` : "")
         + lede
         + `<div class="story-meta">${clubs}</div>`
         + (evt ? `<div id="story-event" data-event-id="${esc(evt.id)}" data-league="${esc(evt.league)}" data-published="${esc(art.published || "")}"></div>` : "")

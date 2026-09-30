@@ -146,12 +146,12 @@ function fixtureCardHTML(f) {
         : (saved.ph != null && saved.pa != null ? `<span class="saved">${t("pred.saved")}</span>` : t("pred.tap"));
     return `<div class="pred-card" data-id="${esc(f.id)}">`
         + `<div class="pred-meta"><span class="league-tag">${esc(f.code)}</span><span>${esc(formatKickoff(f.date))}</span>${f.league !== "demo" ? `<a class="pred-preview" href="preview.html?league=${esc(f.league)}&id=${esc(f.id)}&date=${predYmd(f.date)}">Preview &rarr;</a>` : ""}</div>`
-        + `<div class="pred-teams"><span class="pred-team">${f.hl ? `<img class="pred-logo" src="${esc(f.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${esc(f.home)}</span>`
+        + `<div class="pred-teams"><span class="pred-team">${f.hl ? `<img class="pred-logo" src="${esc(f.hl)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ""}${esc(f.home)}</span>`
         + `<span class="pred-inputs">`
         + `<input class="pred-score" type="number" min="0" max="20" inputmode="numeric" data-id="${esc(f.id)}" data-side="ph" value="${ph}" ${locked ? "disabled" : ""} aria-label="${esc(f.home)} score">`
         + `<em>–</em>`
         + `<input class="pred-score" type="number" min="0" max="20" inputmode="numeric" data-id="${esc(f.id)}" data-side="pa" value="${pa}" ${locked ? "disabled" : ""} aria-label="${esc(f.away)} score">`
-        + `</span><span class="pred-team right">${esc(f.away)}${f.al ? `<img class="pred-logo" src="${esc(f.al)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span></div>`
+        + `</span><span class="pred-team right">${esc(f.away)}${f.al ? `<img class="pred-logo" src="${esc(f.al)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ""}</span></div>`
         + `<div class="pred-status">${status}</div></div>`;
 }
 
@@ -264,7 +264,7 @@ function renderResults() {
     box.innerHTML = settled.map((p) => {
         const label = p.points === 3 ? t("pred.exactlbl") : p.points === 1 ? t("pred.outcomelbl") : `<span class="miss">${t("pred.miss")}</span>`;
         return `<div class="pred-result"><span class="league-tag">${esc(p.code)}</span>`
-            + `<span>${p.hl ? `<img class="pred-logo-mini" src="${esc(p.hl)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<strong>${esc(p.hc)} ${p.rh}–${p.ra} ${esc(p.ac)}</strong>${p.al ? `<img class="pred-logo-mini" src="${esc(p.al)}" alt="" loading="lazy" onerror="this.remove()">` : ""} · ${tf("pred.yousaid", { h: p.ph, a: p.pa })} · ${label}</span>`
+            + `<span>${p.hl ? `<img class="pred-logo-mini" src="${esc(p.hl)}" alt="" width="16" height="16" loading="lazy" decoding="async" onerror="this.remove()">` : ""}<strong>${esc(p.hc)} ${p.rh}–${p.ra} ${esc(p.ac)}</strong>${p.al ? `<img class="pred-logo-mini" src="${esc(p.al)}" alt="" width="16" height="16" loading="lazy" decoding="async" onerror="this.remove()">` : ""} · ${tf("pred.yousaid", { h: p.ph, a: p.pa })} · ${label}</span>`
             + `<span class="pts">+${p.points}</span></div>`;
     }).join("");
 }

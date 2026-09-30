@@ -31,7 +31,13 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"></noscript>
+    <link rel="preconnect" href="https://site.api.espn.com">
+    <link rel="preconnect" href="https://site.web.api.espn.com">
+    <link rel="preconnect" href="https://a.espncdn.com">
+    <link rel="dns-prefetch" href="https://flagcdn.com">
     <link rel="stylesheet" href="style.css">
     <script type="application/ld+json" id="org-jsonld">{"@context":"https://schema.org","@type":"Organization","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","logo":"https://livematches.hyper.co.ke/icon-512.png","sameAs":["https://livematches.hyper.co.ke/"]}</script>
     <script type="application/ld+json" id="website-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"ScoreHub","url":"https://livematches.hyper.co.ke/","potentialAction":{"@type":"SearchAction","target":"https://livematches.hyper.co.ke/?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
@@ -47,14 +53,8 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114931242579932"
      crossorigin="anonymous"></script>
     <meta name="google-site-verification" content="yZq0LXyvBCRWjecIrkfmx5E99Z07XgZVDpyVBYwriKE" />
-    <script async custom-element="amp-auto-ads"
-            src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
-    </script>
 </head>
 <body>
-    <amp-auto-ads type="adsense"
-            data-ad-client="ca-pub-4114931242579932">
-    </amp-auto-ads>
     <!-- App Container -->
     <div class="app-container">
         
@@ -1016,9 +1016,9 @@
     </div>
 
     <!-- Script Entry -->
-    <script src="app.js"></script>
-    <script src="i18n.js"></script>
-    <script src="seo.js"></script>
-    <script src="pwa.js"></script>
+    <script src="app.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script src="seo.js" defer></script>
+    <script src="pwa.js" defer></script>
 </body>
 </html>
