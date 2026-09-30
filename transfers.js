@@ -94,7 +94,7 @@ function transferCardHTML(a) {
     const teams = articleTeams(a).join(" · ");
     const url = escapeHtml(articleURL(a));
     return `<article class="transfer-card">`
-        + (img ? `<a class="transfer-thumb-link" href="story.html" data-story="${a.id}"><img class="transfer-thumb" src="${escapeHtml(img)}" alt="" width="120" height="84" loading="lazy" decoding="async" onerror="this.remove()"></a>` : "")
+        + (img ? `<a class="transfer-thumb-link" href="story.html" data-story="${a.id}" aria-label="Open story"><img class="transfer-thumb" src="${escapeHtml(img)}" alt="" width="120" height="84" loading="lazy" decoding="async" onerror="this.remove()"></a>` : "")
         + `<div class="transfer-body">`
         + `<div class="transfer-meta"><span class="league-tag">${articleLeague(a)}</span>${transferLogosHTML(a)}`
         + (teams ? `<span>${escapeHtml(teams)}</span>` : "")

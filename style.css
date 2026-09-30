@@ -46,7 +46,7 @@
     --text-secondary: #334155;
     --text-muted: #475569;
     
-    --primary: #0284c7;
+    --primary: #0273b0;
     --primary-glow: rgba(2, 132, 199, 0.15);
     --secondary: #0369a1;
     --accent: #059669;
@@ -6136,3 +6136,32 @@ html[data-theme="light"] .page-intro { background: rgba(0, 100, 180, 0.07); }
     font-size: 13px;
     background: rgba(245, 158, 11, 0.08);
 }
+
+/* ===== A11y pass (PR-A, 2026-09-30): skip link, dropdown button reset ===== */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 3000;
+    padding: 10px 16px;
+    background: var(--bg-card-solid);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+.main-nav .dropdown-toggle {
+    background: none;
+    border: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+.main-nav .dropdown-toggle:focus-visible,
+.skip-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

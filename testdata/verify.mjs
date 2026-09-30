@@ -797,6 +797,48 @@ check('every <img> declares width and height (layout stability, CLS and the agen
     }
 });
 
+check('every page has a skip-to-content link whose target exists', () => {
+    for (const f of ROOT_PAGES) {
+        if (f === 'offline.html') continue; // noindex utility page, not part of navigation
+        const c = readText('../' + f);
+        const m = c.match(/<a class="skip-link" href="#([^"]+)"/);
+        assert(m, `${f}: no skip link`);
+        assert(c.includes(`id="${m[1]}"`), `${f}: skip link points at missing #${m[1]}`);
+    }
+});
+
+check('every <a href> and <button> has a programmatic name (agent accessibility tree)', () => {
+    function scan(text, label) {
+        const tagRe = /<(a|button)\b([^>]*)>/g;
+        let m;
+        while ((m = tagRe.exec(text)) !== null) {
+            const tag = m[1], attrs = m[2];
+            if (tag === 'a' && !/\shref\s*=/.test(attrs)) continue; // anchors without href are not controls
+            if (/aria-label\s*=/.test(attrs) || /aria-labelledby\s*=/.test(attrs) || /\stitle\s*=/.test(attrs)) continue;
+            let depth = 1, inner = '';
+            const closeRe = new RegExp(`<(/?)${tag}\\b[^>]*>`, 'g');
+            closeRe.lastIndex = tagRe.lastIndex;
+            let cm;
+            while (depth > 0 && (cm = closeRe.exec(text)) !== null) {
+                depth += cm[1] === '/' ? -1 : 1;
+                if (depth === 0) { inner = text.slice(tagRe.lastIndex, cm.index); break; }
+            }
+            const name = inner.replace(/<[^>]*>/g, ' ')
+                .replace(/\$\{[^}]*\}/g, 'x')
+                .replace(/&[a-z]+;/gi, 'x')
+                .replace(/[\s\-\u2013\u2014\u00b7.,;:!?"'(\[\]{}|/&\\*+#%@$^_=~<>'`]/g, '');
+            assert(name.length > 0,
+                `${label}: <${tag}${attrs.replace(/\s+/g, ' ').slice(0, 70)}> has no programmatic name`);
+        }
+    }
+    for (const f of ROOT_PAGES) scan(readText('../' + f).replace(/<script[\s\S]*?<\/script>/g, ''), f);
+    for (const j of ['app.js', 'match.js', 'preview.js', 'previews.js', 'predictions.js',
+                     'report.js', 'standings.js', 'story.js', 'transfers.js', 'news.js',
+                     'highlights.js', 'share.js', 'shop.js', 'pwa.js', 'seo.js', 'i18n.js']) {
+        scan(readText('../' + j), j);
+    }
+});
+
 /* ------------------------------------------------------------------ report */
 
 function report() {

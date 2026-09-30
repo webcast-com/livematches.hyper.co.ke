@@ -4879,6 +4879,7 @@ function initEventHandlers() {
         sortByLeague = !sortByLeague;
         filterOptionsBtn.classList.toggle("active-sort", sortByLeague);
         filterOptionsBtn.title = sortByLeague ? "Sorted by league (tap to restore)" : "Sort matches";
+        filterOptionsBtn.setAttribute("aria-label", filterOptionsBtn.title);
         renderMatches();
         showNotification(sortByLeague ? "Matches sorted by league" : "Matches back to default order", true);
     });

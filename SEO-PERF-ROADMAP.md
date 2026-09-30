@@ -178,11 +178,29 @@ checks: no amp references, no non-deferred local scripts, every `<img>`
 
 | # | Idea | Where | Effort | Risk |
 |---|------|-------|--------|------|
-| A1 | **"More" dropdown semantics**: the toggle is `<a href="#">` — make it a `<button>` (styled identically) with `aria-expanded`, `aria-controls`, Escape-to-close, outside-click close. Reuse the pattern already shipped for `#nav-toggle-btn` | All pages' headers | S | Very low |
-| A2 | **axe-core sweep per page** (Lighthouse → Accessibility, or `axe` CLI) to name the exact remaining failures — typically: muted-text contrast (`.tagline`, timestamps, capsule labels), heading order, icon-only links. Fix via CSS variable nudges + `aria-label`s only | All pages | M | Very low |
-| A3 | **Skip-to-content link** as the first focusable element (helps keyboard users and agent navigation) | All pages | S | Very low |
+| A1 ✅ | **"More" dropdown semantics**: the toggle is `<a href="#">` — make it a `<button>` (styled identically) with `aria-expanded`, `aria-controls`, Escape-to-close, outside-click close. Reuse the pattern already shipped for `#nav-toggle-btn` | All pages' headers | S | Very low |
+| A2 ✅ | **axe-core sweep per page** (Lighthouse → Accessibility, or `axe` CLI) to name the exact remaining failures — typically: muted-text contrast (`.tagline`, timestamps, capsule labels), heading order, icon-only links. Fix via CSS variable nudges + `aria-label`s only | All pages | M | Very low |
+| A3 ✅ | **Skip-to-content link** as the first focusable element (helps keyboard users and agent navigation) | All pages | S | Very low |
 | A4 | **Programmatic names for dynamic controls**: card action buttons (share/preview/report capsules), search listbox options (`aria-selected`, active-descendant), prediction result buttons | Generated HTML in JS | M | Low |
-| A5 | **verify.mjs a11y check**: assert every rendered `<button>`/`<a>` has non-empty accessible name (text or aria-label) — makes regressions visible in CI | `testdata/verify.mjs` | S | Very low |
+| A5 ✅ | **verify.mjs a11y check**: assert every rendered `<button>`/`<a>` has non-empty accessible name (text or aria-label) — makes regressions visible in CI | `testdata/verify.mjs` | S | Very low |
+
+**Shipped — PR-A "Agent-clean" (2026-09-30):** A1 (the More toggle is now a
+real `<button type="button">` with `aria-haspopup`/`aria-expanded`/`aria-controls`
+pointing at the new `#more-menu`, with a CSS reset so it looks identical — the
+JS side already had toggle/outside-click/Escape and now drives a semantic
+control), A2 (axe-style sweeps found and fixed: light-theme `--primary`
+#0284c7 → **#0273b0**, taking link/tag text from 3.74:1 to 4.70:1 on the page
+background and 5.14:1 on cards — this was almost certainly the mobile a11y-93
+deduction; the unnamed ×-close modals; the SVG-only filter/sort button, now
+`aria-label`ed and kept in sync with its runtime title; and five SVG-only
+`href="#"` social icons, now named — their placeholder hrefs want real profile
+URLs when the accounts exist), A3 (skip-to-content link as the first focusable
+element on all 15 content pages, targets verified), A5 (two new permanent
+checks: skip-link presence + target existence, and an accessible-name scanner
+over every static page and all 16 JS files — it caught three real failures
+while being written). All `outline:none` uses audited — each already swaps in
+a visible focus alternative. Heading order verified clean on all pages; both
+themes' text tokens ≥4.5:1. verify.mjs 83 → **85 checks**.
 
 ## Phase B — Best Practices 77 → 95+ (checklist, not guesswork)
 
@@ -190,7 +208,7 @@ checks: no amp references, no non-deferred local scripts, every `<img>`
 |---|--------|-------|
 | B1 | **Read the failing audits** in the PSI mobile run — BP is the category where the failing list is short and specific. Fix only what's listed | Likely candidates given the stack: console errors from `amp-auto-ads`, third-party cookies from ad scripts, image aspect-ratio |
 | B2 | **Zero-console-error budget**: after P1, run each page offline + canned and clear anything remaining (e.g. the `esm.sh` analytics fetch failing gracefully) | Extends the existing offline-render test |
-| B3 | **`document.execCommand("copy")`** in `share.js`: try `navigator.clipboard.writeText()` first, keep execCommand only inside the unsupported-browser fallback (deprecated-API audit) | S |
+| B3 ✅ | **`document.execCommand("copy")` in `share.js`** — audited: `copyText()` already tries `navigator.clipboard.writeText` first and keeps execCommand only inside the unsupported-browser fallback. Already conforming; no change needed | S |
 | B4 | Image aspect-ratio / resolution audit failures resolve via P5/P6 | — |
 
 ## Phase S — Structural upgrades (later, bigger levers)
