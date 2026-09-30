@@ -1,5 +1,5 @@
 {
- "collectedAt": "2026-09-30T21:12:53.230Z",
+ "collectedAt": "2026-09-30T21:25:01.837Z",
  "leagues": [
   {
    "sport": "baseball",
@@ -74,6 +74,76 @@
    "tableRows": 10,
    "tableGroups": 1,
    "season": 2027
+  },
+  {
+   "sport": "rugby",
+   "league": "270559",
+   "standings": false,
+   "scoreboards": 4,
+   "summaries": 6
+  },
+  {
+   "sport": "rugby",
+   "league": "270557",
+   "standings": false,
+   "scoreboards": 4,
+   "summaries": 6
+  },
+  {
+   "sport": "rugby",
+   "league": "267979",
+   "standings": false,
+   "scoreboards": 6,
+   "summaries": 5
+  },
+  {
+   "sport": "rugby",
+   "league": "242041",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0
+  },
+  {
+   "sport": "rugby",
+   "league": "289262",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0
+  },
+  {
+   "sport": "rugby",
+   "league": "271937",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0
+  },
+  {
+   "sport": "rugby",
+   "league": "272073",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0
+  },
+  {
+   "sport": "rugby",
+   "league": "180659",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0
+  },
+  {
+   "sport": "rugby",
+   "league": "244293",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0
+  },
+  {
+   "sport": "rugby",
+   "league": "164205",
+   "standings": false,
+   "scoreboards": 0,
+   "summaries": 0
   },
   {
    "sport": "hockey",
@@ -428,6 +498,76 @@
    "season": 2027
   },
   {
+   "sport": "rugby",
+   "league": "270559",
+   "ok": true,
+   "name": "French Top 14",
+   "season": 2026
+  },
+  {
+   "sport": "rugby",
+   "league": "270557",
+   "ok": true,
+   "name": "United Rugby Championship",
+   "season": 2027
+  },
+  {
+   "sport": "rugby",
+   "league": "267979",
+   "ok": true,
+   "name": "Gallagher Prem",
+   "season": 2027
+  },
+  {
+   "sport": "rugby",
+   "league": "242041",
+   "ok": true,
+   "name": "Super Rugby Pacific",
+   "season": 2026
+  },
+  {
+   "sport": "rugby",
+   "league": "289262",
+   "ok": true,
+   "name": "Major League Rugby",
+   "season": 2026
+  },
+  {
+   "sport": "rugby",
+   "league": "271937",
+   "ok": true,
+   "name": "European Rugby Champions Cup",
+   "season": 2026
+  },
+  {
+   "sport": "rugby",
+   "league": "272073",
+   "ok": true,
+   "name": "European Rugby Challenge Cup",
+   "season": 2027
+  },
+  {
+   "sport": "rugby",
+   "league": "180659",
+   "ok": true,
+   "name": "Six Nations",
+   "season": 2026
+  },
+  {
+   "sport": "rugby",
+   "league": "244293",
+   "ok": true,
+   "name": "The Rugby Championship",
+   "season": 2026
+  },
+  {
+   "sport": "rugby",
+   "league": "164205",
+   "ok": true,
+   "name": "Rugby World Cup",
+   "season": 2023
+  },
+  {
    "sport": "hockey",
    "league": "nhl",
    "ok": true,
@@ -443,7 +583,7 @@
   }
  ],
  "totals": {
-  "bytes": 5553424,
-  "files": 117
+  "bytes": 6072082,
+  "files": 148
  }
 }
