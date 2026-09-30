@@ -184,15 +184,21 @@ check('standings: every row carries rank, points and a goals-for stat', () => {
 
 /* -------------------------------------------------- live parser vs samples */
 
-const context = vm.createContext({ window: {}, console });
+// tableHTML() localises its "Team" header through i18n.js's t(); the shim
+// returns the key, which is all the header assertions need.
+const context = vm.createContext({ window: {}, console, t: (key) => key });
 // `const` declarations stay in the script's own scope, so the file is run with
 // a trailing export of the helpers this file checks.
 vm.runInContext(
-    readText('../standings.js') + '\n;globalThis.__exports = { STANDINGS_LEAGUES, parseStandings, parseStandingsGroups, payloadSeasonLabel, seasonLabelFromSlug, currentSeasonLabel };\n',
+    readText('../standings.js') + '\n;globalThis.__exports = { STANDINGS_LEAGUES, parseStandings, parseStandingsGroups, payloadSeasonLabel, seasonLabelFromSlug, currentSeasonLabel, tableHTML, TABLE_COLUMNS: TABLE_COLUMNS };\n',
     context,
     { filename: 'standings.js' }
 );
-const { parseStandings, parseStandingsGroups, payloadSeasonLabel, seasonLabelFromSlug, currentSeasonLabel, STANDINGS_LEAGUES } = context.__exports;
+const { parseStandings, parseStandingsGroups, payloadSeasonLabel, seasonLabelFromSlug, currentSeasonLabel, STANDINGS_LEAGUES, tableHTML, TABLE_COLUMNS: LIVE_TABLE_COLUMNS } = context.__exports;
+/* STANDINGS_LEAGUES stopped being soccer-only when the interactive page learned
+   to render the other sports; the checks below that mean "a soccer table page"
+   have to say so explicitly. */
+const SOCCER_LEAGUES = STANDINGS_LEAGUES.filter((l) => (l.sport || 'soccer') === 'soccer');
 
 check('parseStandingsGroups() keeps both MLS conferences', () => {
     const groups = parseStandingsGroups(standings);
@@ -310,7 +316,7 @@ check('prerendered table pages (when present) are for known leagues and self-can
 check('multi-sport table pages are for configured leagues and self-canonical', () => {
     const dir = path.join(ROOT, 'table');
     if (!fs.existsSync(dir)) return;   // generator has not run yet
-    const soccer = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const soccer = new Set(SOCCER_LEAGUES.map((l) => l.slug));
     const config = new Map(SPORTS.filter((s) => s.table).map((s) => [s.league, s]));
     const dirs = fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, d, 'index.html')));
     for (const d of dirs.filter((x) => !soccer.has(x))) {
@@ -356,7 +362,7 @@ check('every /table/ link on the hand-written pages points at a configured leagu
 check('every multi-sport table page that exists is linked from the sitemap', () => {
     const dir = path.join(ROOT, 'table');
     if (!fs.existsSync(dir)) return;
-    const soccer = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const soccer = new Set(SOCCER_LEAGUES.map((l) => l.slug));
     const sitemap = readText('../sitemap.xml');
     for (const d of fs.readdirSync(dir).filter((x) => fs.existsSync(path.join(dir, x, 'index.html')) && !soccer.has(x))) {
         assert(sitemap.includes(`/table/${d}/`), `sitemap.xml is missing /table/${d}/`);
@@ -443,6 +449,75 @@ check('news-sitemap.xml (when present) is well-formed news XML for story pages',
     }
     const titles = [...c.matchAll(/<news:title>([^<]+)<\/news:title>/g)];
     assert(titles.length === locs.length, 'every news URL needs a news:title');
+});
+
+check('the interactive standings page lists exactly the multi-sport leagues that have tables', () => {
+    /* Two lists describe the same leagues: SPORTS (what the prerenderer
+       publishes under /table/) and STANDINGS_LEAGUES (what standings.html can
+       render live). Letting them drift means either a chip that fetches a
+       league ESPN has no table for, or a snapshot with no live page behind it.
+       The soccer entries are standings.js's own business — only the leagues
+       that appear in both files are compared. */
+    const fromSports = SPORTS.filter((x) => x.table).map((x) => `${x.sport}/${x.league}`).sort();
+    const fromPage = STANDINGS_LEAGUES.filter((l) => (l.sport || 'soccer') !== 'soccer')
+        .map((l) => `${l.sport}/${l.slug}`).sort();
+    const missing = fromSports.filter((k) => !fromPage.includes(k));
+    const extra = fromPage.filter((k) => !fromSports.includes(k));
+    assert(!missing.length, `tools/sports.mjs publishes a table for ${missing.join(', ')} but standings.js has no chip for it`);
+    assert(!extra.length, `standings.js offers a live table for ${extra.join(', ')}, which tools/sports.mjs does not configure`);
+});
+
+check('every league in standings.js has a sport and a column set for it', () => {
+    for (const L of STANDINGS_LEAGUES) {
+        assert(L.sport, `${L.code}: no sport on the league entry`);
+        const cols = LIVE_TABLE_COLUMNS[L.sport];
+        assert(cols && cols.length, `${L.code}: no column set for sport "${L.sport}"`);
+    }
+});
+
+check('the live and prerendered tables agree on the columns for each sport', () => {
+    // A reader who follows /table/nhl/ through to the live page should not see
+    // the header change underneath them.
+    for (const sport of Object.keys(LIVE_TABLE_COLUMNS)) {
+        if (sport === 'soccer') continue;   // soccer has no entry in tools/sports.mjs
+        const theirs = (TABLE_COLUMNS[sport] || []).map((c) => c.label);
+        const mine = LIVE_TABLE_COLUMNS[sport].map((c) => c.label);
+        assert(theirs.length, `tools/sports.mjs has no TABLE_COLUMNS for ${sport}`);
+        assert(mine.join(',') === theirs.join(','),
+            `${sport} columns differ: standings.js has ${mine.join(',')}, tools/sports.mjs has ${theirs.join(',')}`);
+    }
+});
+
+check('a non-soccer standings payload renders with its own columns', () => {
+    /* The bug this guards: fetchStandings() used to hard-code
+       sports/soccer/<slug>, and tableHTML() a P/W/D/L/GF/GA/GD/Pts header, so
+       an NHL table came out claiming draws and goal difference. */
+    const dir = path.join(HERE, 'live');
+    if (!fs.existsSync(dir)) return;
+    const day = fs.readdirSync(dir).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().pop();
+    if (!day) return;
+    let checked = 0;
+    for (const L of STANDINGS_LEAGUES.filter((l) => l.sport !== 'soccer')) {
+        const file = path.join(dir, day, `standings.${L.sport}.${L.slug}.json`);
+        if (!fs.existsSync(file)) continue;
+        const payload = JSON.parse(fs.readFileSync(file, 'utf8'));
+        const groups = parseStandingsGroups(payload, L.sport);
+        assert(groups.length, `${L.code}: recorded payload parsed to no tables`);
+        const rows = groups.reduce((all, g) => all.concat(g.rows), []);
+        assert(rows.length, `${L.code}: recorded payload parsed to no rows`);
+        const html = tableHTML(groups[0].rows, L.sport);
+        const headers = [...html.matchAll(/<th>([^<]*)<\/th>/g)].map((m) => m[1]);
+        for (const col of LIVE_TABLE_COLUMNS[L.sport]) {
+            assert(headers.includes(col.label), `${L.code}: header is missing the ${col.label} column (${headers.join(',')})`);
+        }
+        assert(!headers.includes('GD'), `${L.code}: a non-soccer table is still rendering the soccer goal-difference header`);
+        // html is the first group only (college football splits into twelve
+        // conferences), so measure it against that group, not every row.
+        const cells = (html.match(/<td>/g) || []).length;
+        assert(cells > groups[0].rows.length, `${L.code}: the table has headers but no numbers behind them`);
+        checked += 1;
+    }
+    assert(checked >= 4, `only ${checked} non-soccer standings payloads were available to check`);
 });
 
 check('standings.html has one chip per league and no orphan chips', () => {

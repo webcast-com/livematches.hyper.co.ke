@@ -1,8 +1,14 @@
 /* On-site full standings — complete league tables via the ESPN standings
-   endpoint (same source as the homepage widget), with W/D/L and goals.
+   endpoint (same source as the homepage widget).
    Covers every league sitemap.xml advertises (testdata/verify.mjs keeps the
    two lists in step) and renders one table per conference where ESPN splits
-   the league (MLS).
+   the league (MLS, and every US league that splits by conference).
+
+   Multi-sport: every entry in STANDINGS_LEAGUES carries a `sport`, which is
+   the ESPN sport path segment. It defaults to "soccer" (the bulk of the list)
+   and the fetch URL, the row mapper and the table header all key off it, so an
+   NFL or NHL table renders with its own columns instead of being forced
+   through a P/W/D/L/GF/GA/GD/Pts header that means nothing for those sports.
    Pure helpers (standingStat, mapStandingRows, parseStandingsGroups,
    parseStandings, standingBadgeHTML, payloadSeasonLabel) are top-level and
    side-effect free for testability. */
@@ -88,7 +94,93 @@ const STANDINGS_LEAGUES = [
     { code: "CAFC", slug: "caf.champions", name: "CAF Champions League" },
     { code: "CAFCF", slug: "caf.confed", name: "CAF Confederation Cup" },
     { code: "LCUP", slug: "concacaf.leagues.cup", name: "Leagues Cup" },
-];
+
+    /* Sports other than soccer. These used to be static snapshots only: the
+       page linked out to /table/nfl/ and friends, which are regenerated once a
+       day, because fetchStandings() could only build a soccer URL. They are
+       chips like any other league now, and testdata/verify.mjs holds this list
+       to exactly the leagues tools/sports.mjs marks `table: true`, so the live
+       page and the prerendered snapshots can never drift apart. */
+    { code: "NFL", slug: "nfl", name: "NFL", sport: "football" },
+    { code: "CFB", slug: "college-football", name: "NCAA College Football", sport: "football" },
+    { code: "NBA", slug: "nba", name: "NBA", sport: "basketball" },
+    { code: "WNBA", slug: "wnba", name: "WNBA", sport: "basketball" },
+    { code: "NBL", slug: "nbl", name: "NBL (Australia)", sport: "basketball" },
+    { code: "MLB", slug: "mlb", name: "MLB", sport: "baseball" },
+    { code: "NHL", slug: "nhl", name: "NHL", sport: "hockey" },
+    /* Soccer is the default, so the 70 entries above say nothing; everything
+       downstream can still rely on L.sport being present. */
+].map(function (L) { return L.sport ? L : Object.assign({ sport: "soccer" }, L); });
+
+/* One column set per sport. `names` are the ESPN stat keys to try in order —
+   the same payload calls the same idea different things depending on the sport
+   (pointsFor is goals in hockey, runs in baseball, points in basketball).
+   `type` decides the formatting: int for counts, signed for differentials
+   (which read as +7 / -3), text for the values ESPN sends pre-formatted such
+   as .625, 1.5 games behind or a W3 streak.
+   The labels match tools/sports.mjs TABLE_COLUMNS exactly so the live table
+   and the prerendered snapshot of the same league have the same header. */
+const TABLE_COLUMNS = {
+    soccer: [
+        { key: "played", label: "P", names: ["gamesPlayed", "played"], type: "int" },
+        { key: "won", label: "W", names: ["wins", "won"], type: "int" },
+        { key: "drawn", label: "D", names: ["ties", "draws", "drawn"], type: "int" },
+        { key: "lost", label: "L", names: ["losses", "lost"], type: "int" },
+        { key: "gf", label: "GF", names: ["pointsFor", "goalsFor", "goals"], type: "int" },
+        { key: "ga", label: "GA", names: ["pointsAgainst", "goalsAgainst"], type: "int" },
+        { key: "gd", label: "GD", names: ["pointDifferential", "goalDifferential", "differential"], type: "signed" },
+        { key: "pts", label: "Pts", names: ["points", "pts"], type: "int", strong: true },
+    ],
+    football: [
+        { key: "won", label: "W", names: ["wins"], type: "int" },
+        { key: "lost", label: "L", names: ["losses"], type: "int" },
+        { key: "drawn", label: "T", names: ["ties"], type: "int" },
+        { key: "pct", label: "PCT", names: ["winPercent", "winningPercent"], type: "text", strong: true },
+        { key: "gf", label: "PF", names: ["pointsFor"], type: "int" },
+        { key: "ga", label: "PA", names: ["pointsAgainst"], type: "int" },
+        { key: "gd", label: "DIFF", names: ["pointDifferential", "differential"], type: "signed" },
+        { key: "streak", label: "STRK", names: ["streak"], type: "text" },
+    ],
+    basketball: [
+        { key: "won", label: "W", names: ["wins"], type: "int" },
+        { key: "lost", label: "L", names: ["losses"], type: "int" },
+        { key: "pct", label: "PCT", names: ["winPercent", "winningPercent", "percentage"], type: "text", strong: true },
+        { key: "gb", label: "GB", names: ["gamesBehind", "gamesBack"], type: "text" },
+        { key: "gf", label: "PF", names: ["pointsFor", "avgPointsFor"], type: "text" },
+        { key: "ga", label: "PA", names: ["pointsAgainst", "avgPointsAgainst"], type: "text" },
+        { key: "gd", label: "DIFF", names: ["pointDifferential", "differential", "avgPointDifferential"], type: "signed" },
+        { key: "streak", label: "STRK", names: ["streak"], type: "text" },
+    ],
+    baseball: [
+        { key: "won", label: "W", names: ["wins"], type: "int" },
+        { key: "lost", label: "L", names: ["losses"], type: "int" },
+        { key: "pct", label: "PCT", names: ["winPercent", "winningPercent", "percentage"], type: "text", strong: true },
+        { key: "gb", label: "GB", names: ["gamesBehind", "gamesBack"], type: "text" },
+        { key: "gf", label: "RS", names: ["runsFor", "pointsFor"], type: "int" },
+        { key: "ga", label: "RA", names: ["runsAgainst", "pointsAgainst"], type: "int" },
+        { key: "gd", label: "DIFF", names: ["runDifferential", "pointDifferential", "differential"], type: "signed" },
+        { key: "streak", label: "STRK", names: ["streak"], type: "text" },
+    ],
+    hockey: [
+        { key: "played", label: "GP", names: ["gamesPlayed"], type: "int" },
+        { key: "won", label: "W", names: ["wins"], type: "int" },
+        { key: "lost", label: "L", names: ["losses"], type: "int" },
+        { key: "otl", label: "OTL", names: ["otLosses", "overtimeLosses"], type: "int" },
+        { key: "pts", label: "PTS", names: ["points"], type: "int", strong: true },
+        { key: "gf", label: "GF", names: ["goalsFor", "pointsFor"], type: "int" },
+        { key: "ga", label: "GA", names: ["goalsAgainst", "pointsAgainst"], type: "int" },
+        { key: "gd", label: "DIFF", names: ["goalDifferential", "pointDifferential", "differential"], type: "signed" },
+        { key: "streak", label: "STRK", names: ["streak"], type: "text" },
+    ],
+};
+
+function columnsFor(sport) {
+    return TABLE_COLUMNS[sport || "soccer"] || TABLE_COLUMNS.soccer;
+}
+
+function leagueByCode(code) {
+    return STANDINGS_LEAGUES.find(function (x) { return x.code === code; }) || STANDINGS_LEAGUES[0];
+}
 
 function standingStat(entry, names) {
     const stats = (entry && entry.stats) || [];
@@ -101,6 +193,21 @@ function standingStat(entry, names) {
         }
     }
     return 0;
+}
+
+/* The pre-formatted values: ".625", "1.5", "W3". Parsing those as integers
+   (which standingStat does, deliberately, for the counting stats) turns a
+   win percentage into 0 and a streak into a blank. */
+function standingText(entry, names) {
+    const stats = (entry && entry.stats) || [];
+    for (const name of names) {
+        const st = stats.find((x) => x && x.name === name);
+        if (st) {
+            const v = (st.displayValue !== undefined && st.displayValue !== "") ? st.displayValue : st.value;
+            if (v !== undefined && v !== null && v !== "") return String(v);
+        }
+    }
+    return "";
 }
 
 function standingLogo(team) {
@@ -116,14 +223,25 @@ function esc(s) {
         .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function mapStandingRows(entries) {
+function columnValue(entry, col) {
+    if (col.type === "text") return standingText(entry, col.names);
+    const n = standingStat(entry, col.names);
+    if (col.type === "signed") return n > 0 ? "+" + n : String(n);
+    return String(n);
+}
+
+function mapStandingRows(entries, sport) {
+    const columns = columnsFor(sport);
     const rows = entries.map((entry, i) => {
         const team = entry.team || {};
-        return {
+        const row = {
             rank: standingStat(entry, ["rank"]) || (i + 1),
             team: team.displayName || team.shortDisplayName || team.name || "?",
             abbrev: team.abbreviation || "",
             logo: standingLogo(team),
+            // The soccer-named fields stay on every row whatever the sport:
+            // the homepage widget, the prerenderer and the parser regressions
+            // in testdata/verify.mjs all read them by name.
             played: standingStat(entry, ["gamesPlayed", "played"]),
             won: standingStat(entry, ["wins", "won"]),
             drawn: standingStat(entry, ["ties", "draws", "drawn"]),
@@ -134,6 +252,10 @@ function mapStandingRows(entries) {
             pts: standingStat(entry, ["points", "pts"]),
             zone: entry.note ? { color: entry.note.color || "#81D6AC", desc: entry.note.description || "" } : null
         };
+        // …and the sport's own column set is resolved once, here, so the
+        // renderer is a dumb loop over cells rather than a per-sport branch.
+        row.cells = columns.map((col) => columnValue(entry, col));
+        return row;
     });
     rows.sort((a, b) => (a.rank || 999) - (b.rank || 999));
     return rows;
@@ -145,26 +267,26 @@ function mapStandingRows(entries) {
    payloads nest a second level underneath. Reading children[0] only — which is
    what this page used to do — showed one conference as if it were the whole
    league. Collect every node that actually carries entries. */
-function collectStandingGroups(node, out) {
+function collectStandingGroups(node, out, sport) {
     if (!node || typeof node !== "object") return out;
     if (node.standings && Array.isArray(node.standings.entries)) {
-        out.push({ name: node.name || node.abbreviation || "", rows: mapStandingRows(node.standings.entries) });
+        out.push({ name: node.name || node.abbreviation || "", rows: mapStandingRows(node.standings.entries, sport) });
         return out;
     }
-    if (Array.isArray(node.children)) node.children.forEach((child) => collectStandingGroups(child, out));
+    if (Array.isArray(node.children)) node.children.forEach((child) => collectStandingGroups(child, out, sport));
     return out;
 }
 
 /* [{ name, rows }] — one entry per table in the payload (a single unnamed-ish
    group for the leagues that have one table). */
-function parseStandingsGroups(data) {
+function parseStandingsGroups(data, sport) {
     if (!data || typeof data !== "object") return [];
-    return collectStandingGroups(data, []).filter((g) => g.rows.length);
+    return collectStandingGroups(data, [], sport || "soccer").filter((g) => g.rows.length);
 }
 
 /* Flat, table-by-table list of rows, for callers that expect a single array. */
-function parseStandings(data) {
-    return parseStandingsGroups(data).reduce((all, g) => all.concat(g.rows), []);
+function parseStandings(data, sport) {
+    return parseStandingsGroups(data, sport).reduce((all, g) => all.concat(g.rows), []);
 }
 
 /* Season labels used to be hard-coded to "2025/26", so every table advertised
@@ -177,17 +299,47 @@ function seasonLabelFromSlug(slug) {
     return `${m[1]}/${m[2].length === 4 ? m[2].slice(2) : m[2]}`;
 }
 
-function payloadSeasonLabel(data) {
+function payloadSeasonLabel(data, sport) {
     const s = (data && data.season) || {};
     const fromSlug = seasonLabelFromSlug(s.slug);
     if (fromSlug) return fromSlug;
+    /* Soccer's season.year is the season's START year, so 2026 means 2026/27.
+       The US leagues send the END year (the NHL's 2026-27 season reports
+       2027), and the single-year sports — MLB, the NFL, the WNBA — do not
+       straddle a new year at all. Deriving "year/year+1" from those produces a
+       season that has not happened yet, so take what ESPN already formatted. */
+    if (sport && sport !== "soccer") {
+        const display = s.displayName || (data && data.seasonDisplayName) || "";
+        if (display) return String(display);
+        if (!(typeof s.year === "number" && s.year > 1900)) return null;
+        /* Same rule as seasonLabelForSport() in tools/sports.mjs, so the live
+           table and the prerendered snapshot of the same league never disagree
+           about which season they are showing (verify.mjs asserts they match).
+           Basketball and hockey seasons straddle the new year and are named
+           for the start year — 2026-27 — while the NFL, MLB and the WNBA are
+           named for a single year even when the playoffs run into January. */
+        const start = s.startDate ? new Date(s.startDate) : null;
+        const end = s.endDate ? new Date(s.endDate) : null;
+        if (start && start.getTime() > Date.now()) return String(s.year - 1);
+        const splits = sport === "basketball" || sport === "hockey";
+        if (splits && start && end && start.getUTCFullYear() !== end.getUTCFullYear()) {
+            const y0 = start.getUTCFullYear();
+            return `${y0}-${String(y0 + 1).slice(2)}`;
+        }
+        return String(s.year);
+    }
     if (typeof s.year === "number" && s.year > 1900) return `${s.year}/${String(s.year + 1).slice(2)}`;
     return null;
 }
 
-function currentSeasonLabel(now) {
+function currentSeasonLabel(now, sport) {
     const d = now || new Date();
     const y = d.getFullYear();
+    // "Seasons run August to May" is a football assumption. MLB, the NFL and
+    // the WNBA play inside one calendar year, so labelling them 2026/27 would
+    // be wrong; the leagues that do straddle (NBA, NHL) get the split label
+    // from ESPN itself as soon as the payload lands.
+    if (sport && sport !== "soccer") return String(y);
     return d.getMonth() >= 6 ? `${y}/${String(y + 1).slice(2)}` : `${y - 1}/${String(y).slice(2)}`;
 }
 
@@ -198,8 +350,9 @@ function standingBadgeHTML(abbrev, logo) {
         + `</span>`;
 }
 
-async function fetchStandings(slug) {
-    const path = `/apis/v2/sports/soccer/${slug}/standings?region=us&lang=en&contentorigin=espn`;
+async function fetchStandings(slug, sport) {
+    const s = sport || "soccer";
+    const path = `/apis/v2/sports/${s}/${slug}/standings?region=us&lang=en&contentorigin=espn`;
     const urls = [
         `https://site.web.api.espn.com${path}`,
         `https://site.api.espn.com${path}`,
@@ -210,8 +363,8 @@ async function fetchStandings(slug) {
             const r = await fetch(u);
             if (!r.ok) continue;
             const j = await r.json();
-            const groups = parseStandingsGroups(j);
-            if (groups.length) return { groups, season: payloadSeasonLabel(j) };
+            const groups = parseStandingsGroups(j, s);
+            if (groups.length) return { groups, season: payloadSeasonLabel(j, s) };
         } catch (e) { /* try next mirror */ }
     }
     return { groups: [], season: null };
@@ -219,41 +372,53 @@ async function fetchStandings(slug) {
 
 let standingsCode = "EPL";
 
-function tableHTML(rows) {
+function tableHTML(rows, sport) {
+    const columns = columnsFor(sport);
     const body = rows.map((row) => {
         const zone = row.zone
             ? `<span class="zone-dot" style="background:${esc(row.zone.color)}" title="${esc(row.zone.desc)}"></span>`
             : "";
+        /* Rows parsed before this function knew about sports (and the ones the
+           prerenderer hands back) have no `cells`; rebuild them from the named
+           fields so an old caller still renders a full table. */
+        const cells = row.cells || columns.map((col) => {
+            const v = row[col.key];
+            if (v === undefined) return "";
+            return col.type === "signed" && v > 0 ? "+" + v : String(v);
+        });
         return `<tr><td>${row.rank}</td>`
             + `<td class="col-team"><div class="full-team-cell">${standingBadgeHTML(row.abbrev, row.logo)}<span class="full-team-name">${esc(row.team)}</span>${zone}</div></td>`
-            + `<td>${row.played}</td><td>${row.won}</td><td>${row.drawn}</td><td>${row.lost}</td>`
-            + `<td>${row.gf}</td><td>${row.ga}</td><td>${row.gd > 0 ? "+" + row.gd : row.gd}</td>`
-            + `<td style="font-weight:700;">${row.pts}</td></tr>`;
+            + columns.map((col, i) => `<td${col.strong ? ' style="font-weight:700;"' : ""}>${esc(cells[i])}</td>`).join("")
+            + `</tr>`;
     }).join("");
     return `<div class="full-table-wrap"><table class="full-table"><thead><tr>`
-        + `<th>#</th><th class="col-team">${t("table.team")}</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>`
+        + `<th>#</th><th class="col-team">${t("table.team")}</th>`
+        + columns.map((col) => `<th>${esc(col.label)}</th>`).join("")
         + `</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-function renderTable(rows) {
+function renderTable(rows, sport) {
     const box = document.getElementById("standings-table");
-    box.innerHTML = rows.length ? tableHTML(rows) : "";
+    box.innerHTML = rows.length ? tableHTML(rows, sport) : "";
 }
 
 /* Conference splits (MLS) get a heading per table so the two half-tables —
    each ranked from 1 — are not read as one broken list. */
-function renderGroups(groups) {
+function renderGroups(groups, sport) {
     const box = document.getElementById("standings-table");
     if (!groups.length) { box.innerHTML = ""; return; }
-    if (groups.length === 1) { box.innerHTML = tableHTML(groups[0].rows); return; }
-    box.innerHTML = groups.map((g) => `<h2 class="standings-group-title">${esc(g.name || t("h1.standings"))}</h2>${tableHTML(g.rows)}`).join("");
+    if (groups.length === 1) { box.innerHTML = tableHTML(groups[0].rows, sport); return; }
+    box.innerHTML = groups.map((g) => `<h2 class="standings-group-title">${esc(g.name || t("h1.standings"))}</h2>${tableHTML(g.rows, sport)}`).join("");
 }
 
 function applySEO(L, season) {
     if (!window.SEO) return;
     try {
+        // The column labels are the honest description of what the table
+        // holds, and they differ per sport — an NFL table has no GF or GD.
+        const cols = columnsFor(L.sport).map((c) => c.label).join(", ");
         SEO.setTitle(`${L.name} Standings ${season} - Table, Points & Stats | ScoreHub`);
-        SEO.setDescription(`Live ${L.name} standings: full table with P, W, D, L, GF, GA, GD, points. Updated hourly from ESPN on ScoreHub.`);
+        SEO.setDescription(`Live ${L.name} standings: full table with ${cols}. Updated hourly from ESPN on ScoreHub.`);
         // The prerendered static page (tools/prerender.mjs -> /table/<slug>/) is
         // the crawlable home of this table; consolidating the interactive page
         // into it gives each league one indexable URL. The GitHub Action
@@ -278,10 +443,10 @@ async function loadStandings() {
     const err = document.getElementById("standings-error");
     err.hidden = true;
     box.innerHTML = `<p class="loading-note">${t("table.loading")}</p>`;
-    const L = STANDINGS_LEAGUES.find((x) => x.code === standingsCode) || STANDINGS_LEAGUES[0];
+    const L = leagueByCode(standingsCode);
     setHeading(L);
-    applySEO(L, currentSeasonLabel());
-    const res = await fetchStandings(L.slug);
+    applySEO(L, currentSeasonLabel(null, L.sport));
+    const res = await fetchStandings(L.slug, L.sport);
     if (!res.groups.length) {
         box.innerHTML = "";
         err.hidden = false;
@@ -289,8 +454,9 @@ async function loadStandings() {
     }
     if (res.season) applySEO(L, res.season);
     window.__standingsGroups = res.groups;
+    window.__standingsSport = L.sport;
     window.__standingsRows = res.groups.reduce((all, g) => all.concat(g.rows), []);
-    renderGroups(res.groups);
+    renderGroups(res.groups, L.sport);
 }
 
 // Two spellings reach this page: the tab chips / homepage league rows use the
@@ -334,9 +500,9 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
 
 window.__rerenderLang = function () {
     try {
-        const L = STANDINGS_LEAGUES.find((x) => x.code === standingsCode) || STANDINGS_LEAGUES[0];
+        const L = leagueByCode(standingsCode);
         setHeading(L);
-        if (window.__standingsGroups && window.__standingsGroups.length) renderGroups(window.__standingsGroups);
+        if (window.__standingsGroups && window.__standingsGroups.length) renderGroups(window.__standingsGroups, L.sport);
         else loadStandings();
     } catch (e) {}
 };

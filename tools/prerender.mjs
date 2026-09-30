@@ -1094,7 +1094,11 @@ function buildSitemaps(tablePages, newsItems) {
 
 /* -------------------------------------------------------------------- main */
 function sweepTargets(vmCtx) {
-    const soccer = vmCtx.STANDINGS_LEAGUES.map((L) => ({
+    // STANDINGS_LEAGUES carries the other sports' leagues now too (the
+    // interactive page renders them live). Their snapshots come from SPORTS
+    // below, with per-league caps, so only the soccer entries belong here —
+    // sweeping an NFL slug as soccer would ask ESPN for sports/soccer/nfl.
+    const soccer = vmCtx.STANDINGS_LEAGUES.filter((L) => (L.sport || 'soccer') === 'soccer').map((L) => ({
         sport: 'soccer', league: L.slug, slug: L.slug, name: L.name,
         previewDays: PREVIEW_DAYS, reportCap: MAX_REPORTS, previewCap: MAX_PREVIEWS, bucket: 'soccer',
     }));
@@ -1116,8 +1120,12 @@ function sweepTargets(vmCtx) {
 async function main() {
     log(`mode=${OFFLINE ? 'OFFLINE (testdata samples + fixtures)' : 'live'} root=${ROOT}`);
     const vmCtx = loadStandingsHelpers();
-    const leagues = vmCtx.STANDINGS_LEAGUES;
-    if (!leagues || !leagues.length) throw new Error('STANDINGS_LEAGUES not found in standings.js');
+    const all = vmCtx.STANDINGS_LEAGUES;
+    if (!all || !all.length) throw new Error('STANDINGS_LEAGUES not found in standings.js');
+    // Step 1 below builds the soccer table pages through standings.js's own
+    // fetch/parse/markup; step 1b builds the other sports from SPORTS. Both
+    // lists now live in standings.js, so split them here.
+    const leagues = all.filter((L) => (L.sport || 'soccer') === 'soccer');
 
     const tablePages = [];
     const tableJobs = [];      // fetched first, written once every table is known
