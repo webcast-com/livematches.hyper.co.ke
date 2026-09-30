@@ -1,6 +1,6 @@
 {
  "meta": {
-  "at": "2026-09-30T21:03:31.381Z",
+  "at": "2026-09-30T21:08:18.946Z",
   "windowDays": 7,
   "total": 263
  },
@@ -915,7 +915,7 @@
    "espnName": "Copa Bolivia",
    "season": "2026 Copa Bolivia",
    "events": 3,
-   "finished": 0,
+   "finished": 1,
    "upcoming": 2,
    "error": "",
    "tableChecked": false,
@@ -4281,7 +4281,7 @@
    "espnName": "NCAA Men's Soccer",
    "season": "2026 NCAA Division I Men's Soccer",
    "events": 23,
-   "finished": 2,
+   "finished": 3,
    "upcoming": 16,
    "error": "",
    "tableChecked": false,
