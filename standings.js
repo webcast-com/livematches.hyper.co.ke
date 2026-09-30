@@ -206,12 +206,16 @@ function applySEO(L, season) {
     try {
         SEO.setTitle(`${L.name} Standings ${season} - Table, Points & Stats | ScoreHub`);
         SEO.setDescription(`Live ${L.name} standings: full table with P, W, D, L, GF, GA, GD, points. Updated hourly from ESPN on ScoreHub.`);
-        SEO.setCanonical(`https://livematches.hyper.co.ke/standings.html?league=${L.slug}`);
+        // The prerendered static page (tools/prerender.mjs -> /table/<slug>/) is
+        // the crawlable home of this table; consolidating the interactive page
+        // into it gives each league one indexable URL. The GitHub Action
+        // (.github/workflows/prerender.yml) keeps those pages fresh.
+        SEO.setCanonical(`https://livematches.hyper.co.ke/table/${L.slug}/`);
         SEO.setKeywords([L.name, `${L.name} standings`, 'standings', 'league table', 'table', 'ScoreHub']);
         SEO.breadcrumb([
             { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
             { name: 'Standings', url: 'https://livematches.hyper.co.ke/standings.html' },
-            { name: L.name, url: `https://livematches.hyper.co.ke/standings.html?league=${L.slug}` }
+            { name: L.name, url: `https://livematches.hyper.co.ke/table/${L.slug}/` }
         ]);
     } catch (e) {}
 }

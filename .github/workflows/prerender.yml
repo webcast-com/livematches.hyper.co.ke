@@ -1,0 +1,56 @@
+# Regenerates the prerendered static pages (Phase S1/S2 of SEO-PERF-ROADMAP.md):
+#   table/<league>/index.html   league-table snapshots (30+ leagues)
+#   report/<matchId>/           finished-match snapshots (rolling 7-day window)
+#   preview/<matchId>/          upcoming-match snapshots (rolling 3-day window)
+#   sitemap.xml                 regenerated to mirror exactly what exists
+#   news-sitemap.xml            story URLs from the last 48h (Google news format)
+#
+# Runs on every push to main (so prerendered pages exist the moment a merge
+# lands — standings.js canonicalises ?league= URLs to /table/<slug>/, which
+# must not point at a 404) and daily at 04:00 UTC to refresh data.
+
+name: Prerender static pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prerender
+  cancel-in-progress: false
+
+jobs:
+  prerender:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate prerendered pages and sitemaps
+        run: node tools/prerender.mjs
+
+      - name: Verify the result
+        run: node testdata/verify.mjs
+
+      - name: Commit regenerated pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Prerender: refresh league tables, match snapshots and sitemaps"
+            git push
+          fi

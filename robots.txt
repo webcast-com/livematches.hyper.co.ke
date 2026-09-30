@@ -21,6 +21,7 @@ Disallow: /testdata/
 Disallow: /*?*id=example*
 
 Sitemap: https://livematches.hyper.co.ke/sitemap.xml
+Sitemap: https://livematches.hyper.co.ke/news-sitemap.xml
 
 # Crawl-delay for politeness
 Crawl-delay: 1

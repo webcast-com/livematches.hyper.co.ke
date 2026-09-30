@@ -263,13 +263,56 @@ check('season labels come off the payload, not a hard-coded string', () => {
 
 check('every standings link in sitemap.xml is a league this page can render', () => {
     const sitemap = readText('../sitemap.xml');
-    const slugs = [...sitemap.matchAll(/standings\.html\?league=([^"'&<\s]+)/g)].map((m) => m[1]);
-    assert(slugs.length, 'no ?league= links found in sitemap.xml');
+    const qSlugs = [...sitemap.matchAll(/standings\.html\?league=([^"'&<\s]+)/g)].map((m) => m[1]);
+    const tSlugs = [...sitemap.matchAll(/\/table\/([a-z0-9.]+)\//g)].map((m) => m[1]);
+    const slugs = [...qSlugs, ...tSlugs];
+    assert(slugs.length, 'no league-table links found in sitemap.xml (neither ?league= nor /table/)');
     const known = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
     const unknown = slugs.filter((s) => !known.has(s));
     assert(!unknown.length, `sitemap.xml advertises leagues with no table: ${unknown.join(', ')}`);
-    const missing = STANDINGS_LEAGUES.filter((l) => !slugs.includes(l.slug)).map((l) => l.slug);
-    assert(!missing.length, `these leagues have no sitemap entry: ${missing.join(', ')}`);
+    if (qSlugs.length) {
+        const missing = STANDINGS_LEAGUES.filter((l) => !slugs.includes(l.slug)).map((l) => l.slug);
+        assert(!missing.length, `these leagues have no sitemap entry: ${missing.join(', ')}`);
+    } else {
+        // generated regime (tools/prerender.mjs): the sitemap must mirror the
+        // prerendered table pages exactly — no URL for a page that does not exist
+        const dir = path.join(HERE, '..', 'table');
+        const pageDirs = fs.existsSync(dir) ? fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, d, 'index.html'))) : [];
+        const onlyInSitemap = tSlugs.filter((s) => !pageDirs.includes(s));
+        assert(!onlyInSitemap.length, `sitemap lists table pages that do not exist: ${onlyInSitemap.join(', ')}`);
+    }
+});
+
+check('prerendered table pages (when present) are for known leagues and self-canonical', () => {
+    const dir = path.join(HERE, '..', 'table');
+    if (!fs.existsSync(dir)) return; // generator has not run yet — nothing to check
+    const known = new Set(STANDINGS_LEAGUES.map((l) => l.slug));
+    const dirs = fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, d, 'index.html')));
+    assert(dirs.length, 'table/ exists but holds no pages');
+    const unknown = dirs.filter((d) => !known.has(d));
+    assert(!unknown.length, `table/ has pages for unknown leagues: ${unknown.join(', ')}`);
+    for (const d of dirs) {
+        const c = readText(`../table/${d}/index.html`);
+        assert(c.includes(`<link rel="canonical" href="https://livematches.hyper.co.ke/table/${d}/">`),
+            `table/${d}: canonical is not its own /table/${d}/ URL`);
+        assert(!/loading-note/i.test(c), `table/${d}: static page contains a loading placeholder`);
+        assert(c.includes('prerender-meta'), `table/${d}: missing prerender-meta (sitemap generator depends on it)`);
+    }
+});
+
+check('news-sitemap.xml (when present) is well-formed news XML for story pages', () => {
+    const f2 = path.join(HERE, 'news-sitemap.xml');
+    if (!fs.existsSync(f2)) return; // generator writes it only when fresh stories exist
+    const c = readText('../news-sitemap.xml');
+    assert(c.includes('xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"'), 'news namespace missing');
+    const locs = [...c.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    assert(locs.length, 'news sitemap has no URLs');
+    for (const loc of locs) {
+        assert(/^https:\/\/livematches\.hyper\.co\.ke\/story\.html\?id=[^&\s]+$/.test(loc),
+            `news sitemap lists a non-story URL: ${loc}`);
+    }
+    const titles = [...c.matchAll(/<news:title>([^<]+)<\/news:title>/g)];
+    assert(titles.length === locs.length, 'every news URL needs a news:title');
 });
 
 check('standings.html has one chip per league and no orphan chips', () => {

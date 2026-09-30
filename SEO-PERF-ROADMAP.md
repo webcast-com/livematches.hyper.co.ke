@@ -215,14 +215,45 @@ themes' text tokens ≥4.5:1. verify.mjs 83 → **85 checks**.
 
 | # | Idea | Why | Effort | Risk |
 |---|------|-----|--------|------|
-| S1 ✅✅ **Biggest indexing lever** | **Prerender popular pages as static HTML** — a small Node/GitHub-Action job writes server-side-rendered HTML for: the 8 hub pages, top-20 `standings.html?league=…`, and the week's finished-match `preview/report/story?id=…` pages into the repo before deploy. The JS boot then refreshes over the prerendered content — the exact hydration pattern already proven by the localStorage replay (`scorehub-live-v1`). If prerender data is missing, the page ships as today's shell — never broken | Turns JS-only content into crawlable content for the URLs Google actually values (per-match, per-league). Enables a real news sitemap later | L | Medium (falls back to current shell on any failure) |
-| S2 | **News sitemap** (`news-sitemap.xml`) listing the prerendered story URLs | Only meaningful after S1 | S | Very low |
+| S1 ✅ **Biggest indexing lever** | **Prerender popular pages as static HTML** — a small Node/GitHub-Action job writes server-side-rendered HTML for: the 8 hub pages, top-20 `standings.html?league=…`, and the week's finished-match `preview/report/story?id=…` pages into the repo before deploy. The JS boot then refreshes over the prerendered content — the exact hydration pattern already proven by the localStorage replay (`scorehub-live-v1`). If prerender data is missing, the page ships as today's shell — never broken | Turns JS-only content into crawlable content for the URLs Google actually values (per-match, per-league). Enables a real news sitemap later | L | Medium (falls back to current shell on any failure) |
+| S2 ✅ | **News sitemap** (`news-sitemap.xml`) listing the prerendered story URLs | Only meaningful after S1 | S | Very low |
 | S3 | **Self-host Outfit** (2 weights, woff2, preload) | Removes the Google Fonts round trip entirely | S | Very low |
 | S4 | **Optional minification at deploy** (host-level or pre-minified copies) — only if the host doesn't already minify/Brotli | — | M | Low |
 | S5 | **WebMCP declarative tool annotations** (search, standings lookup) | Weight-0 today, informational only — do it last, for future-proofing | M | Low |
 | S6 | **Off-page basics** (out of repo scope, listed for completeness): 2–5 real backlinks (local sports communities/directories — it's a Kenyan audience: FKFPL fan forums, r/Kenya), consistent social profiles, Bing Webmaster Tools too (Bingbot is explicitly allowed in robots.txt but often forgotten) | Young domain + zero backlinks is half the indexing story | — | — |
 
 ---
+
+**Shipped — PR-S "Prerender" (2026-09-30):** S1 + S2. `tools/prerender.mjs`
+(zero-dependency, node ≥18) generates crawlable static pages from live ESPN
+data — reusing `standings.js`'s own parsers, table markup and 3-mirror
+`fetchStandings()` inside a `node:vm` sandbox, so the snapshot pages can never
+drift from what the app renders:
+- `/table/<slug>/` — 30 league-table pages (MLS conference splits included),
+  self-canonical, snapshot banner linking the live table
+- `/report/<id>/` + `/preview/<id>/` — rolling window (7 days back / 3 ahead,
+  capped at 40 each, older pruned automatically): scoreline, goal/card timeline
+  with scorers and running score, full stat table, venue/attendance, SportsEvent
+  JSON-LD — from scoreboard payloads only (no per-match requests)
+- `sitemap.xml` — regenerated to mirror exactly what exists (league `?league=`
+  entries retire in favour of `/table/` URLs)
+- `news-sitemap.xml` — Google-news-format story URLs from the last 48h
+- `.github/workflows/prerender.yml` — runs the generator on every push to main
+  (so pages exist the moment this merges) and daily at 04:00 UTC, verifies with
+  `verify.mjs`, then commits
+- `standings.js` now canonicalises `?league=<slug>` to `/table/<slug>/` — the
+  30 JS pages consolidate into one indexable static URL each (this alone fixes
+  the old self-canonical that made the `?league=` URLs unindexable)
+- verify.mjs 85 → **87 checks**: dual-scheme sitemap/slug agreement,
+  generated-table self-canonicality, news-sitemap well-formedness. Verified in
+  both regimes: current repo (hand-written sitemap) and a simulated
+  post-Action clone with generated pages — 87/87 in each.
+
+**To activate:** merge to main — the workflow fires on the push and commits
+the pages (or run `node tools/prerender.mjs` locally and push). Until that
+first run the repo simply has no `table/`/`report/`/`preview/` dirs and the
+canonicals briefly resolve to 404 → the workflow closing this gap within
+minutes of merge is why it triggers on push, not just nightly.
 
 ## 3. Expected trajectory (honest ranges)
 
