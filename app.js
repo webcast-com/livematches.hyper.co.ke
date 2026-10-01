@@ -5042,7 +5042,17 @@ function initEventHandlers() {
         }
     };
     sportTabs.forEach((tab) => {
-        tab.addEventListener("click", () => selectSport(tab.getAttribute("data-sport"), "push"));
+        tab.addEventListener("click", (event) => {
+            // Sport tabs are real links as well as SPA controls. Keep the fast
+            // in-page switch for a normal click, but leave modified clicks
+            // (open in new tab/window, download, etc.) to the browser.
+            const isLink = tab.tagName.toLowerCase() === "a";
+            const plainClick = event.button === 0 && !event.metaKey && !event.ctrlKey &&
+                !event.shiftKey && !event.altKey;
+            if (isLink && !plainClick) return;
+            if (isLink) event.preventDefault();
+            selectSport(tab.getAttribute("data-sport"), "push");
+        });
     });
     // Back / Forward between sport pages: the address already changed, so just follow it
     window.addEventListener("popstate", () => {
