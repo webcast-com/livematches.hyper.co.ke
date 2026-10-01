@@ -1173,12 +1173,12 @@ check('every sport page is generated, current, and identical to index.html apart
         const file = path.join(ROOT, p.slug + '.html');
         assert(fs.existsSync(file), `/${p.slug}.html is missing — run: node tools/build-sport-pages.mjs`);
         const stub = readText(`../${p.slug}/index.html`);
-        assert(stub.includes(`url=/${p.slug}.html`) && stub.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `/${p.slug}/ must redirect to /${p.slug}.html`);
+        assert(stub.includes(`url=../${p.slug}.html`) && stub.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `/${p.slug}/ must redirect to /${p.slug}.html`);
         const html = fs.readFileSync(file, 'utf8');
         assert(html.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `${p.slug}: canonical is wrong`);
         assert(html.includes(`<button class="sport-tab active" data-sport="${p.sport}">`), `${p.slug}: its tab is not pre-selected`);
         assert((html.match(/class="sport-tab active"/g) || []).length === 1, `${p.slug}: exactly one sport tab must be active`);
-        assert(html.includes('<base href="/">'), `${p.slug}: <base href="/"> is required so relative links work one folder down`);
+        assert(!/<base[\s>]/.test(html), `${p.slug}: no <base> — the page must resolve its assets relative to itself (works from any path or file://)`);
         assert(p.covered ? !html.includes('noindex') : html.includes('content="noindex, follow"'), `${p.slug}: robots meta does not match the covered flag`);
         // Body equality: everything from the app container down, minus the three intended edits.
         const body = (h) => h.slice(h.indexOf('<body>'))

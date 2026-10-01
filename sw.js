@@ -5,7 +5,7 @@
    the copy behind the precache refreshes itself on the next visit (it used to
    be cache-first, which pinned whatever was installed until someone bumped
    this string). Bump it when the precache list itself changes. */
-const SW_VERSION = 'v4';
+const SW_VERSION = 'v5';
 const STATIC_CACHE = `scorehub-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `scorehub-runtime-${SW_VERSION}`;
 const OFFLINE_URL = 'offline.html';

@@ -172,9 +172,12 @@
 
     // '/basketball.html' (or '/basketball', '/basketball/', '/basketball/index.html')
     // → 'basketball'. Anything else — '/', '/index.html', '/news.html' — is the
-    // home page → 'all'.
+    // home page → 'all'. A '<slug>.html' file name is recognised whatever folder
+    // it is served from (a sub-path deployment, a file:// copy), so the page
+    // keeps working when it is not hosted at the site root.
     function sportForPath(pathname) {
-        var m = /^\/([a-z0-9-]+)(?:\.html|\/(?:index\.html)?)?$/.exec(String(pathname || ''));
+        var s = String(pathname || '');
+        var m = /^\/([a-z0-9-]+)(?:\.html|\/(?:index\.html)?)?$/.exec(s) || /\/([a-z0-9-]+)\.html$/.exec(s);
         var p = m ? bySlug[m[1]] : null;
         return p && p.slug ? p.sport : 'all';
     }
@@ -220,35 +223,23 @@
         if (b) b.textContent = p.blurb;
     }
 
-    // Move the address bar to the sport's own URL without reloading.
+    // Move the address bar to the sport's own URL without reloading. The target is
+    // a *relative* URL ('nfl.html'), so it lands next to the page that is open —
+    // the site root on the live host, but also a sub-path or a file:// copy.
     function navigate(sport, mode) {
-        if (typeof history === 'undefined' || !history.pushState) return;
-        var target = pathFor(sport);
-        if (location.pathname === target) { applyHead(sport); return; }
+        if (typeof history === 'undefined' || !history.pushState || typeof URL === 'undefined') return;
+        var p = bySport[sport];
+        var rel = p && p.slug ? p.slug + '.html' : (location.protocol === 'file:' ? 'index.html' : './');
+        var target;
+        try { target = new URL(rel, location.href); } catch (e) { return; }
+        if (target.pathname === location.pathname) { applyHead(sport); return; }
         // A page opened as /index.html is the home page — keep it there.
         if (sport === 'all' && /\/index\.html$/.test(location.pathname)) { applyHead(sport); return; }
         try {
-            history[mode === 'replace' ? 'replaceState' : 'pushState']({ sport: sport }, '', target + location.search + location.hash);
+            history[mode === 'replace' ? 'replaceState' : 'pushState']({ sport: sport }, '', target.pathname + location.search + location.hash);
         } catch (e) { return; }
         applyHead(sport);
     }
-
-    // These pages carry <base href="/"> so their relative links (news.html,
-    // match.html?…) resolve from the site root at any depth. The one thing a
-    // <base> changes is bare "#fragment" links, which would then jump to the
-    // home page instead of scrolling this one — so those are handled here.
-    function handleFragmentLinks() {
-        if (!doc || !doc.querySelector('base[href]')) return;
-        doc.addEventListener('click', function (e) {
-            if (e.defaultPrevented || e.button > 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-            var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
-            if (!a) return;
-            e.preventDefault();
-            var frag = a.getAttribute('href').slice(1);
-            if (frag) location.hash = frag;
-        });
-    }
-    handleFragmentLinks();
 
     return {
         ORIGIN: ORIGIN,

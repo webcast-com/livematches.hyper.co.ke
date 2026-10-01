@@ -701,6 +701,7 @@ let selectedDate = null;   // YYYYMMDD string, or null for the default (today) f
 let f1Data = null;           // { season, drivers, last }
 let f1DataAt = 0;
 let f1Loading = false;
+let f1Failed = false;        // last Jolpica fetch failed (the sport hub says so instead of "Loading…" forever)
 let currentStandingLeague = "EPL";
 let spotlightMatchId = "fb-1";
 let searchOpen = false;
@@ -3611,7 +3612,7 @@ function renderSportHub() {
     sportHubShown = new Map();
     if (isF1) {
         if (!f1Data) {
-            const msg = `<div class="sport-hub-empty">${escHtml(t(isApiMode ? "hub.loading" : "f1.demo"))}</div>`;
+            const msg = `<div class="sport-hub-empty">${escHtml(t(isApiMode ? (f1Failed && !f1Loading ? "hub.failed" : "hub.loading") : "f1.demo"))}</div>`;
             resEl.innerHTML = msg; upEl.innerHTML = msg;
         } else {
             renderSportHubF1(resEl, upEl);
@@ -3750,7 +3751,9 @@ async function loadF1Data(force = false) {
         ]);
         f1Data = { season: results[0], drivers: results[1], last: results[2] };
         f1DataAt = Date.now();
+        f1Failed = false;
     } catch (err) {
+        f1Failed = true;
         console.warn("F1 fetch failed:", err.message);
     } finally {
         f1Loading = false;
