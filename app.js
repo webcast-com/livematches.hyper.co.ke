@@ -597,18 +597,44 @@ function saveSessionSnapshot() {
     } catch (e) { /* storage full or blocked — stay in-memory, as before */ }
 }
 
+// Sport tab the current address belongs to ("all" for the home page, or when the
+// sport-pages.js helper is unavailable).
+function sportFromUrl() {
+    try {
+        const sp = window.SportPages;
+        const sport = sp ? sp.sportForPath(window.location.pathname) : "all";
+        return hasSportTab(sport) ? sport : "all";
+    } catch (e) { return "all"; }
+}
+
+function hasSportTab(sport) {
+    return !!document.querySelector(`.sport-tab[data-sport="${sport}"]`);
+}
+
+// Keep the address bar, tab title and canonical in step with the selected sport.
+function syncSportUrl(mode) {
+    try { if (window.SportPages) window.SportPages.navigate(currentSport, mode); } catch (e) { /* cosmetic only */ }
+}
+
 // Restore the view first: it is what the controls show, and it decides whether the
 // saved matches still belong to this screen.
 function restoreViewState() {
+    // The address decides the sport: /basketball.html opens the Basketball tab, the
+    // home page opens All Sports. (Before the sport pages existed the last-used
+    // tab came back from storage — it still does for everything below.)
+    const pageSport = sportFromUrl();
+    currentSport = pageSport;
     const saved = store.get(VIEW_CACHE_KEY, null);
     if (!saved || typeof saved !== "object") return;
     // Only values this page actually offers are restored, so a snapshot from
     // another page (or an older build) can never leave the UI in a dead state.
     // Storage is user-editable, so a malformed selector must not break boot either.
     const hasControl = (sel) => { try { return !!document.querySelector(sel); } catch (e) { return false; } };
-    if (typeof saved.sport === "string" && hasControl(`.sport-tab[data-sport="${saved.sport}"]`)) currentSport = saved.sport;
+    // A league picked on another sport's screen would hide everything here, so it
+    // is only brought back when the saved view was for this same sport.
+    const sameSport = saved.sport === pageSport;
     if (typeof saved.filter === "string" && hasControl(`.filter-tab[data-filter="${saved.filter}"]`)) currentFilter = saved.filter;
-    if (saved.league === "all" || (typeof saved.league === "string" && hasControl(`.league-row[data-league-id="${saved.league}"]`))) currentLeague = saved.league;
+    if (sameSport && (saved.league === "all" || (typeof saved.league === "string" && hasControl(`.league-row[data-league-id="${saved.league}"]`)))) currentLeague = saved.league;
     if (saved.leaders === "goals" || saved.leaders === "assists") leadersCategory = saved.leaders;
     if (typeof saved.standings === "string" && hasControl(`.standings-tab[data-standing-league="${saved.standings}"]`)) currentStandingLeague = saved.standings;
     if (typeof saved.date === "string" && /^\d{8}$/.test(saved.date)) selectedDate = saved.date;
@@ -675,6 +701,7 @@ let selectedDate = null;   // YYYYMMDD string, or null for the default (today) f
 let f1Data = null;           // { season, drivers, last }
 let f1DataAt = 0;
 let f1Loading = false;
+let f1Failed = false;        // last Jolpica fetch failed (the sport hub says so instead of "Loading…" forever)
 let currentStandingLeague = "EPL";
 let spotlightMatchId = "fb-1";
 let searchOpen = false;
@@ -867,6 +894,10 @@ const ESPN_ENDPOINTS = {
         "soccer/mex.2", "soccer/mex.campeon", "soccer/hon.1",
         "soccer/crc.1", "soccer/gua.1", "soccer/slv.1",
         "soccer/jpn.world_challenge", "soccer/chn.1.promotion.relegation",
+    ],
+    // American football: ESPN keys it football/nfl (the "Football" tab is soccer).
+    nfl: [
+        "football/nfl"
     ],
     basketball: [
         "basketball/nba", "basketball/wnba", "basketball/euroleague",
@@ -1246,6 +1277,7 @@ const LEAGUE_NAMES = {
     // Other sports - expanded
     "basketball/nba":               { name: "NBA",                     code: "NBA",      sport: "basketball" },
     "basketball/wnba":              { name: "WNBA",                    code: "WNBA",     sport: "basketball" },
+    "football/nfl":                 { name: "NFL",                     code: "NFL",      sport: "nfl" },
     "basketball/euroleague":        { name: "EuroLeague",              code: "EUROL",    sport: "basketball" },
     "basketball/mens-college-basketball": { name: "NCAA Men",          code: "NCAAM",    sport: "basketball" },
     "basketball/womens-college-basketball": { name: "NCAA Women",      code: "NCAAW",    sport: "basketball" },
@@ -1544,8 +1576,67 @@ function spotlightLogoHTML(code, color, logo) {
 }
 
 // Convert ESPN event JSON → internal match object
+/* ESPN tennis scoreboards are tournament-shaped: event.competitions is absent and
+   the individual matches sit in event.groupings[].competitions[], with players
+   (`athlete`) instead of teams. Flatten those into ordinary match-shaped events so
+   parseESPNEvent (and every card, ticker and hub built on it) can read them. Every
+   other sport passes through untouched. */
+function espnEventsOf(data, leagueSlug) {
+    const events = (data && Array.isArray(data.events)) ? data.events : [];
+    if (!/^tennis\//.test(leagueSlug || "")) return events;
+    const out = [];
+    events.forEach(ev => {
+        if (ev.competitions && ev.competitions.length) { out.push(ev); return; }
+        (ev.groupings || []).forEach(g => {
+            const gname = g && g.grouping && g.grouping.displayName || "";
+            (g.competitions || []).forEach(c => {
+                if (!c || !Array.isArray(c.competitors) || c.competitors.length < 2) return;
+                const competitors = c.competitors.map(p => {
+                    const a = p.athlete || {};
+                    const sets = Array.isArray(p.linescores) ? p.linescores.filter(l => l && l.winner).length : 0;
+                    return {
+                        id: p.id,
+                        homeAway: p.homeAway,
+                        order: p.order,
+                        winner: p.winner,
+                        score: String(p.score != null && p.score !== "" ? p.score : sets),
+                        team: {
+                            id: p.id,
+                            displayName: a.displayName || a.fullName || a.shortName || "Player",
+                            shortDisplayName: a.shortName || a.displayName || "",
+                            abbreviation: String(a.shortName || a.displayName || "").trim().split(/\s+/).pop().replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "PLR",
+                            logo: (a.flag && a.flag.href) || ""
+                        }
+                    };
+                });
+                out.push({
+                    id: c.id,
+                    date: c.startDate || c.date || ev.date,
+                    status: c.status,
+                    tournament: ev.shortName || ev.name || "",
+                    round: (c.round && c.round.displayName) || gname,
+                    competitions: [{ ...c, competitors }]
+                });
+            });
+        });
+    });
+    return out;
+}
+
+// Parse every event of a league payload; tennis matches are labelled with their tournament
+function parseESPNLeagueEvents(data, leagueInfo, leagueSlug) {
+    const out = [];
+    espnEventsOf(data, leagueSlug).forEach(evt => {
+        let info = leagueInfo;
+        if (evt.tournament) info = { ...leagueInfo, name: `${leagueInfo.code} · ${evt.tournament}` };
+        const m = parseESPNEvent(evt, info, leagueSlug);
+        if (m) out.push(m);
+    });
+    return out;
+}
+
 function parseESPNEvent(event, leagueInfo, leagueSlug) {
-    const comp = event.competitions[0];
+    const comp = event.competitions && event.competitions[0];
     if (!comp) return null;
 
     const competitors = comp.competitors;
@@ -1730,6 +1821,8 @@ function parseESPNEvent(event, leagueInfo, leagueSlug) {
         halftimeScore: halftimeScore || `${homeScore}-${awayScore}`,
         time: matchTime,
         status: matchStatus,
+        state,
+        completed: !!statusType.completed,
         broadcast,
         odds,
         topScorers: {
@@ -1808,6 +1901,7 @@ async function runAPIMatches(opts = {}) {
         return;
     }
     const fetched = [];
+    let leaguesAnswered = 0;   // leagues whose scoreboard came back OK, even with no events
     const sweepStart = Date.now();
 
     // A blocked or blackholed ESPN used to hold the page for minutes: every league
@@ -1834,13 +1928,10 @@ async function runAPIMatches(opts = {}) {
                 chunk.map(async slug => {
                     try {
                         const data = await fetchESPNLeague(slug, sweepAbort.signal);
+                        leaguesAnswered++;
                         if (data.season && data.season.year) espnSeasonYear = data.season.year;
                         const leagueInfo = LEAGUE_NAMES[slug] || { name: slug, code: slug.split("/")[1].toUpperCase(), sport: "football" };
-                        const events = data.events || [];
-                        events.forEach(evt => {
-                            const match = parseESPNEvent(evt, leagueInfo, slug);
-                            if (match) fetched.push(match);
-                        });
+                        parseESPNLeagueEvents(data, leagueInfo, slug).forEach(match => fetched.push(match));
                     } catch (err) {
                         console.warn("ESPN fetch error for", slug, err.message);
                     }
@@ -1863,7 +1954,9 @@ async function runAPIMatches(opts = {}) {
         sweepTimers.forEach(clearTimeout);
     }
 
-    if (apiMatches.length === 0 && fetched.length === 0) {
+    // ESPN answering with "nothing scheduled" (a rugby or baseball off-day, say) is not an
+    // outage: only fall back to simulation when not a single league responded.
+    if (apiMatches.length === 0 && fetched.length === 0 && leaguesAnswered === 0) {
         // No data at all — API unreachable or blocked. Fall back gracefully.
         apiLoading = false;
         console.info(`ESPN fetch failed on all transports after ${Math.round((Date.now() - sweepStart) / 1000)}s (${sweepAbort.signal.aborted ? "gave up early" : "every league tried"}). Falling back to simulation.`);
@@ -1872,7 +1965,7 @@ async function runAPIMatches(opts = {}) {
         return;
     }
 
-    if (fetched.length === 0) {
+    if (fetched.length === 0 && leaguesAnswered === 0) {
         // Refresh failed but we still have the previous data — keep showing it
         apiLoading = false;
         const keepUpdatedEl = document.getElementById("api-last-updated");
@@ -1916,6 +2009,7 @@ async function runAPIMatches(opts = {}) {
 
     renderMatches();
     renderTicker();
+    refreshSportHub();
 
     // Mirror this sweep (and the view behind it) so a reload replays it instantly
     // instead of starting from the simulation dataset.
@@ -2094,13 +2188,13 @@ function oddsCapsulesHTML(match) {
     return capsules.join("");
 }
 
-function pickNewsCategory(article) {
+function pickNewsCategory(article, fallback) {
     const cats = Array.isArray(article.categories) ? article.categories : [];
     const league = cats.find(c => c.type === "league" && c.description);
     if (league) return league.description;
     const topic = cats.find(c => c.type === "topic" && c.description);
     if (topic) return topic.description;
-    return "Soccer";
+    return fallback || "Soccer";
 }
 
 /* Does an ESPN news article carry video?
@@ -2214,7 +2308,79 @@ async function loadLiveStandings(leagueKey) {
 }
 
 // Latest headlines from the ESPN news endpoint - now worldwide (aggregates multiple leagues for variety)
-async function loadLiveNews() {
+/* Per-sport news. Football / Worldwide / All keep the soccer feeds below; every other
+   sport page gets headlines from its own ESPN feeds. A sport with no feed at all
+   (rugby: ESPN serves no rugby news; the uncovered tabs) resolves to an empty list so
+   the page shows an honest empty state — never football stories under another badge. */
+const SOCCER_NEWS_SPORTS = new Set(["all", "worldwide", "football"]);
+function isScopedSport(sport) { return !SOCCER_NEWS_SPORTS.has(sport); }
+const SPORT_NEWS_FEEDS = {
+    nfl: ["football/nfl"],
+    basketball: ["basketball/nba", "basketball/wnba", "basketball/mens-college-basketball"],
+    tennis: ["tennis/atp", "tennis/wta"],
+    baseball: ["baseball/mlb"],
+    icehockey: ["hockey/nhl"],
+    f1: ["racing/f1"]
+};
+const SPORT_NEWS_FALLBACK_LINK = {
+    nfl: "https://www.espn.com/nfl/",
+    basketball: "https://www.espn.com/nba/",
+    tennis: "https://www.espn.com/tennis/",
+    baseball: "https://www.espn.com/mlb/",
+    icehockey: "https://www.espn.com/nhl/",
+    f1: "https://www.espn.com/f1/"
+};
+function sportDisplayName(sport) {
+    try {
+        const pg = window.SportPages && SportPages.pageFor(sport);
+        if (pg && pg.name) return pg.name;
+    } catch (e) {}
+    return sport ? sport.charAt(0).toUpperCase() + sport.slice(1) : "";
+}
+function newsFeedLabel(path) {
+    const info = LEAGUE_NAMES[path];
+    if (info && info.code) return info.code;
+    return String(path).split("/").pop().toUpperCase();
+}
+
+async function loadSportNews(sport) {
+    const feeds = SPORT_NEWS_FEEDS[sport] || [];
+    const fallbackLink = SPORT_NEWS_FALLBACK_LINK[sport] || "https://www.espn.com/";
+    const fallbackCat = sportDisplayName(sport);
+    const all = [];
+    await Promise.allSettled(feeds.map(async path => {
+        try {
+            const data = await fetchESPNPath(`/apis/site/v2/sports/${path}/news?limit=8`, {
+                validate: d => !!(d && Array.isArray(d.articles))
+            });
+            (data.articles || []).forEach(a => {
+                all.push({
+                    id: `${path}-${a.id}`,
+                    raw: a,
+                    leagueLabel: newsFeedLabel(path),
+                    title: a.headline || a.description || "Untitled",
+                    category: pickNewsCategory(a, fallbackCat),
+                    time: timeAgoString(a.published),
+                    published: a.published,
+                    image: (Array.isArray(a.images) && a.images[0]) ? a.images[0].url : "",
+                    link: (a.links && a.links.web && a.links.web.href) || fallbackLink,
+                    hasVideo: articleIsVideo(a)
+                });
+            });
+        } catch (e) { /* ignore per-feed failure */ }
+    }));
+    const seen = new Set();
+    const uniq = [];
+    all.sort(byPublishedDesc).forEach(item => {
+        if (seen.has(item.title) || uniq.length >= 8) return;
+        seen.add(item.title);
+        uniq.push(item);
+    });
+    return uniq;
+}
+
+async function loadLiveNews(sport = currentSport) {
+    if (isScopedSport(sport)) return loadSportNews(sport);
     // Try a few top leagues for richer news coverage, fallback to EPL
     const newsLeagues = ["eng.1", "esp.1", "uefa.champions", "usa.1", "mex.1"];
     const all = [];
@@ -2272,12 +2438,13 @@ let liveHighlights = null;
 let liveHighlightsAt = 0;
 const HIGHLIGHTS_TTL_MS = 5 * 60 * 1000;
 
-async function loadLiveHighlights(force = false) {
+async function loadLiveHighlights(force = false, sport = currentSport) {
     if (!isApiMode) return null;
     if (!force && liveHighlights && Date.now() - liveHighlightsAt < HIGHLIGHTS_TTL_MS) return liveHighlights;
+    const scoped = isScopedSport(sport);
     try {
         // Pull video news from top leagues across Europe and the Americas (worldwide coverage)
-        const videoLeagues = [
+        const videoLeagues = scoped ? (SPORT_NEWS_FEEDS[sport] || []) : [
             "eng.1", "esp.1", "ger.1", "ita.1", "fra.1",
             "uefa.champions", "uefa.europa",
             "ned.1", "por.1", "usa.1", "mex.1", "bra.1"
@@ -2285,7 +2452,7 @@ async function loadLiveHighlights(force = false) {
         const vids = [];
         await Promise.allSettled(videoLeagues.map(async slug => {
             try {
-                const data = await fetchESPNPath(`/apis/site/v2/sports/soccer/${slug}/news?limit=20`, {
+                const data = await fetchESPNPath(`/apis/site/v2/sports/${scoped ? slug : "soccer/" + slug}/news?limit=20`, {
                     validate: d => !!(d && Array.isArray(d.articles))
                 });
                 (data.articles || []).forEach(a => {
@@ -2296,7 +2463,7 @@ async function loadLiveHighlights(force = false) {
                         id: `hl-${a.id}`,
                         title: a.headline || a.description || "Highlight",
                         league: slug,
-                        category: pickNewsCategory(a),
+                        category: pickNewsCategory(a, scoped ? sportDisplayName(sport) : undefined),
                         time: timeAgoString(a.published),
                         rawPublished: a.published,
                         published: a.published,
@@ -2318,6 +2485,8 @@ async function loadLiveHighlights(force = false) {
             seen.add(v.id);
             uniq.push(v);
         });
+        // The user moved to another sport while this was in flight: don't cache it
+        if (sport !== currentSport) return null;
         liveHighlights = uniq.slice(0, 6);
         liveHighlightsAt = Date.now();
         return liveHighlights;
@@ -2417,7 +2586,9 @@ function loadLiveExtras(force = false) {
     }
 
     if (force || !liveNews || Date.now() - liveNewsAt > LIVE_EXTRAS_TTL_MS) {
-        loadLiveNews().then(rows => {
+        const newsSport = currentSport;
+        loadLiveNews(newsSport).then(rows => {
+            if (newsSport !== currentSport) return;   // stale: the tab changed meanwhile
             if (rows && rows.length) {
                 liveNews = rows;
                 liveNewsAt = Date.now();
@@ -2427,7 +2598,9 @@ function loadLiveExtras(force = false) {
     }
 
     if (force || !liveHighlights || Date.now() - liveHighlightsAt > HIGHLIGHTS_TTL_MS) {
-        loadLiveHighlights().then(rows => {
+        const hlSport = currentSport;
+        loadLiveHighlights(false, hlSport).then(rows => {
+            if (hlSport !== currentSport) return;
             if (rows && rows.length) {
                 if (isApiMode) {
                     // Merge highlights into news feed with priority (video first)
@@ -2858,6 +3031,13 @@ function initTickerDrag() {
     });
 }
 
+const TICKER_PX_PER_SEC = 40;   // a comfortable reading pace on desktop and phones alike
+function applyTickerSpeed() {
+    const half = tickerSlider.scrollWidth / 2;
+    if (!half) return;
+    tickerSlider.style.animationDuration = Math.max(12, half / TICKER_PX_PER_SEC).toFixed(1) + "s";
+}
+
 function renderTicker() {
     const strip = document.querySelector(".ticker-strip");
     const prevScroll = strip ? strip.scrollLeft : 0;
@@ -2880,8 +3060,12 @@ function renderTicker() {
         return;
     }
 
-    // Always double for seamless infinite marquee — desktop and mobile both auto-scroll
-    const tickerMatches = [...tickerSource, ...tickerSource];
+    // The marquee translates the track by -50%, so it is built from two identical
+    // halves. `copies` is how many times the match list is repeated inside each half.
+    const fillTicker = (copies) => {
+    tickerSlider.innerHTML = "";
+    const tickerMatches = [];
+    for (let i = 0; i < copies * 2; i++) tickerMatches.push(...tickerSource);
 
     tickerMatches.forEach((match) => {
         const card = document.createElement("div");
@@ -2923,6 +3107,20 @@ function renderTicker() {
 
         tickerSlider.appendChild(card);
     });
+    };
+    fillTicker(1);
+
+    // The speed used to be a fixed 55 s / 45 s per loop whatever the content: two
+    // matches whirled past, two hundred crawled. Fix the speed in pixels per second
+    // instead and derive the loop time from the track's real width. With only a few
+    // cards one half is narrower than the strip and the loop would show a gap, so the
+    // list is repeated until a half is at least as wide as the strip.
+    if (strip && tickerSlider.scrollWidth > 0) {
+        const oneCopy = tickerSlider.scrollWidth / 2;
+        const copies = Math.min(12, Math.max(1, Math.ceil(strip.clientWidth / oneCopy)));
+        if (copies > 1) fillTicker(copies);
+    }
+    applyTickerSpeed();
 
     // Preserve manual swipe position across re-renders (mobile) - if user has scrolled, keep it
     if (strip && !wasDragging && window.innerWidth <= 768) {
@@ -3023,9 +3221,47 @@ function renderScorers() {
 }
 
 // Render News
+// News label shown after the time: our own feed label, else the soccer league code
+function newsLeagueLabel(news) {
+    if (news.leagueLabel) return news.leagueLabel;
+    if (!news.leagueSlug) return "";
+    const info = LEAGUE_NAMES["soccer/" + news.leagueSlug];
+    return info ? info.code : news.leagueSlug;
+}
+
+// Sport pages talk about their own sport: retitle the news block, drop the
+// football-only "View All News" link, and say so plainly when there is nothing.
+function syncNewsChrome(scoped) {
+    const title = document.getElementById("home-news-title");
+    if (title) {
+        // i18n.js re-translates every [data-i18n] node on a language change, which
+        // would put "Football" back: detach the key while a sport-specific title is up
+        if (scoped) title.removeAttribute("data-i18n"); else title.setAttribute("data-i18n", "home.newstitle");
+        title.textContent = scoped ? tf("news.sport.title", { sport: sportDisplayName(currentSport) }) : t("home.newstitle");
+    }
+    const all = document.querySelector("#home-news-section .view-all-link");
+    if (all) all.hidden = scoped;
+    // The stock subtitle talks about transfer rumours: football-only wording
+    const subt = document.querySelector("#home-news-section .home-news-subtitle");
+    if (subt) subt.hidden = scoped;
+}
+
+function newsEmptyHTML() {
+    return `<div class="sport-hub-empty" style="grid-column:1/-1">${escHtml(tf("news.sport.none", { sport: sportDisplayName(currentSport) }))}</div>`;
+}
+
 function renderNews() {
+    const scoped = isScopedSport(currentSport);
     const useLive = isApiMode && liveNews && liveNews.length;
-    const list = useLive ? liveNews : MOCK_NEWS;
+    // A non-football sport must never fall back to the football MOCK_NEWS
+    const list = useLive ? liveNews : (scoped ? [] : MOCK_NEWS);
+    syncNewsChrome(scoped);
+    if (scoped && !list.length) {
+        if (newsContainer) newsContainer.innerHTML = newsEmptyHTML();
+        const hg = document.getElementById("home-news-grid");
+        if (hg) hg.innerHTML = newsEmptyHTML();
+        return;
+    }
 
     if (newsContainer) {
         newsContainer.innerHTML = "";
@@ -3061,7 +3297,7 @@ function renderNews() {
                 <div class="news-meta">
                     <span class="news-category-badge">${news.category}${isVideo ? ' · 🎥 Highlight' : ''}</span>
                     <h4 class="news-title">${news.title}</h4>
-                    <span class="news-time">${news.time}${news.leagueSlug ? ' · ' + (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : ''}</span>
+                    <span class="news-time">${news.time}${newsLeagueLabel(news) ? ' · ' + escHtml(newsLeagueLabel(news)) : ''}</span>
                 </div>
             `;
             newsContainer.appendChild(card);
@@ -3097,7 +3333,7 @@ function renderNews() {
             }
 
             const thumbStyle = thumbBgStyle(news.image, news.grad || "linear-gradient(135deg, #00f2fe, #4facfe)");
-            const leagueLabel = news.leagueSlug ? (LEAGUE_NAMES['soccer/'+news.leagueSlug] ? LEAGUE_NAMES['soccer/'+news.leagueSlug].code : news.leagueSlug) : '';
+            const leagueLabel = newsLeagueLabel(news);
 
             card.innerHTML = `
                 <div class="home-news-thumb" style="${thumbStyle}">
@@ -3120,7 +3356,9 @@ function renderHighlights() {
     const strip = document.getElementById("highlights-strip");
     const track = document.getElementById("highlights-track");
     if (!strip || !track) return;
-    const items = (isApiMode && liveHighlights && liveHighlights.length) ? liveHighlights : MOCK_HIGHLIGHTS;
+    // Football MOCK_HIGHLIGHTS are only for the football-style tabs; other sports show
+    // their own video clips or nothing
+    const items = (isApiMode && liveHighlights && liveHighlights.length) ? liveHighlights : (isScopedSport(currentSport) ? [] : MOCK_HIGHLIGHTS);
     if (!items || !items.length) {
         strip.hidden = true;
         return;
@@ -3134,7 +3372,8 @@ function renderHighlights() {
         a.target = "_blank";
         a.rel = "noopener";
         const thumbStyle = thumbBgStyle(item.image, "linear-gradient(135deg, #243b55, #0b0e14)");
-        const leagueLabel = item.league ? (LEAGUE_NAMES['soccer/'+item.league] ? LEAGUE_NAMES['soccer/'+item.league].name : item.league) : (item.category || "Football");
+        const leagueInfo = item.league ? (LEAGUE_NAMES['soccer/'+item.league] || LEAGUE_NAMES[item.league]) : null;
+        const leagueLabel = item.league ? (leagueInfo ? leagueInfo.name : item.league) : (item.category || "Football");
         const safeTitle = (item.title || "").replace(/</g, "&lt;");
         a.innerHTML = `
             <div class="highlight-thumb" style="${thumbStyle}">
@@ -3184,6 +3423,237 @@ function initHighlightsDrag() {
     window.addEventListener("mouseup", end);
     track.addEventListener("click", (e) => { if (track.dataset.suppressClick === "1") { e.preventDefault(); e.stopPropagation(); } }, true);
 }
+
+/* ---------- SPORT HUB: recent results + upcoming fixtures for the selected sport ----------
+   Sport pages show three things under the hero: the sport's own news (renderNews), the
+   matches it finished recently and the ones still to come (this block). ESPN's scoreboard
+   rejects date *ranges* on nearly every league, so the window is built from one
+   `?dates=YYYYMMDD` request per league per day, chunked like the main sweep and cached
+   for five minutes. The hub reads only its own cache — the main list below keeps its own
+   sweep and date strip untouched. Simulation Mode filters MOCK_MATCHES instead. */
+const SPORT_HUB_LEAGUES = {
+    nfl: ["football/nfl"],
+    football: ["soccer/eng.1", "soccer/esp.1", "soccer/ger.1", "soccer/ita.1", "soccer/fra.1",
+               "soccer/uefa.champions", "soccer/uefa.europa", "soccer/ken.1"],
+    basketball: ["basketball/nba", "basketball/wnba", "basketball/euroleague", "basketball/mens-college-basketball"],
+    tennis: ["tennis/atp", "tennis/wta"],
+    baseball: ["baseball/mlb"],
+    icehockey: ["hockey/nhl"],
+    rugby: ["rugby/180659", "rugby/244293", "rugby/164205", "rugby/267979", "rugby/270557",
+            "rugby/270559", "rugby/242041", "rugby/271937"]
+};
+SPORT_HUB_LEAGUES.worldwide = SPORT_HUB_LEAGUES.football;
+
+const HUB_DAYS_BACK = 3;
+const HUB_DAYS_AHEAD = 4;
+// Weekly sports would be empty most days on the default window
+const HUB_WINDOWS = { nfl: { back: 7, ahead: 7 }, rugby: { back: 4, ahead: 7 } };
+function hubWindow(sport) { return HUB_WINDOWS[sport] || { back: HUB_DAYS_BACK, ahead: HUB_DAYS_AHEAD }; }
+const HUB_LIST_MAX = 8;
+const HUB_TTL_MS = 5 * 60 * 1000;
+const HUB_MAX_MS = 45000;
+const sportHubCache = {};     // sport -> { at, matches }
+const sportHubLoading = {};   // sport -> bool
+const sportHubFailed = {};    // sport -> bool
+let sportHubShown = new Map(); // match id -> match, for the click handler
+
+function hubDayList(sport) {
+    const base = new Date();
+    base.setHours(12, 0, 0, 0);
+    const out = [];
+    const win = hubWindow(sport);
+    for (let i = -win.back; i <= win.ahead; i++) {
+        const d = new Date(base);
+        d.setDate(d.getDate() + i);
+        out.push(toYYYYMMDD(d));
+    }
+    return out;
+}
+
+async function loadSportHub(sport) {
+    const leagues = SPORT_HUB_LEAGUES[sport] || [];
+    const days = hubDayList(sport);
+    const tasks = [];
+    leagues.forEach(slug => days.forEach(day => tasks.push({ slug, day })));
+    const byId = new Map();
+    let answered = 0;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), HUB_MAX_MS);
+    try {
+        const CHUNK = 8;
+        for (let i = 0; i < tasks.length; i += CHUNK) {
+            if (ctl.signal.aborted) break;
+            await Promise.allSettled(tasks.slice(i, i + CHUNK).map(async ({ slug, day }) => {
+                try {
+                    const data = await fetchESPNPath(`/apis/site/v2/sports/${slug}/scoreboard?dates=${day}`, { signal: ctl.signal, quiet: true });
+                    answered++;
+                    const info = LEAGUE_NAMES[slug] || { name: slug, code: slug.split("/")[1].toUpperCase(), sport: sport === "worldwide" ? "football" : sport };
+                    parseESPNLeagueEvents(data, info, slug).forEach(m => { if (!byId.has(m.id)) byId.set(m.id, m); });
+                } catch (e) { /* one league/day failing must not sink the rest */ }
+            }));
+            if (i + CHUNK < tasks.length) await new Promise(r => setTimeout(r, 150));
+        }
+    } finally {
+        clearTimeout(timer);
+    }
+    if (!answered) throw new Error("no scoreboard answered");
+    return Array.from(byId.values());
+}
+
+// Fetch (when needed) and paint. Safe to call often: cached for HUB_TTL_MS, single flight per sport.
+function refreshSportHub(force = false) {
+    const sport = currentSport;
+    const hub = document.getElementById("sport-hub");
+    if (!hub) return;
+    renderSportHub();
+    if (!isApiMode || !SPORT_HUB_LEAGUES[sport]) return;
+    const cached = sportHubCache[sport];
+    if (!force && cached && Date.now() - cached.at < HUB_TTL_MS) return;
+    if (sportHubLoading[sport]) return;
+    sportHubLoading[sport] = true;
+    loadSportHub(sport).then(matches => {
+        sportHubCache[sport] = { at: Date.now(), matches };
+        sportHubFailed[sport] = false;
+    }).catch(err => {
+        sportHubFailed[sport] = true;
+        console.info("Sport hub fetch failed:", err.message);
+    }).finally(() => {
+        sportHubLoading[sport] = false;
+        if (currentSport === sport) renderSportHub();
+    });
+}
+
+function hubWhenHTML(m, st) {
+    const at = m.date ? new Date(m.date) : null;
+    const valid = at && !isNaN(at.getTime());
+    const dayLabel = valid ? at.toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" }) : "";
+    if (st.isLive || st.isHT) return `<strong class="hub-live">${escHtml(st.isHT ? "HT" : "LIVE")}</strong><span>${escHtml(st.isHT ? "" : (m.time || ""))}</span>`;
+    if (st.isFinished) return `<strong>${escHtml(st.label)}</strong><span>${escHtml(dayLabel)}</span>`;
+    return `<strong>${escHtml(dayLabel || t("date.today"))}</strong><span>${escHtml(m.time || "")}</span>`;
+}
+
+function hubRowHTML(m) {
+    const st = getMatchStatusInfo(m);
+    const showScore = st.isLive || st.isHT || st.isFinished;
+    const homeWon = st.isFinished && m.homeScore > m.awayScore;
+    const awayWon = st.isFinished && m.awayScore > m.homeScore;
+    const center = showScore
+        ? `<span class="hub-score">${m.homeScore} – ${m.awayScore}</span>`
+        : `<span class="hub-score upcoming">vs</span>`;
+    const team = (name, code, logo, cls, lost) =>
+        `<span class="hub-team ${cls}${lost ? " loser" : ""}">` + (cls === "away" ? "" : teamBadgeHTML(escHtml(String(code || "").slice(0, 4)), logo, 20))
+        + `<span class="hub-name">${escHtml(name)}</span>` + (cls === "away" ? teamBadgeHTML(escHtml(String(code || "").slice(0, 4)), logo, 20) : "") + `</span>`;
+    return `<button type="button" class="hub-row" data-hub-id="${escHtml(m.id)}">`
+        + `<span class="hub-when">${hubWhenHTML(m, st)}</span>`
+        + team(m.homeTeam, m.homeCode, m.homeLogo, "home", awayWon)
+        + center
+        + team(m.awayTeam, m.awayCode, m.awayLogo, "away", homeWon)
+        + `<span class="hub-league">${escHtml(m.league || "")}</span>`
+        + `</button>`;
+}
+
+function hubSplit(matches) {
+    const now = Date.now();
+    const finished = [], live = [], upcoming = [];
+    (matches || []).forEach(m => {
+        const st = getMatchStatusInfo(m);
+        const at = Date.parse(m.date || "") || 0;
+        if (st.isFinished) finished.push({ m, at });
+        else if (st.isLive || st.isHT) live.push({ m, at });
+        else if ((!at || at >= now - 4 * 3600 * 1000) && !(m.homeTeam === "TBD" && m.awayTeam === "TBD")) upcoming.push({ m, at });   // drop stale/postponed leftovers and TBD-vs-TBD placeholders
+    });
+    finished.sort((a, b) => b.at - a.at);
+    upcoming.sort((a, b) => a.at - b.at);
+    return {
+        results: finished.slice(0, HUB_LIST_MAX).map(x => x.m),
+        upcoming: live.map(x => x.m).concat(upcoming.map(x => x.m)).slice(0, HUB_LIST_MAX)
+    };
+}
+
+function renderSportHubF1(resEl, upEl) {
+    const fmt = { weekday: "short", month: "short", day: "numeric" };
+    const season = f1Data && f1Data.season && f1Data.season.RaceTable;
+    const races = (season && season.Races) || [];
+    const now = Date.now();
+    const next = races.map(r => ({ r, at: f1RaceDateTime(r) })).filter(x => x.at && x.at.getTime() > now - 3 * 3600000).slice(0, HUB_LIST_MAX > 5 ? 5 : HUB_LIST_MAX);
+    upEl.innerHTML = next.length ? next.map(x =>
+        `<div class="hub-row hub-f1-row"><span class="hub-when"><strong>${escHtml(x.at.toLocaleDateString(appLocale(), fmt))}</strong><span>${escHtml(x.at.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" }))}</span></span>`
+        + `<span class="hub-team"><span class="hub-name">${escHtml(x.r.raceName || "Grand Prix")}</span></span>`
+        + `<span class="hub-score upcoming">R${escHtml(x.r.round || "")}</span>`
+        + `<span class="hub-league">${escHtml((x.r.Circuit && x.r.Circuit.circuitName) || "")}</span></div>`).join("")
+        : `<div class="sport-hub-empty">${escHtml(tf("hub.none.upcoming", { n: "—" }))}</div>`;
+    const lastRaces = (f1Data && f1Data.last && f1Data.last.RaceTable && f1Data.last.RaceTable.Races) || [];
+    const lr = lastRaces[0];
+    if (lr && lr.Results && lr.Results.length) {
+        resEl.innerHTML = `<div class="sport-hub-caption">${escHtml(tf("f1.last", { n: lr.raceName || "" }))}</div>`
+            + lr.Results.slice(0, 5).map(r =>
+                `<div class="hub-row hub-f1-row"><span class="hub-when"><strong>P${escHtml(r.position)}</strong><span>${escHtml(r.points)} pts</span></span>`
+                + `<span class="hub-team"><span class="hub-name">${escHtml(f1DriverName(r.Driver))}</span></span>`
+                + `<span class="hub-score upcoming">${escHtml(r.Constructor ? r.Constructor.name : "")}</span></div>`).join("");
+    } else {
+        resEl.innerHTML = `<div class="sport-hub-empty">${escHtml(tf("hub.none.results", { n: "—" }))}</div>`;
+    }
+}
+
+function renderSportHub() {
+    const hub = document.getElementById("sport-hub");
+    if (!hub) return;
+    const sport = currentSport;
+    const isF1 = sport === "f1";
+    if (!isF1 && !SPORT_HUB_LEAGUES[sport]) { hub.hidden = true; return; }
+    hub.hidden = false;
+    const resEl = document.getElementById("sport-hub-results");
+    const upEl = document.getElementById("sport-hub-upcoming");
+    const sub = document.getElementById("sport-hub-sub");
+    if (!resEl || !upEl) return;
+    if (sub) sub.textContent = isF1 ? sportDisplayName(sport)
+        : tf("hub.sub", { sport: sportDisplayName(sport), b: hubWindow(sport).back, a: hubWindow(sport).ahead });
+
+    sportHubShown = new Map();
+    if (isF1) {
+        if (!f1Data) {
+            const msg = `<div class="sport-hub-empty">${escHtml(t(isApiMode ? (f1Failed && !f1Loading ? "hub.failed" : "hub.loading") : "f1.demo"))}</div>`;
+            resEl.innerHTML = msg; upEl.innerHTML = msg;
+        } else {
+            renderSportHubF1(resEl, upEl);
+        }
+        return;
+    }
+
+    let matches = null;
+    if (!isApiMode) {
+        matches = MOCK_MATCHES.filter(m => sport === "worldwide" ? m.sport === "football" : m.sport === sport);
+    } else if (sportHubCache[sport]) {
+        // The main sweep refreshes every minute; the hub cache only every few. Prefer
+        // the sweep's copy of a match so a live score here never lags the list below.
+        const fresh = new Map(apiMatches.map(m => [m.id, m]));
+        matches = sportHubCache[sport].matches.map(m => fresh.get(m.id) || m);
+    } else if (!sportHubFailed[sport]) {
+        // Seed from the main sweep while the day-by-day fetch is still running
+        const slugs = new Set(SPORT_HUB_LEAGUES[sport]);
+        const seed = apiMatches.filter(m => slugs.has(m.leagueSlug));
+        if (seed.length) matches = seed;
+    }
+    if (!matches) {
+        const msg = `<div class="sport-hub-empty">${escHtml(t(sportHubFailed[sport] ? "hub.failed" : "hub.loading"))}</div>`;
+        resEl.innerHTML = msg; upEl.innerHTML = msg;
+        return;
+    }
+    const { results, upcoming } = hubSplit(matches);
+    results.concat(upcoming).forEach(m => sportHubShown.set(m.id, m));
+    resEl.innerHTML = results.length ? results.map(hubRowHTML).join("")
+        : `<div class="sport-hub-empty">${escHtml(tf("hub.none.results", { n: hubWindow(sport).back }))}</div>`;
+    upEl.innerHTML = upcoming.length ? upcoming.map(hubRowHTML).join("")
+        : `<div class="sport-hub-empty">${escHtml(tf("hub.none.upcoming", { n: hubWindow(sport).ahead }))}</div>`;
+}
+
+// Rows open the same match page the cards do
+document.addEventListener("click", (e) => {
+    const row = e.target.closest && e.target.closest(".hub-row[data-hub-id]");
+    if (!row) return;
+    const m = sportHubShown.get(row.getAttribute("data-hub-id"));
+    if (m) openMatchPage(m);
+});
 
 // Render Matches List
 // --- FIXTURES CALENDAR (ESPN scoreboard ?dates= support) ---
@@ -3263,6 +3733,9 @@ function f1DriverName(d) {
 }
 
 async function loadF1Data(force = false) {
+    // The Formula 1 page has its own headlines (ESPN racing/f1); the football
+    // sweep that normally kicks the news loader never runs on this tab.
+    if (currentSport === "f1" && isApiMode) loadLiveExtras();
     if (f1Loading) return;
     if (!force && f1Data && Date.now() - f1DataAt < F1_TTL_MS) {
         if (currentSport === "f1") renderF1();
@@ -3278,7 +3751,9 @@ async function loadF1Data(force = false) {
         ]);
         f1Data = { season: results[0], drivers: results[1], last: results[2] };
         f1DataAt = Date.now();
+        f1Failed = false;
     } catch (err) {
+        f1Failed = true;
         console.warn("F1 fetch failed:", err.message);
     } finally {
         f1Loading = false;
@@ -3293,6 +3768,7 @@ function f1FlagImg(nationality) {
 }
 
 function renderF1() {
+    try { renderSportHub(); } catch (e) { console.warn("sport hub render failed:", e); }
     matchesContainer.innerHTML = "";
     const section = document.querySelector(".live-scores-section");
     if (section) section.classList.add("f1-mode");
@@ -3675,7 +4151,7 @@ function getMatchStatusInfo(match) {
     let priority = 3;
     if (isLive) { label = "LIVE"; cls = "status-live"; priority = 0; }
     else if (isHT) { label = "HT"; cls = "status-ht"; priority = 1; }
-    else if (isFinished) { label = "FT"; cls = "status-ft"; priority = 2; }
+    else if (isFinished) { label = (match.sport && match.sport !== "football") ? "Final" : "FT"; cls = "status-ft"; priority = 2; }
     else { label = timeStr || "TODAY"; cls = "status-today"; priority = 3; }
     return { isLive, isHT, isFinished, isToday, label, cls, priority };
 }
@@ -3716,6 +4192,7 @@ function formatMatchDate(iso) {
 }
 
 function renderMatches() {
+    try { renderSportHub(); } catch (e) { console.warn("sport hub render failed:", e); }
     const scoresSection = document.querySelector(".live-scores-section");
     if (currentSport === "f1") { renderF1(); return; }
     if (scoresSection) scoresSection.classList.remove("f1-mode");
@@ -4538,25 +5015,40 @@ function initEventHandlers() {
     
     // Sports navigation filtering
     const sportTabs = document.querySelectorAll(".sport-tab");
+    // Selecting a sport: from a tab click, or from Back/Forward between sport pages.
+    const selectSport = (sport, urlMode) => {
+        sportTabs.forEach((t) => t.classList.toggle("active", t.getAttribute("data-sport") === sport));
+        currentSport = sport;
+        // Each sport has its own address (/basketball.html …); move there without reloading
+        syncSportUrl(urlMode);
+        // Reset league filter when switching sports/tabs so the new sport isn't hidden
+        const wasLeagueFilter = currentLeague !== "all";
+        currentLeague = "all";
+        document.querySelectorAll(".league-row").forEach((r) => r.classList.remove("active"));
+        if (wasLeagueFilter) setFilter("all");
+        // News / clips belong to one sport: drop the previous sport's and fetch this one's
+        liveNews = null; liveNewsAt = 0; liveHighlights = null; liveHighlightsAt = 0;
+        renderNews();
+        renderHighlights();
+        refreshSportHub();
+        if (isApiMode) loadLiveExtras();
+        if (currentSport === "f1") {
+            loadF1Data();
+        } else if (isApiMode) {
+            // Re-fetch API data for the newly selected sport
+            loadAPIMatches();
+        } else {
+            renderMatches();
+        }
+    };
     sportTabs.forEach((tab) => {
-        tab.addEventListener("click", () => {
-            sportTabs.forEach((t) => t.classList.remove("active"));
-            tab.classList.add("active");
-            currentSport = tab.getAttribute("data-sport");
-            // Reset league filter when switching sports/tabs so the new sport isn't hidden
-            const wasLeagueFilter = currentLeague !== "all";
-            currentLeague = "all";
-            document.querySelectorAll(".league-row").forEach((r) => r.classList.remove("active"));
-            if (wasLeagueFilter) setFilter("all");
-            if (currentSport === "f1") {
-                loadF1Data();
-            } else if (isApiMode) {
-                // Re-fetch API data for the newly selected sport
-                loadAPIMatches();
-            } else {
-                renderMatches();
-            }
-        });
+        tab.addEventListener("click", () => selectSport(tab.getAttribute("data-sport"), "push"));
+    });
+    // Back / Forward between sport pages: the address already changed, so just follow it
+    window.addEventListener("popstate", () => {
+        const sport = sportFromUrl();
+        if (sport === currentSport) return;
+        selectSport(sport, "replace");
     });
     
     // Live Scores lists filtering tabs
@@ -4826,6 +5318,7 @@ function initEventHandlers() {
     navHome.addEventListener("click", (e) => {
         e.preventDefault();
         currentSport = "all";
+        syncSportUrl("push");
         currentLeague = "all";
         selectedDate = null;
         renderDateStrip();
@@ -5136,6 +5629,17 @@ function updateHomeSEO(matches) {
                 url: 'https://livematches.hyper.co.ke/' + matchPageUrl(m)
             }));
         if (!items.length) return;
+        // On a sport page (/basketball.html …) describe that page rather than "football"
+        const sp = window.SportPages;
+        const sportPage = sp && currentSport !== 'all' ? sp.pageFor(currentSport) : null;
+        if (sportPage) {
+            SEO.itemList(items, 'Live ' + sportPage.name + ' Matches Today');
+            SEO.breadcrumb([
+                { name: 'Home', url: 'https://livematches.hyper.co.ke/' },
+                { name: sportPage.name, url: sp.urlFor(currentSport) }
+            ]);
+            return;
+        }
         SEO.itemList(items, 'Live Football Matches Today');
         SEO.breadcrumb([
             { name: 'Home', url: 'https://livematches.hyper.co.ke/' },

@@ -116,7 +116,8 @@ function renderHighlightsGrid() {
             const t = (h.title || "").toLowerCase();
             const home = (h.homeTeam || "").toLowerCase();
             const away = (h.awayTeam || "").toLowerCase();
-            return t.includes(q) || home.includes(q) || away.includes(q);
+            const lg = (h.leagueName || "").toLowerCase();
+            return t.includes(q) || home.includes(q) || away.includes(q) || lg.includes(q);
         });
     }
 
@@ -129,8 +130,9 @@ function renderHighlightsGrid() {
         const title = escapeHtml(item.title);
         const league = escapeHtml(item.leagueName || item.leagueCode);
         const time = escapeHtml(item.time || "Recent");
-        const img = escapeHtml(item.image || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80");
+        const img = escapeHtml(item.image || "icon-512.png");
         const hlUrl = matchHighlightUrl(item.homeTeam, item.awayTeam, item.leagueName || item.leagueCode);
+        const sample = item.isSample ? `<span class="news-badge" title="Illustrative example — live highlights are unavailable">Sample</span>` : "";
 
         return `
             <div class="highlight-hub-card">
@@ -141,7 +143,7 @@ function renderHighlightsGrid() {
                 <div class="highlight-hub-info">
                     <h3 class="highlight-hub-title">${title}</h3>
                     <div class="highlight-hub-meta">
-                        <span class="news-badge">${league}</span>
+                        <span class="news-badge">${league}</span>${sample}
                         <span>${time}</span>
                     </div>
                     <a href="${hlUrl}" target="_blank" rel="noopener" class="highlight-btn-watch">
@@ -153,70 +155,119 @@ function renderHighlightsGrid() {
     }).join("");
 }
 
+/* ESPN mirrors, tried in order: site.web.api first (the one the dashboard itself
+   prefers), then site.api. One mirror being blocked or slow no longer means "no data". */
+const ESPN_MIRRORS = ["https://site.web.api.espn.com", "https://site.api.espn.com"];
+const HIGHLIGHT_DAYS_BACK = 3;      // today + the three days before it
+const HIGHLIGHT_MAX_ITEMS = 60;
+
+async function espnJSON(path) {
+    for (const host of ESPN_MIRRORS) {
+        try {
+            const ctl = new AbortController();
+            const timer = setTimeout(() => ctl.abort(), 9000);
+            const r = await fetch(host + path, { signal: ctl.signal });
+            clearTimeout(timer);
+            if (!r.ok) continue;
+            const data = await r.json();
+            if (data && Array.isArray(data.events)) return data;
+        } catch (e) { /* next mirror */ }
+    }
+    return null;
+}
+
+function ymd(d) {
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
+// "Today" / "Yesterday" / "2d ago" — the old toLocaleDateString() was an unreadable 10/1/2026
+function relativeDay(iso) {
+    const d = iso ? new Date(iso) : null;
+    if (!d || isNaN(d.getTime())) return "Recent";
+    const a = new Date(); a.setHours(0, 0, 0, 0);
+    const b = new Date(d); b.setHours(0, 0, 0, 0);
+    const days = Math.round((a - b) / 86400000);
+    if (days <= 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days}d ago`;
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function eventToHighlight(e, l) {
+    const comp = (e.competitions && e.competitions[0]) || {};
+    const comps = comp.competitors || [];
+    const home = comps.find(c => c.homeAway === "home") || comps[0] || {};
+    const away = comps.find(c => c.homeAway === "away") || comps[1] || {};
+    const homeName = (home.team && home.team.displayName) || "Home";
+    const awayName = (away.team && away.team.displayName) || "Away";
+    const homeScore = home.score || "0";
+    const awayScore = away.score || "0";
+    // ESPN scoreboards carry no match photo, so the best image available is the home
+    // club's crest: a square, transparent PNG, flagged so the card shows it whole.
+    const crest = (home.team && home.team.logo) || "";
+    return {
+        id: e.id,
+        title: `${homeName} ${homeScore} - ${awayScore} ${awayName}: Match Highlights`,
+        homeTeam: homeName,
+        awayTeam: awayName,
+        score: `${homeScore} - ${awayScore}`,
+        leagueCode: l.code,
+        leagueName: l.name,
+        date: e.date || "",
+        time: relativeDay(e.date),
+        image: crest,
+        imageIsCrest: !!crest
+    };
+}
+
 async function fetchLiveHighlights() {
     const gridEl = document.getElementById("highlights-grid");
     const errorEl = document.getElementById("highlights-error");
     if (gridEl) gridEl.innerHTML = `<p class="loading-note" style="grid-column:1/-1;">Loading latest match highlights…</p>`;
     if (errorEl) errorEl.hidden = true;
 
-    try {
-        const scoreboardPromises = HIGHLIGHTS_LEAGUES.map(l =>
-            fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${l.slug}/scoreboard`)
-                .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                    const events = (data && data.events) || [];
-                    const finishedEvents = events.filter(e => {
-                        const status = e.status && e.status.type && e.status.type.state;
-                        return status === "post";
-                    });
-
-                    return finishedEvents.map(e => {
-                        const comp = (e.competitions && e.competitions[0]) || {};
-                        const comps = comp.competitors || [];
-                        const home = comps.find(c => c.homeAway === "home") || comps[0] || {};
-                        const away = comps.find(c => c.homeAway === "away") || comps[1] || {};
-                        const homeName = (home.team && home.team.displayName) || "Home";
-                        const awayName = (away.team && away.team.displayName) || "Away";
-                        const homeScore = home.score || "0";
-                        const awayScore = away.score || "0";
-                        const dateStr = e.date ? new Date(e.date).toLocaleDateString() : "Recent";
-                        // ESPN scoreboards carry no match photo, so the best image
-                        // available for a live highlight is the home club's crest:
-                        // a square, transparent PNG. Flagged so the card can display
-                        // it whole instead of cropping it to a band.
-                        const crest = (home.team && home.team.logo) || "";
-
-                        return {
-                            id: e.id,
-                            title: `${homeName} ${homeScore} - ${awayScore} ${awayName}: Match Highlights`,
-                            homeTeam: homeName,
-                            awayTeam: awayName,
-                            score: `${homeScore} - ${awayScore}`,
-                            leagueCode: l.code,
-                            leagueName: l.name,
-                            time: dateStr,
-                            image: crest || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
-                            imageIsCrest: !!crest,
-                            link: matchHighlightUrl(homeName, awayName, l.name)
-                        };
-                    });
-                })
-                .catch(() => [])
-        );
-
-        const results = await Promise.all(scoreboardPromises);
-        const liveItems = results.flat();
-
-        if (liveItems.length > 0) {
-            allHighlights = [...liveItems, ...CURATED_HIGHLIGHTS];
-        } else {
-            allHighlights = CURATED_HIGHLIGHTS;
-        }
-        renderHighlightsGrid();
-    } catch (err) {
-        allHighlights = CURATED_HIGHLIGHTS;
-        renderHighlightsGrid();
+    // One request per league per day: ESPN rejects ?dates=FROM-TO ranges
+    const days = [];
+    for (let i = 0; i <= HIGHLIGHT_DAYS_BACK; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        days.push(ymd(d));
     }
+    const jobs = [];
+    HIGHLIGHTS_LEAGUES.forEach(l => days.forEach(day => jobs.push({ l, day })));
+
+    let answered = 0;
+    const byId = new Map();
+    await Promise.all(jobs.map(async ({ l, day }) => {
+        const data = await espnJSON(`/apis/site/v2/sports/soccer/${l.slug}/scoreboard?dates=${day}`);
+        if (!data) return;
+        answered++;
+        data.events
+            .filter(e => e.status && e.status.type && e.status.type.state === "post" && e.status.type.completed !== false)
+            .forEach(e => {
+                const item = eventToHighlight(e, l);
+                if (!byId.has(item.id)) byId.set(item.id, item);
+            });
+    }));
+
+    const live = Array.from(byId.values())
+        .sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0))
+        .slice(0, HIGHLIGHT_MAX_ITEMS);
+
+    if (live.length) {
+        allHighlights = live;
+    } else if (answered) {
+        // ESPN answered: there simply are no finished matches in the window (international break…)
+        allHighlights = [];
+        if (gridEl) gridEl.innerHTML = `<p class="loading-note" style="grid-column:1/-1;">No finished matches in the last ${HIGHLIGHT_DAYS_BACK} days. Check back after the next round of fixtures.</p>`;
+        return;
+    } else {
+        // Nothing reachable. The curated cards are illustrative, not real results, so they
+        // are labelled as samples and the error banner (with Retry) is shown.
+        allHighlights = CURATED_HIGHLIGHTS.map(h => ({ ...h, isSample: true }));
+        if (errorEl) errorEl.hidden = false;
+    }
+    renderHighlightsGrid();
 }
 
 function initHighlightsHub() {

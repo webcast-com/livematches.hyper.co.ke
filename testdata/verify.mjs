@@ -15,9 +15,12 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { SPORTS, TABLE_COLUMNS } from '../tools/sports.mjs';
 import { parseSportStandings, seasonLabelForSport } from '../tools/prerender.mjs';
+import { buildAll as buildSportPages } from '../tools/build-sport-pages.mjs';
 
+const SportPages = createRequire(import.meta.url)('../sport-pages.js');
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
 
@@ -47,7 +50,9 @@ const sportTableSlugs = () => SPORTS.filter((s) => s.table).map((s) => s.league)
 const ROOT_PAGES = ['index.html', 'news.html', 'about.html', 'predictions.html',
     'standings.html', 'highlights.html', 'transfers.html', 'shop.html', 'previews.html',
     'privacy.html', 'terms.html', 'match.html', 'story.html', 'preview.html',
-    'report.html', 'offline.html'];
+    'report.html', 'offline.html',
+    // the generated per-sport dashboards (worldwide.html, nfl.html, tennis.html …) get the same page-level checks
+    ...SportPages.pages.filter((p) => p.slug).map((p) => p.slug + '.html')];
 
 const FLATTENED = /^@\{|System\.Object\[\]|(^|;)\s*[A-Za-z_][A-Za-z0-9_]*=/;
 
@@ -865,10 +870,10 @@ check('a simulated match report keeps every stat the mock match carries', () => 
 
 /* app.js sandbox with a working in-memory localStorage and a document that can
    pretend to own (or not own) the controls a saved view refers to. */
-function persistSandbox({ stored = {}, controls = [] } = {}) {
+function persistSandbox({ stored = {}, controls = [], pathname = '/' } = {}) {
     const mem = new Map(Object.entries(stored));
     const ctx = vm.createContext({
-        window: {},
+        window: { SportPages, location: { pathname, search: '', hash: '' } },
         document: {
             getElementById: () => null,
             querySelector: (sel) => (controls.some((c) => String(sel).includes(c)) ? { setAttribute() {}, classList: { toggle() {}, add() {}, remove() {} } } : null),
@@ -884,7 +889,7 @@ function persistSandbox({ stored = {}, controls = [] } = {}) {
         },
         sessionStorage: { getItem: () => null, setItem: () => {} },
         setInterval: () => {}, setTimeout: () => {}, clearTimeout: () => {}, clearInterval: () => {},
-        LANG: 'en', t: (k) => k, tf: (k) => k, navigator: {}, location: { search: '', hash: '' },
+        LANG: 'en', t: (k) => k, tf: (k) => k, navigator: {}, location: { pathname, search: '', hash: '' },
         fetch: async () => ({ ok: false, status: 500, json: async () => ({}) })
     });
     vm.runInContext(readText('../app.js') + `
@@ -959,8 +964,10 @@ check('the live snapshot is only written while live data is on screen', () => {
 });
 
 check('the saved view round-trips, and unknown values are ignored rather than restored', () => {
+    // The sport comes from the address (/football/ is the Football tab), the rest
+    // from storage — so the round trip is exercised on the football page.
     const controls = ['data-sport="football"', 'data-filter="live"', 'data-league-id="EPL"', 'data-standing-league="LaLiga"'];
-    const sb = persistSandbox({ controls });
+    const sb = persistSandbox({ controls, pathname: '/football/' });
     sb.state.set({ sport: 'football', filter: 'live', league: 'EPL', date: '20260101', leaders: 'assists', standings: 'LaLiga', sortByLeague: true });
     sb.state.apply();
     sb.x.saveSessionSnapshot();
@@ -981,6 +988,32 @@ check('the saved view round-trips, and unknown values are ignored rather than re
     const kept = bare.state.get();
     assert(kept.sport === 'all' && kept.filter === 'all' && kept.league === 'all', `unknown controls were applied: ${JSON.stringify(kept)}`);
     assert(kept.date === '20260101' && kept.leaders === 'assists', `control-independent values should still restore: ${JSON.stringify(kept)}`);
+});
+
+check('the address decides the sport: sport pages open their tab, a saved league never leaks across sports', () => {
+    const controls = ['data-sport="all"', 'data-sport="football"', 'data-sport="basketball"', 'data-sport="nfl"', 'data-sport="icehockey"', 'data-sport="f1"',
+        'data-filter="live"', 'data-league-id="EPL"'];
+    const saved = { at: Date.now(), sport: 'football', filter: 'live', league: 'EPL', date: '20260101', leaders: 'goals', standings: 'EPL' };
+    const boot = (pathname, view) => {
+        const sb = persistSandbox({ controls, pathname, stored: { [VIEW_KEY]: JSON.stringify(view) } });
+        sb.state.set({ sport: 'all', filter: 'all', league: 'all', date: null, leaders: 'goals', standings: 'EPL' });
+        sb.state.apply();
+        sb.x.restoreViewState();
+        return sb.state.get();
+    };
+    const cases = [
+        ['/basketball.html', 'basketball'], ['/ice-hockey.html', 'icehockey'], ['/formula-1.html', 'f1'], ['/nfl.html', 'nfl'],
+        ['/basketball/', 'basketball'], ['/ice-hockey/', 'icehockey'],   // legacy folder addresses
+        ['/football', 'football'], ['/football/index.html', 'football'],
+        ['/', 'all'], ['/index.html', 'all'], ['/news.html', 'all'], ['/nope/', 'all']
+    ];
+    for (const [pathname, want] of cases) {
+        const got = boot(pathname, saved);
+        assert(got.sport === want, `${pathname} should open the "${want}" tab, got "${got.sport}"`);
+        if (want !== 'football') assert(got.league === 'all', `${pathname}: a league saved on the football view must not filter the ${want} view`);
+        else assert(got.league === 'EPL', `${pathname}: the league saved for this same sport should come back`);
+        assert(got.filter === 'live' && got.date === '20260101', `${pathname}: sport-independent view settings should still restore`);
+    }
 });
 
 check('a hand-edited or hostile snapshot cannot break boot', () => {
@@ -1085,6 +1118,168 @@ check('every <a href> and <button> has a programmatic name (agent accessibility 
                      'highlights.js', 'share.js', 'shop.js', 'pwa.js', 'seo.js', 'i18n.js']) {
         scan(readText('../' + j), j);
     }
+});
+
+/* ------------------------------------------------------------ sport pages */
+
+const coveredByApp = () => {
+    // Sports with a non-empty ESPN_ENDPOINTS list in app.js, plus the F1 tab (Jolpica).
+    const app = readText('../app.js');
+    const block = app.slice(app.indexOf('const ESPN_ENDPOINTS = {'));
+    const keys = new Set(['f1']);
+    for (const m of block.slice(0, block.indexOf('\n};')).matchAll(/^    ([a-z0-9]+): \[\s*(?:\/\/[^\n]*\n\s*)*"/gm)) keys.add(m[1]);
+    return keys;
+};
+
+check('every sport tab has exactly one sport page entry (and vice versa)', () => {
+    const html = readText('../index.html');
+    const tabs = [...html.matchAll(/class="sport-tab(?: active)?" data-sport="([a-z0-9]+)"/g)].map((m) => m[1]);
+    const pages = SportPages.pages.map((p) => p.sport);
+    assert(tabs.length > 5, 'could not find the sport tabs in index.html');
+    assert(JSON.stringify([...tabs].sort()) === JSON.stringify([...pages].sort()),
+        `sport tabs [${tabs}] and sport-pages.js [${pages}] disagree`);
+    const slugs = SportPages.pages.map((p) => p.slug);
+    assert(new Set(slugs).size === slugs.length, 'duplicate sport page slugs');
+    for (const p of SportPages.pages) {
+        assert(p.slug === '' ? p.sport === 'all' : /^[a-z0-9-]+$/.test(p.slug), `bad slug for ${p.sport}: "${p.slug}"`);
+        assert(p.title && p.description && p.heading && p.blurb && p.keywords, `${p.sport}: title/description/keywords/heading/blurb are all required`);
+        assert(p.description.length <= 200, `${p.sport}: description is ${p.description.length} chars — keep search snippets readable`);
+    }
+});
+
+check('sport-pages.js path helpers round-trip every sport', () => {
+    for (const p of SportPages.pages) {
+        assert(SportPages.sportForPath(SportPages.pathFor(p.sport)) === p.sport, `${p.sport} does not round-trip through ${SportPages.pathFor(p.sport)}`);
+    }
+    assert(SportPages.sportForPath('/index.html') === 'all' && SportPages.sportForPath('/standings.html') === 'all', 'non-sport pages must resolve to the home tab');
+    assert(SportPages.pathFor('tennis') === '/tennis.html' && SportPages.pathFor('nfl') === '/nfl.html' && SportPages.pathFor('all') === '/', 'sport pages are flat <slug>.html files');
+    assert(SportPages.sportForPath('/tennis/') === 'tennis' && SportPages.sportForPath('/tennis') === 'tennis', 'the old folder addresses must still resolve');
+    assert(SportPages.sportForPath('/table/eng.1/') === 'all' && SportPages.sportForPath('/report/123/') === 'all', 'nested pages must not be mistaken for sport pages');
+});
+
+check('a slug never shadows a folder that already holds something else', () => {
+    for (const p of SportPages.pages.filter((x) => x.slug)) {
+        assert(!['table', 'report', 'preview', 'testdata', 'tools', '.github'].includes(p.slug), `slug "${p.slug}" collides with an existing folder`);
+        const folder = path.join(ROOT, p.slug);
+        if (fs.existsSync(folder)) {
+            assert(JSON.stringify(fs.readdirSync(folder)) === JSON.stringify(['index.html']), `/${p.slug}/ must hold nothing but the redirect stub`);
+        }
+    }
+});
+
+check('every sport page is generated, current, and identical to index.html apart from its head + hidden heading + active tab', () => {
+    const index = readText('../index.html');
+    for (const p of SportPages.pages.filter((x) => x.slug)) {
+        const file = path.join(ROOT, p.slug + '.html');
+        assert(fs.existsSync(file), `/${p.slug}.html is missing — run: node tools/build-sport-pages.mjs`);
+        const stub = readText(`../${p.slug}/index.html`);
+        assert(stub.includes(`url=../${p.slug}.html`) && stub.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `/${p.slug}/ must redirect to /${p.slug}.html`);
+        const html = fs.readFileSync(file, 'utf8');
+        assert(html.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `${p.slug}: canonical is wrong`);
+        assert(html.includes(`<button class="sport-tab active" data-sport="${p.sport}">`), `${p.slug}: its tab is not pre-selected`);
+        assert((html.match(/class="sport-tab active"/g) || []).length === 1, `${p.slug}: exactly one sport tab must be active`);
+        assert(!/<base[\s>]/.test(html), `${p.slug}: no <base> — the page must resolve its assets relative to itself (works from any path or file://)`);
+        assert(p.covered ? !html.includes('noindex') : html.includes('content="noindex, follow"'), `${p.slug}: robots meta does not match the covered flag`);
+        // Body equality: everything from the app container down, minus the three intended edits.
+        const body = (h) => h.slice(h.indexOf('<body>'))
+            .replace(/<h2 id="sport-page-heading">[^<]*<\/h2>/, '').replace(/<p id="sport-page-blurb">[^<]*<\/p>/, '')
+            .replace(/class="sport-tab active"/, 'class="sport-tab"');
+        assert(body(html) === body(index), `${p.slug}: body differs from index.html beyond the hidden heading and the active tab`);
+    }
+});
+
+check('no sport page is stale relative to index.html (node tools/build-sport-pages.mjs --check)', () => {
+    const { stale } = buildSportPages({ check: true });
+    assert(!stale.length, `stale: ${stale.join(', ')} — run: node tools/build-sport-pages.mjs`);
+});
+
+check('the covered flag matches what app.js can actually fetch', () => {
+    const live = coveredByApp();
+    for (const p of SportPages.pages.filter((x) => x.slug)) {
+        assert(p.covered === live.has(p.sport),
+            `${p.sport}: sport-pages.js says covered=${p.covered} but ESPN_ENDPOINTS ${live.has(p.sport) ? 'has' : 'has no'} data for it — update the flag (and rebuild)`);
+    }
+});
+
+check('sitemap.xml lists exactly the covered sport pages (uncovered ones stay out)', () => {
+    const sitemap = readText('../sitemap.xml');
+    for (const p of SportPages.pages.filter((x) => x.slug)) {
+        const listed = sitemap.includes(`<loc>${SportPages.urlFor(p.sport)}</loc>`);
+        assert(listed === p.covered, `${p.slug}: ${p.covered ? 'covered but missing from' : 'uncovered but listed in'} sitemap.xml`);
+    }
+});
+
+check('service worker precaches sport-pages.js and every page that loads it', () => {
+    assert(readText('../sw.js').includes("'sport-pages.js'"), 'sw.js PRECACHE is missing sport-pages.js');
+    const html = readText('../index.html');
+    assert(/<script src="sport-pages\.js" defer><\/script>/.test(html), 'index.html must load sport-pages.js (deferred) before app.js');
+    assert(html.indexOf('sport-pages.js') < html.indexOf('src="app.js"'), 'sport-pages.js must load before app.js');
+});
+
+/* ------------------------------------------------------- sport news + hub */
+
+const appSrc = readText('../app.js');
+
+check('index.html carries the sport hub (results + fixtures columns) above the highlights strip', () => {
+    const html = readText('../index.html');
+    for (const id of ['sport-hub', 'sport-hub-results', 'sport-hub-upcoming', 'home-news-title']) {
+        assert(html.includes(`id="${id}"`), `index.html is missing #${id}`);
+    }
+    assert(html.indexOf('id="sport-hub"') < html.indexOf('id="highlights-strip"'), 'hub must sit above the highlights strip');
+});
+
+check('every hub string exists in both English and Swahili', () => {
+    const i18n = readText('../i18n.js');
+    const keys = [...new Set([...appSrc.matchAll(/"((?:hub|news\.sport)\.[a-z.]+)"/g)].map((m) => m[1]))];
+    assert(keys.length >= 7, `expected the hub to use several keys, found ${keys.length}`);
+    for (const k of keys) {
+        const n = i18n.split(`"${k}"`).length - 1;
+        assert(n >= 2, `i18n.js defines "${k}" ${n}x — needs one entry in STR.en and one in STR.sw`);
+    }
+});
+
+check('every sport with a hub has its leagues in ESPN_ENDPOINTS / LEAGUE_NAMES', () => {
+    const block = appSrc.match(/const SPORT_HUB_LEAGUES = \{([\s\S]*?)\n\};/);
+    assert(block, 'SPORT_HUB_LEAGUES not found');
+    const slugs = [...block[1].matchAll(/"((?:soccer|basketball|tennis|baseball|hockey|rugby)\/[^"]+)"/g)].map((m) => m[1]);
+    assert(slugs.length > 10, 'suspiciously few hub leagues');
+    for (const slug of slugs) {
+        assert(appSrc.includes(`"${slug}"`) && new RegExp(`"${slug.replace(/[.]/g, '\\.')}":\\s*\\{`).test(appSrc), `${slug} has no LEAGUE_NAMES entry`);
+    }
+});
+
+check('non-football sports never fall back to football MOCK_NEWS / MOCK_HIGHLIGHTS', () => {
+    assert(/scoped \? \[\] : MOCK_NEWS/.test(appSrc), 'renderNews must use an empty list for scoped sports');
+    assert(/isScopedSport\(currentSport\) \? \[\] : MOCK_HIGHLIGHTS/.test(appSrc), 'renderHighlights must not show football mock clips on other sports');
+});
+
+check('hub requests one day per request (ESPN rejects ?dates=FROM-TO ranges)', () => {
+    assert(/scoreboard\?dates=\$\{day\}/.test(appSrc), 'hub must request ?dates=YYYYMMDD per day');
+    assert(!/dates=\$\{[a-zA-Z]+\}-\$\{/.test(appSrc), 'a dates=FROM-TO range request sneaked in');
+});
+
+check('espnEventsOf() flattens tennis tournaments into match events and leaves other sports alone', () => {
+    const start = appSrc.indexOf('function espnEventsOf(');
+    const end = appSrc.indexOf('// Parse every event of a league payload');
+    assert(start > 0 && end > start, 'espnEventsOf not found');
+    const ctx2 = vm.createContext({});
+    vm.runInContext(appSrc.slice(start, end) + '\n;globalThis.fn = espnEventsOf;', ctx2);
+    const comp = (id, state) => ({ id, startDate: '2026-10-03T06:00Z', status: { type: { state, completed: state === 'post' } }, competitors: [
+        { id: 'a', homeAway: 'home', linescores: [{ winner: true }, { winner: true }], athlete: { displayName: 'Ann Able', shortName: 'A. Able' } },
+        { id: 'b', homeAway: 'away', linescores: [{ winner: false }, { winner: false }], athlete: { displayName: 'Bea Baker', shortName: 'B. Baker' } }] });
+    const data = { events: [{ id: 't', shortName: 'Open', date: '2026-10-01', groupings: [{ grouping: { displayName: 'Singles' }, competitions: [comp('m1', 'post'), comp('m2', 'pre')] }] }] };
+    const out = ctx2.fn(data, 'tennis/atp');
+    assert(out.length === 2, `expected 2 flattened matches, got ${out.length}`);
+    const c0 = out[0].competitions[0].competitors;
+    assert(c0[0].team.displayName === 'Ann Able' && c0[0].score === '2' && c0[1].score === '0', 'players must become teams with sets-won as the score');
+    assert(out[0].tournament === 'Open', 'the tournament name must ride along');
+    const nba = { events: [{ id: 'x', competitions: [{}] }] };
+    assert(ctx2.fn(nba, 'basketball/nba') === nba.events, 'non-tennis events must pass through untouched');
+});
+
+check('ticker speed is derived from the track width (px/s), not a fixed loop time', () => {
+    assert(/function applyTickerSpeed\(/.test(appSrc) && /style\.animationDuration/.test(appSrc), 'renderTicker must set the marquee duration from its content width');
+    assert(/TICKER_PX_PER_SEC\s*=\s*\d+/.test(appSrc), 'TICKER_PX_PER_SEC is missing');
 });
 
 /* ------------------------------------------------------------------ report */

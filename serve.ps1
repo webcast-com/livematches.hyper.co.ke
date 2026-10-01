@@ -40,6 +40,8 @@ while ($listener.IsListening) {
         if ($urlPath -eq "/") { $urlPath = "/index.html" }
 
         $filePath = Join-Path $root ($urlPath.TrimStart("/").Replace("/", "\"))
+        # Folder URLs (/basketball/, /table/eng.1/ ...) serve the folder's index.html, like the live host
+        if (Test-Path $filePath -PathType Container) { $filePath = Join-Path $filePath "index.html" }
 
         if (Test-Path $filePath -PathType Leaf) {
             $ext  = [System.IO.Path]::GetExtension($filePath).ToLower()

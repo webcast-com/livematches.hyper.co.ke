@@ -9,6 +9,7 @@ news, highlights and headlines. No account is required for anything.
 ## Pages
 
 - [Live scores](https://livematches.hyper.co.ke/): every match live now, today's fixtures and results, the fixtures calendar, top scorers and the match spotlight
+- [Sport pages](https://livematches.hyper.co.ke/basketball.html): the same live dashboard opened on one sport, each with its own news, recent results and upcoming fixtures — /football.html, /nfl.html, /basketball.html, /tennis.html, /baseball.html, /ice-hockey.html, /rugby.html, /formula-1.html and /worldwide.html
 - [News](https://livematches.hyper.co.ke/news.html): football headlines and stories, filterable by competition, each story opening on-site
 - [Standings](https://livematches.hyper.co.ke/standings.html): league tables for 70+ football competitions, deep-linkable per league (e.g. standings.html?league=eng.1) — plus static tables for American football (NFL, college), basketball (NBA, WNBA, NBL), baseball (MLB) and ice hockey (NHL)
 - [League tables](https://livematches.hyper.co.ke/table/eng.1/): one static page per league under /table/<league-slug>/ (e.g. /table/esp.1/, /table/ken.1/, /table/nfl/, /table/mlb/)
