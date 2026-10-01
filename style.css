@@ -700,6 +700,7 @@ body.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(
     border: 1px solid transparent;
     color: var(--text-secondary);
     cursor: pointer;
+    text-decoration: none;
     padding: 8px 16px;
     border-radius: 20px;
     font-family: var(--font-sans);

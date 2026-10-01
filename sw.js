@@ -5,13 +5,21 @@
    the copy behind the precache refreshes itself on the next visit (it used to
    be cache-first, which pinned whatever was installed until someone bumped
    this string). Bump it when the precache list itself changes. */
-const SW_VERSION = 'v5';
+const SW_VERSION = 'v6';
 const STATIC_CACHE = `scorehub-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `scorehub-runtime-${SW_VERSION}`;
 const OFFLINE_URL = 'offline.html';
 
 const PRECACHE = [
-  './', 'index.html', 'offline.html', 'manifest.webmanifest',
+  './', 'index.html',
+  // Keep the dedicated sport routes available offline too. They are full
+  // documents (not SPA rewrites), so opening /nfl.html or another sport page
+  // from an installed app must not fall through to the offline shell.
+  'worldwide.html', 'football.html', 'nfl.html', 'basketball.html',
+  'tennis.html', 'baseball.html', 'ice-hockey.html', 'rugby.html',
+  'esports.html', 'cricket.html', 'volleyball.html', 'handball.html',
+  'mma.html', 'formula-1.html',
+  'offline.html', 'manifest.webmanifest',
   'style.css', 'app.js', 'sport-pages.js', 'i18n.js', 'seo.js', 'pwa.js', 'share.js', 'analytics.js',
   'match.html', 'match.js',
   'preview.html', 'preview.js', 'report.html', 'report.js',

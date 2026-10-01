@@ -43,6 +43,10 @@ const esc = (s) => String(s == null ? '' : s)
 /* Replace exactly one occurrence, or fail loudly: if index.html is restructured
    so a pattern stops matching, a silent no-op would publish a page with the
    home page's metadata. */
+function escapeRegExp(value) {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function replaceOnce(html, re, replacement, label) {
     const hits = html.match(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'));
     if (!hits || hits.length !== 1) {
@@ -70,10 +74,15 @@ export function renderSportPage(indexHtml, page) {
     h = replaceOnce(h, /<h2 id="sport-page-heading">[^<]*<\/h2>/, `<h2 id="sport-page-heading">${esc(page.heading)}</h2>`, 'sport heading');
     h = replaceOnce(h, /<p id="sport-page-blurb">[^<]*<\/p>/, `<p id="sport-page-blurb">${esc(page.blurb)}</p>`, 'sport blurb');
 
-    // Pre-select this sport's tab in the markup.
-    h = replaceOnce(h, /<button class="sport-tab active" data-sport="all">/, '<button class="sport-tab" data-sport="all">', 'active "all" tab');
-    h = replaceOnce(h, new RegExp(`<button class="sport-tab" data-sport="${page.sport}">`),
-        `<button class="sport-tab active" data-sport="${page.sport}">`, `${page.sport} tab`);
+    // Pre-select this sport's tab in the markup. These are real links rather than
+    // button-only controls, so every sport page still opens when JavaScript is
+    // unavailable (and can be opened in a new tab or copied by a crawler).
+    const allTab = '<a class="sport-tab active" href="index.html" data-sport="all">';
+    h = replaceOnce(h, new RegExp(escapeRegExp(allTab)), '<a class="sport-tab" href="index.html" data-sport="all">', 'active "all" tab');
+    const href = page.slug ? `${page.slug}.html` : 'index.html';
+    const tab = `<a class="sport-tab" href="${href}" data-sport="${page.sport}">`;
+    h = replaceOnce(h, new RegExp(escapeRegExp(tab)),
+        `<a class="sport-tab active" href="${href}" data-sport="${page.sport}">`, `${page.sport} tab`);
 
     const ld = {
         '@context': 'https://schema.org',

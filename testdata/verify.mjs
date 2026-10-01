@@ -1133,7 +1133,7 @@ const coveredByApp = () => {
 
 check('every sport tab has exactly one sport page entry (and vice versa)', () => {
     const html = readText('../index.html');
-    const tabs = [...html.matchAll(/class="sport-tab(?: active)?" data-sport="([a-z0-9]+)"/g)].map((m) => m[1]);
+    const tabs = [...html.matchAll(/<(?:a|button) class="sport-tab(?: active)?"(?: href="[^"]+")? data-sport="([a-z0-9]+)"/g)].map((m) => m[1]);
     const pages = SportPages.pages.map((p) => p.sport);
     assert(tabs.length > 5, 'could not find the sport tabs in index.html');
     assert(JSON.stringify([...tabs].sort()) === JSON.stringify([...pages].sort()),
@@ -1176,7 +1176,8 @@ check('every sport page is generated, current, and identical to index.html apart
         assert(stub.includes(`url=../${p.slug}.html`) && stub.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `/${p.slug}/ must redirect to /${p.slug}.html`);
         const html = fs.readFileSync(file, 'utf8');
         assert(html.includes(`<link rel="canonical" href="${SportPages.urlFor(p.sport)}">`), `${p.slug}: canonical is wrong`);
-        assert(html.includes(`<button class="sport-tab active" data-sport="${p.sport}">`), `${p.slug}: its tab is not pre-selected`);
+        const tabHref = p.slug ? `${p.slug}.html` : 'index.html';
+        assert(html.includes(`<a class="sport-tab active" href="${tabHref}" data-sport="${p.sport}">`), `${p.slug}: its tab is not pre-selected`);
         assert((html.match(/class="sport-tab active"/g) || []).length === 1, `${p.slug}: exactly one sport tab must be active`);
         assert(!/<base[\s>]/.test(html), `${p.slug}: no <base> — the page must resolve its assets relative to itself (works from any path or file://)`);
         assert(p.covered ? !html.includes('noindex') : html.includes('content="noindex, follow"'), `${p.slug}: robots meta does not match the covered flag`);
