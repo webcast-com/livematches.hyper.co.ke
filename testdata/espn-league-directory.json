@@ -1,5 +1,5 @@
 {
- "at": "2026-10-01T14:37:12.389Z",
+ "at": "2026-10-05T12:29:31.991Z",
  "directory": {
   "rugby": [
    {
@@ -9,7 +9,7 @@
     "name": "French Top 14",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 17,
+    "events": 16,
     "espnName": "French Top 14"
    },
    {
@@ -23,6 +23,26 @@
     "espnName": "United Rugby Championship"
    },
    {
+    "id": "20113",
+    "slug": "289279",
+    "abbreviation": "URBA Top 14",
+    "name": "URBA Top 14",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 14,
+    "espnName": "URBA Top 14"
+   },
+   {
+    "id": "8004",
+    "slug": "270563",
+    "abbreviation": "National Provence Championship",
+    "name": "Mitre 10 Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 11,
+    "espnName": "Mitre 10 Cup"
+   },
+   {
     "id": "8007",
     "slug": "267979",
     "abbreviation": "Prem Rugby",
@@ -33,16 +53,6 @@
     "espnName": "Gallagher Prem"
    },
    {
-    "id": "20113",
-    "slug": "289279",
-    "abbreviation": "URBA Top 14",
-    "name": "URBA Top 14",
-    "isTournament": false,
-    "scoreboardOk": true,
-    "events": 7,
-    "espnName": "URBA Top 14"
-   },
-   {
     "id": "10659",
     "slug": "289234",
     "abbreviation": "International Test Match",
@@ -51,16 +61,6 @@
     "scoreboardOk": true,
     "events": 1,
     "espnName": "International Test Match"
-   },
-   {
-    "id": "8004",
-    "slug": "270563",
-    "abbreviation": "National Provence Championship",
-    "name": "Mitre 10 Cup",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 1,
-    "espnName": "Mitre 10 Cup"
    },
    {
     "id": "19940",
