@@ -1,6 +1,6 @@
 {
  "meta": {
-  "at": "2026-10-12T01:49:28.824Z",
+  "at": "2026-10-12T13:25:05.761Z",
   "windowDays": 7,
   "total": 267
  },
@@ -154,8 +154,8 @@
    "mode": "month",
    "returned": 38,
    "events": 21,
-   "inPlay": 1,
-   "finished": 10,
+   "inPlay": 0,
+   "finished": 11,
    "upcoming": 10,
    "nextEvent": "2026-10-12",
    "lastEvent": "2026-10-12",
@@ -164,7 +164,7 @@
    "tableChecked": true,
    "tableRows": 30,
    "tableGroups": 2,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "baseball/olympics-baseball",
@@ -269,8 +269,8 @@
    "mode": "month",
    "returned": 155,
    "events": 64,
-   "inPlay": 1,
-   "finished": 32,
+   "inPlay": 0,
+   "finished": 33,
    "upcoming": 31,
    "nextEvent": "2026-10-12",
    "lastEvent": "2026-10-12",
@@ -279,7 +279,7 @@
    "tableChecked": true,
    "tableRows": 30,
    "tableGroups": 2,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "basketball/nba-development",
@@ -407,8 +407,8 @@
    "mode": "month",
    "returned": 60,
    "events": 29,
-   "inPlay": 1,
-   "finished": 14,
+   "inPlay": 0,
+   "finished": 15,
    "upcoming": 14,
    "nextEvent": "2026-10-13",
    "lastEvent": "2026-10-12",
@@ -417,7 +417,7 @@
    "tableChecked": true,
    "tableRows": 32,
    "tableGroups": 2,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "hockey/hockey-world-cup",
@@ -1005,8 +1005,8 @@
    "mode": "month",
    "returned": 67,
    "events": 32,
-   "inPlay": 1,
-   "finished": 16,
+   "inPlay": 0,
+   "finished": 17,
    "upcoming": 15,
    "nextEvent": "2026-10-12",
    "lastEvent": "2026-10-12",
@@ -1015,7 +1015,7 @@
    "tableChecked": true,
    "tableRows": 30,
    "tableGroups": 2,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/arg.2",
@@ -1925,8 +1925,8 @@
    "mode": "month",
    "returned": 54,
    "events": 21,
-   "inPlay": 1,
-   "finished": 9,
+   "inPlay": 0,
+   "finished": 10,
    "upcoming": 11,
    "nextEvent": "2026-10-13",
    "lastEvent": "2026-10-12",
@@ -1935,7 +1935,7 @@
    "tableChecked": true,
    "tableRows": 20,
    "tableGroups": 1,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/col.copa",
@@ -2154,9 +2154,9 @@
    "season": "2026-27 Concacaf Nations League",
    "mode": "month",
    "returned": 37,
-   "events": 13,
+   "events": 12,
    "inPlay": 0,
-   "finished": 13,
+   "finished": 12,
    "upcoming": 0,
    "nextEvent": "",
    "lastEvent": "2026-10-07",
@@ -2822,17 +2822,17 @@
    "mode": "month",
    "returned": 48,
    "events": 22,
-   "inPlay": 0,
+   "inPlay": 1,
    "finished": 8,
-   "upcoming": 14,
+   "upcoming": 13,
    "nextEvent": "2026-10-12",
-   "lastEvent": "2026-10-11",
+   "lastEvent": "2026-10-12",
    "ranged": true,
    "error": "",
    "tableChecked": true,
    "tableRows": 22,
    "tableGroups": 1,
-   "verdict": "active"
+   "verdict": "inplay"
   },
   {
    "path": "soccer/esp.copa_de_la_reina",
@@ -3028,9 +3028,9 @@
    "season": "2026 International Friendly",
    "mode": "month",
    "returned": 35,
-   "events": 14,
+   "events": 13,
    "inPlay": 0,
-   "finished": 14,
+   "finished": 13,
    "upcoming": 0,
    "nextEvent": "",
    "lastEvent": "2026-10-07",
@@ -4110,8 +4110,8 @@
    "mode": "month",
    "returned": 36,
    "events": 17,
-   "inPlay": 1,
-   "finished": 6,
+   "inPlay": 0,
+   "finished": 7,
    "upcoming": 10,
    "nextEvent": "2026-10-14",
    "lastEvent": "2026-10-12",
@@ -4120,7 +4120,7 @@
    "tableChecked": false,
    "tableRows": 0,
    "tableGroups": 0,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/hon.1",
@@ -4455,8 +4455,8 @@
    "mode": "month",
    "returned": 44,
    "events": 18,
-   "inPlay": 1,
-   "finished": 8,
+   "inPlay": 0,
+   "finished": 9,
    "upcoming": 9,
    "nextEvent": "2026-10-17",
    "lastEvent": "2026-10-12",
@@ -4465,7 +4465,7 @@
    "tableChecked": true,
    "tableRows": 18,
    "tableGroups": 1,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/mex.2",
@@ -4822,9 +4822,9 @@
    "season": "2026 Primera División de Paraguay",
    "mode": "month",
    "returned": 24,
-   "events": 17,
+   "events": 16,
    "inPlay": 0,
-   "finished": 9,
+   "finished": 8,
    "upcoming": 8,
    "nextEvent": "2026-10-12",
    "lastEvent": "2026-10-11",
@@ -5881,9 +5881,9 @@
    "mode": "month",
    "returned": 500,
    "events": 329,
-   "inPlay": 1,
+   "inPlay": 0,
    "finished": 170,
-   "upcoming": 158,
+   "upcoming": 159,
    "nextEvent": "2026-10-12",
    "lastEvent": "2026-10-12",
    "ranged": true,
@@ -5891,7 +5891,7 @@
    "tableChecked": false,
    "tableRows": 0,
    "tableGroups": 0,
-   "verdict": "inplay"
+   "verdict": "active"
   },
   {
    "path": "soccer/usa.ncaa.w.1",
@@ -6110,10 +6110,10 @@
    "season": "2026",
    "mode": "month",
    "returned": 9,
-   "events": 1,
+   "events": 3,
    "inPlay": 0,
-   "finished": 1,
-   "upcoming": 0,
+   "finished": 0,
+   "upcoming": 3,
    "nextEvent": "2026-10-19",
    "lastEvent": "2026-10-05",
    "ranged": true,
@@ -6133,10 +6133,10 @@
    "season": "2026",
    "mode": "month",
    "returned": 22,
-   "events": 4,
+   "events": 7,
    "inPlay": 0,
    "finished": 4,
-   "upcoming": 0,
+   "upcoming": 3,
    "nextEvent": "2026-10-19",
    "lastEvent": "2026-10-11",
    "ranged": true,
