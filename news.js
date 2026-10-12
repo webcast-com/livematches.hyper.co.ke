@@ -17,7 +17,7 @@ const FALLBACK_NEWS = [
         description: "As European nights return, we analyze which clubs have the squad depth, form and tactical edge to conquer Europe this season.",
         published: new Date(Date.now() - 3600000 * 2).toISOString(),
         league: "UCL",
-        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80",
+        image: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=800&q=80",
         byline: "ScoreHub European Desk"
     },
     {
@@ -44,7 +44,7 @@ const FALLBACK_NEWS = [
         description: "The England captain's extraordinary goal ratio continues to dominate Bundesliga scoreboards, powering Bayern toward another title triumph.",
         published: new Date(Date.now() - 3600000 * 9).toISOString(),
         league: "Bundesliga",
-        image: "https://images.unsplash.com/photo-1489944445391-11dd35574549?auto=format&fit=crop&w=800&q=80",
+        image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=800&q=80",
         byline: "ScoreHub Bundesliga Desk"
     },
     {
@@ -111,7 +111,7 @@ function articleImageURL(a) {
     if (a.images && a.images.length) {
         return a.images[0].url;
     }
-    return a.image || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80";
+    return a.image || "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=600&q=80";
 }
 
 function renderNewsList() {
