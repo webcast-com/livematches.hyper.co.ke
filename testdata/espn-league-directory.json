@@ -1,27 +1,7 @@
 {
- "at": "2026-10-05T12:29:31.991Z",
+ "at": "2026-10-12T01:47:52.759Z",
  "directory": {
   "rugby": [
-   {
-    "id": "8005",
-    "slug": "270559",
-    "abbreviation": "TOP14",
-    "name": "French Top 14",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 16,
-    "espnName": "French Top 14"
-   },
-   {
-    "id": "8331",
-    "slug": "270557",
-    "abbreviation": "United Rugby Championship",
-    "name": "United Rugby Championship",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 16,
-    "espnName": "United Rugby Championship"
-   },
    {
     "id": "20113",
     "slug": "289279",
@@ -33,13 +13,53 @@
     "espnName": "URBA Top 14"
    },
    {
+    "id": "8329",
+    "slug": "271937",
+    "abbreviation": "European Rugby Champions Cup",
+    "name": "European Rugby Champions Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 12,
+    "espnName": "European Rugby Champions Cup"
+   },
+   {
+    "id": "8010",
+    "slug": "272073",
+    "abbreviation": "European Rugby Challenge Cup",
+    "name": "European Rugby Challenge Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 9,
+    "espnName": "European Rugby Challenge Cup"
+   },
+   {
+    "id": "8331",
+    "slug": "270557",
+    "abbreviation": "United Rugby Championship",
+    "name": "United Rugby Championship",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 8,
+    "espnName": "United Rugby Championship"
+   },
+   {
+    "id": "8005",
+    "slug": "270559",
+    "abbreviation": "TOP14",
+    "name": "French Top 14",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 7,
+    "espnName": "French Top 14"
+   },
+   {
     "id": "8004",
     "slug": "270563",
     "abbreviation": "National Provence Championship",
     "name": "Mitre 10 Cup",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 11,
+    "events": 6,
     "espnName": "Mitre 10 Cup"
    },
    {
@@ -49,7 +69,7 @@
     "name": "Prem Rugby",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 10,
+    "events": 5,
     "espnName": "Gallagher Prem"
    },
    {
@@ -59,7 +79,7 @@
     "name": "International Test Match",
     "isTournament": false,
     "scoreboardOk": true,
-    "events": 1,
+    "events": 2,
     "espnName": "International Test Match"
    },
    {
@@ -101,26 +121,6 @@
     "scoreboardOk": true,
     "events": 0,
     "espnName": "Currie Cup"
-   },
-   {
-    "id": "8010",
-    "slug": "272073",
-    "abbreviation": "European Rugby Challenge Cup",
-    "name": "European Rugby Challenge Cup",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 0,
-    "espnName": "European Rugby Challenge Cup"
-   },
-   {
-    "id": "8329",
-    "slug": "271937",
-    "abbreviation": "European Rugby Champions Cup",
-    "name": "European Rugby Champions Cup",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 0,
-    "espnName": "European Rugby Champions Cup"
    },
    {
     "id": "19114",
