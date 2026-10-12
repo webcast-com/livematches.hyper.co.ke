@@ -431,7 +431,7 @@ const MOCK_NEWS = [
         category: "Transfer News",
         title: "Official: Mbappé signs new blockbuster deal with Real Madrid",
         time: "15m ago",
-        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+        image: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=600&q=80",
         grad: "linear-gradient(135deg, #243b55, #141e30)"
     },
     {
@@ -461,20 +461,20 @@ const MOCK_NEWS = [
 ];
 
 const MOCK_SCORERS = [
-    { rank: 1, name: "Erling Haaland", club: "Man City", goals: 21, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/196631.png&w=96&h=70&cb=1" },
-    { rank: 2, name: "Kylian Mbappé", club: "Real Madrid", goals: 18, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/215443.png&w=96&h=70&cb=1" },
-    { rank: 3, name: "Harry Kane", club: "Bayern Munich", goals: 17, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/169187.png&w=96&h=70&cb=1" },
-    { rank: 4, name: "Lautaro Martínez", club: "Inter Milan", goals: 16, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/226297.png&w=96&h=70&cb=1" },
-    { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/173515.png&w=96&h=70&cb=1" }
+    { rank: 1, name: "Erling Haaland", club: "Man City", goals: 21 },
+    { rank: 2, name: "Kylian Mbappé", club: "Real Madrid", goals: 18 },
+    { rank: 3, name: "Harry Kane", club: "Bayern Munich", goals: 17 },
+    { rank: 4, name: "Lautaro Martínez", club: "Inter Milan", goals: 16 },
+    { rank: 5, name: "Mohamed Salah", club: "Liverpool", goals: 15 }
 ];
 
 // Same row shape (`goals` holds the assist count) so the renderer is shared
 const MOCK_ASSISTS = [
-    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/342971.png&w=96&h=70&cb=1" },
-    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/173515.png&w=96&h=70&cb=1" },
-    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/208882.png&w=96&h=70&cb=1" },
-    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/291471.png&w=96&h=70&cb=1" },
-    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10, image: "https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/261899.png&w=96&h=70&cb=1" }
+    { rank: 1, name: "Lamine Yamal", club: "Barcelona", goals: 13 },
+    { rank: 2, name: "Mohamed Salah", club: "Liverpool", goals: 12 },
+    { rank: 3, name: "Ousmane Dembélé", club: "PSG", goals: 11 },
+    { rank: 4, name: "Florian Wirtz", club: "Leverkusen", goals: 10 },
+    { rank: 5, name: "Bukayo Saka", club: "Arsenal", goals: 10 }
 ];
 
 const MOCK_HIGHLIGHTS = [
@@ -484,7 +484,7 @@ const MOCK_HIGHLIGHTS = [
         league: "eng.1",
         category: "Premier League",
         time: "2h ago",
-        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+        image: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=600&q=80",
         link: "https://www.youtube.com/results?search_query=Arsenal+vs+Chelsea+highlights"
     },
     {
@@ -511,7 +511,7 @@ const MOCK_HIGHLIGHTS = [
         league: "fra.1",
         category: "Ligue 1",
         time: "1d ago",
-        image: "https://images.unsplash.com/photo-1489944445391-11dd35574549?auto=format&fit=crop&w=600&q=80",
+        image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=600&q=80",
         link: "https://www.youtube.com/results?search_query=PSG+vs+Marseille+highlights"
     },
     {
@@ -2267,10 +2267,8 @@ async function resolveCoreRefAthlete(ref) {
         if (!data) return null;
         const id = data.id ? String(data.id) : null;
         const name = data.displayName || data.shortDisplayName || data.name || null;
-        let image = (data.headshot && data.headshot.href) || null;
-        if (!image && id) {
-            image = `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${id}.png&w=96&h=70&cb=1`;
-        }
+        // Only use a headshot ESPN actually provides; guessed URLs 404 and the avatar falls back to initials
+        const image = (data.headshot && data.headshot.href) || null;
         return { id, name, image };
     } catch (err) {
         return null;
@@ -2537,13 +2535,11 @@ function scorersFromMatches() {
     apiMatches.forEach(m => {
         if (m.topScorers && m.topScorers.home) {
             const h = m.topScorers.home;
-            const img = h.athleteId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${h.athleteId}.png&w=96&h=70&cb=1` : (h.image || null);
-            pool.push({ name: h.name, club: m.homeTeam, goals: h.goals, image: img });
+            pool.push({ name: h.name, club: m.homeTeam, goals: h.goals, image: h.image || null });
         }
         if (m.topScorers && m.topScorers.away) {
             const a = m.topScorers.away;
-            const img = a.athleteId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${a.athleteId}.png&w=96&h=70&cb=1` : (a.image || null);
-            pool.push({ name: a.name, club: m.awayTeam, goals: a.goals, image: img });
+            pool.push({ name: a.name, club: m.awayTeam, goals: a.goals, image: a.image || null });
         }
     });
     const seen = new Set();

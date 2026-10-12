@@ -25,7 +25,7 @@ const CURATED_HIGHLIGHTS = [
         leagueCode: "EPL",
         leagueName: "Premier League",
         time: "Yesterday",
-        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+        image: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=600&q=80",
         youtubeQuery: "Arsenal vs Chelsea highlights Premier League"
     },
     {
@@ -61,7 +61,7 @@ const CURATED_HIGHLIGHTS = [
         leagueCode: "Ligue1",
         leagueName: "Ligue 1",
         time: "2d ago",
-        image: "https://images.unsplash.com/photo-1489944445391-11dd35574549?auto=format&fit=crop&w=600&q=80",
+        image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=600&q=80",
         youtubeQuery: "PSG vs Marseille highlights Ligue 1"
     },
     {
