@@ -1184,7 +1184,14 @@ check('every sport page is generated, current, and identical to index.html apart
         // Body equality: everything from the app container down, minus the three intended edits.
         const body = (h) => h.slice(h.indexOf('<body>'))
             .replace(/<h2 id="sport-page-heading">[^<]*<\/h2>/, '').replace(/<p id="sport-page-blurb">[^<]*<\/p>/, '')
-            .replace(/class="sport-tab active"/, 'class="sport-tab"');
+            .replace(/class="sport-tab active"/, 'class="sport-tab"')
+            // Build-time hero edits: index hides the hero shell; sport pages un-hide it
+            // and the generator injects the per-sport background image inline.
+            .replace(/(<section class="sport-hero" id="sport-hero") hidden/, '$1')
+            .replace(/(<div class="sport-hero-bg") style="[^"]*"/, '$1')
+            .replace(/(<span class="sport-hero-icon" aria-hidden="true">)[^<]*(<\/span>)/, '$1$2')
+            .replace(/(<h2 class="sport-hero-title" id="sport-hero-title">)[^<]*(<\/h2>)/, '$1$2')
+            .replace(/(<p class="sport-hero-sub">)[^<]*(<\/p>)/, '$1$2');
         assert(body(html) === body(index), `${p.slug}: body differs from index.html beyond the hidden heading and the active tab`);
     }
 });

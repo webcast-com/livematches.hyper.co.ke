@@ -6,6 +6,15 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "shortcuts": [
+    { "name": "Live Football", "short_name": "Football", "url": "./football.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Live Basketball", "short_name": "Basketball", "url": "./basketball.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Live NFL", "short_name": "NFL", "url": "./nfl.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Live Tennis", "short_name": "Tennis", "url": "./tennis.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "League Tables", "short_name": "Tables", "url": "./standings.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "News", "short_name": "News", "url": "./news.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ],
   "orientation": "portrait",
   "background_color": "#07090e",
   "theme_color": "#07090e",
