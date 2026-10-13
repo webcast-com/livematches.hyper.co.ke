@@ -6167,6 +6167,91 @@ html[data-theme="light"] .page-intro { background: rgba(0, 100, 180, 0.07); }
 .main-nav .dropdown-toggle:focus-visible,
 .skip-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
+/* ==========================================
+   SPORT HERO — per-sport full-bleed hero image + headline
+   (Kinetic Arena / Momentum Geometry design language)
+   Hidden on the home page; shown on sport pages by sport-pages.js.
+   ========================================== */
+.sport-hero {
+    position: relative;
+    min-height: 320px;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    margin: 0;
+}
+.sport-hero[hidden] { display: none; }
+
+.sport-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: #0a0a0b; /* fallback while the image loads */
+    z-index: 0;
+}
+
+.sport-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(7,9,14,0.95) 0%, rgba(7,9,14,0.55) 45%, rgba(7,9,14,0.15) 100%);
+    z-index: 1;
+}
+
+.sport-hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 28px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.sport-hero-icon {
+    font-size: 40px;
+    line-height: 1;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+}
+
+.sport-hero-title {
+    font-size: clamp(2.5rem, 9vw, 5rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: #f4f4f9;
+    text-transform: uppercase;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+
+.sport-hero-sub {
+    font-size: clamp(0.95rem, 2.5vw, 1.25rem);
+    font-weight: 600;
+    color: #d1ff26;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    max-width: 640px;
+}
+
+/* Light theme: keep the hero dark for image legibility */
+[data-theme="light"] .sport-hero-scrim {
+    background: linear-gradient(to top, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.45) 45%, rgba(15,23,42,0.10) 100%);
+}
+
+@media (max-width: 768px) {
+    .sport-hero {
+        min-height: 240px;
+        border-radius: 12px;
+    }
+    .sport-hero-content {
+        padding: 20px 16px 18px;
+    }
+    .sport-hero-icon {
+        font-size: 32px;
+    }
+}
+
 /* Sport pages: per-sport heading + summary for crawlers and screen readers.
    Visually hidden and out of flow, so the dashboard layout is untouched. */
 .sport-page-intro {

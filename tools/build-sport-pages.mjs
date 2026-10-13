@@ -74,6 +74,26 @@ export function renderSportPage(indexHtml, page) {
     h = replaceOnce(h, /<h2 id="sport-page-heading">[^<]*<\/h2>/, `<h2 id="sport-page-heading">${esc(page.heading)}</h2>`, 'sport heading');
     h = replaceOnce(h, /<p id="sport-page-blurb">[^<]*<\/p>/, `<p id="sport-page-blurb">${esc(page.blurb)}</p>`, 'sport blurb');
 
+    // Sport hero: inject the per-sport image, headline and icon, and unhide the section.
+    const heroImg = SportPages.heroImageFor(page.sport);
+    if (heroImg) {
+        h = replaceOnce(h, /<section class="sport-hero" id="sport-hero" hidden /,
+            `<section class="sport-hero" id="sport-hero" `,
+            'sport-hero hidden attr');
+        h = replaceOnce(h, /<div class="sport-hero-bg"><\/div>/,
+            `<div class="sport-hero-bg" style="background-image:url('${esc(heroImg)}')"></div>`,
+            'sport-hero bg image');
+        h = replaceOnce(h, /<span class="sport-hero-icon" aria-hidden="true"><\/span>/,
+            `<span class="sport-hero-icon" aria-hidden="true">${esc(page.icon)}</span>`,
+            'sport-hero icon');
+        h = replaceOnce(h, /<h2 class="sport-hero-title" id="sport-hero-title"><\/h2>/,
+            `<h2 class="sport-hero-title" id="sport-hero-title">${esc(page.name)}</h2>`,
+            'sport-hero title');
+        h = replaceOnce(h, /<p class="sport-hero-sub"><\/p>/,
+            `<p class="sport-hero-sub">${esc(page.heading)}</p>`,
+            'sport-hero sub');
+    }
+
     // Pre-select this sport's tab in the markup. These are real links rather than
     // button-only controls, so every sport page still opens when JavaScript is
     // unavailable (and can be opened in a new tab or copied by a crawler).
