@@ -924,6 +924,9 @@ async function bootReport() {
     const cleanSlug = cleanLeagueSlug(league);
     const leagueName = getLeagueName(cleanSlug);
 
+    // Match interest tracking (GA4 via analytics.js — no-op without a measurement id).
+    try { if (window.shTrack) window.shTrack("match_report_view", { match_id: String(id), league: cleanSlug, league_name: leagueName }); } catch (e) {}
+
     let ev = null;
     if (!String(id).startsWith("fb-") && !String(id).startsWith("demo-")) {
         ev = await fetchReportEvent(cleanSlug, id, date);

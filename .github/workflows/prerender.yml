@@ -57,6 +57,10 @@ jobs:
 
       - name: Generate prerendered pages and sitemaps
         run: node tools/prerender.mjs
+        # Optional: bakes the GA4 snippet into the static snapshot pages.
+        # Create the GA_MEASUREMENT_ID repository secret to enable it.
+        env:
+          GA_MEASUREMENT_ID: ${{ secrets.GA_MEASUREMENT_ID }}
 
       - name: Refresh the offline ESPN fixtures
         run: node tools/collect-samples.mjs

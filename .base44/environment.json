@@ -2,5 +2,11 @@
   "previewPort": 3000,
   "healthPath": "/",
   "startCommand": "docker compose -f docker-compose.base44.yml up -d",
-  "secrets": []
+  "secrets": [
+    {
+      "name": "GA_MEASUREMENT_ID",
+      "description": "Google Analytics 4 Measurement ID (G-XXXXXXXXXX) — GA4 Admin → Data streams → your web stream → Measurement ID. Optional: without it the site boots normally with tracking disabled.",
+      "requiredAtBoot": false
+    }
+  ]
 }

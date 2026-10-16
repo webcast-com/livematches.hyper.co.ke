@@ -101,6 +101,15 @@ const STATIC_PAGES = [
 ];
 
 const ORIGIN = 'https://livematches.hyper.co.ke';
+// GA4 measurement id for the static snapshot pages: set in the environment
+// (the prerender workflow passes the GA_MEASUREMENT_ID GitHub secret).
+// Unset or malformed → no snippet, exactly as before.
+const GA_MEASUREMENT_ID = (process.env.GA_MEASUREMENT_ID || '').trim().match(/^G-[A-Z0-9]{4,}$/i)
+    ? process.env.GA_MEASUREMENT_ID.trim()
+    : '';
+const GA_SNIPPET = GA_MEASUREMENT_ID
+    ? `\n    <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>\n    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}');</script>`
+    : '';
 
 /* ------------------------------------------------------------------ utils */
 function esc(s) {
@@ -205,7 +214,7 @@ function pageShell({ lang = 'en', title, description, canonicalPath, breadcrumbN
     <meta name="twitter:image" content="${ORIGIN}/icon-512.png">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"${esc(title)}","url":"${canonical}","isPartOf":{"@type":"WebSite","name":"ScoreHub","url":"${ORIGIN}/"},"breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"${ORIGIN}/"},{"@type":"ListItem","position":2,"name":"${esc(breadcrumbName)}","item":"${canonical}"}]}}</script>${jsonld ? `\n    <script type="application/ld+json">${jsonld}</script>` : ''}
-    <style>.snapshot-banner{margin:0 0 16px;padding:10px 14px;border-left:3px solid var(--warning);border-radius:8px;background:rgba(245,158,11,.08);font-size:12.5px;color:var(--text-secondary);}.snapshot-banner a{color:var(--primary);text-decoration:underline;}</style>
+    <style>.snapshot-banner{margin:0 0 16px;padding:10px 14px;border-left:3px solid var(--warning);border-radius:8px;background:rgba(245,158,11,.08);font-size:12.5px;color:var(--text-secondary);}.snapshot-banner a{color:var(--primary);text-decoration:underline;}</style>${GA_SNIPPET}
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to content</a>

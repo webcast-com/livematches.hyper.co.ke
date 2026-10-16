@@ -3,6 +3,24 @@ services:
     image: nginx:alpine
     ports:
       - "3000:80"
+    # GA_MEASUREMENT_ID (optional, user-supplied) comes from the platform env
+    # file; it must stay the LAST env_file entry so a dashboard value always wins.
+    env_file:
+      - /run/base44/app.env
+    # Render /run/ga/ga-config.js at startup from GA_MEASUREMENT_ID —
+    # nginx.base44.conf serves it at /ga-config.js for analytics.js. With the
+    # variable unset the file renders an empty id and analytics.js keeps GA
+    # disabled, so the site boots without credentials. Preview builds add
+    # SCOREHUB_PREVIEW=1 (from BASE44_PREVIEW_MODE) so analytics.js skips
+    # tracking there and the user's GA data stays clean of preview traffic.
+    command:
+      - sh
+      - -ec
+      - |-
+        mkdir -p /run/ga
+        printf "window.SCOREHUB_GA_ID='%s';\n" "$$GA_MEASUREMENT_ID" > /run/ga/ga-config.js
+        if [ "$$BASE44_PREVIEW_MODE" = "1" ]; then printf "window.SCOREHUB_PREVIEW='1';\n" >> /run/ga/ga-config.js; fi
+        exec nginx -g "daemon off;"
     volumes:
       - .:/app:ro
       - ./nginx.base44.conf:/etc/nginx/nginx.conf:ro

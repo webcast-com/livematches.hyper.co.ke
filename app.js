@@ -3930,6 +3930,21 @@ function matchPageUrl(m) {
     return `match.html`;
 }
 function openMatchPage(m) {
+    // Every entry into a match page goes through here (cards, hub rows, ticker,
+    // search results, spotlight) — one funnel, one interest event. analytics.js
+    // queues events fired before GA4 is ready, so nothing is lost either way.
+    if (m) {
+        try {
+            window.shTrack && window.shTrack("match_open", {
+                match_id: String(m.espnEventId || m.id || ""),
+                sport: m.sport || currentSport,
+                competition: m.league || "",
+                home_team: m.homeTeam || "",
+                away_team: m.awayTeam || "",
+                match_state: m.status || ""
+            });
+        } catch (e) { /* analytics must never block navigation */ }
+    }
     try { sessionStorage.setItem("scorehub-match", JSON.stringify(m)); } catch (e) {}
     window.location.href = matchPageUrl(m);
 }
