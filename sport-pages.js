@@ -5,8 +5,10 @@
    that opens the very same dashboard with that tab already selected. Nothing
    about the dashboard itself changes: the pages are generated copies of
    index.html (tools/build-sport-pages.mjs) that differ only in their <head>
-   (title / description / canonical), one visually-hidden heading, and the
-   `window.SCOREHUB_SPORT` preset that app.js reads on boot.
+   (title / description / canonical / JSON-LD), one visually-hidden heading,
+   and that sport's tab pre-marked active in the markup. app.js derives the
+   sport from the URL on boot via `sportForPath()`; the pre-set tab only
+   avoids a flash before the script runs.
 
    This file is the single source of truth for the sport → URL mapping. It is
    loaded by the browser (index.html + every sport page) and by the Node tooling
