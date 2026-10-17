@@ -86,6 +86,43 @@
             <span>&copy; 2026 ScoreHub &middot; Sports data: ESPN, Jolpica F1.</span>
         </footer>
     </div>
+    <!-- WATCH LIVE MODAL (INTERACTIVE VIDEO PLAYER SIMULATOR) -->
+    <div class="modal-overlay" id="watch-live-modal">
+        <div class="modal-card video-player-card">
+            <button class="close-modal-btn" id="close-watch-modal" aria-label="Close">&times;</button>
+            <div class="modal-body">
+                <h3 id="watch-modal-title">Live Match Broadcast</h3>
+                <div class="video-container">
+                    <div class="video-player-placeholder">
+                        <div class="live-indicator-overlay">
+                            <span class="live-dot-pulse"></span>
+                            <span>LIVE BROADCAST FEED</span>
+                        </div>
+                        <div class="interactive-pitch" id="live-pitch-animation">
+                            <div class="pitch-center-circle"></div>
+                            <div class="pitch-half-line"></div>
+                            <div class="pitch-penalty-box home-box"></div>
+                            <div class="pitch-penalty-box away-box"></div>
+                            <div class="pitch-ball" id="pitch-ball"></div>
+                            <div class="pitch-player team-a p1" style="left:20%; top:50%;"></div>
+                            <div class="pitch-player team-a p2" style="left:35%; top:30%;"></div>
+                            <div class="pitch-player team-a p3" style="left:35%; top:70%;"></div>
+                            <div class="pitch-player team-b p4" style="left:80%; top:50%;"></div>
+                            <div class="pitch-player team-b p5" style="left:65%; top:35%;"></div>
+                            <div class="pitch-player team-b p6" style="left:65%; top:65%;"></div>
+                        </div>
+                        <div class="player-controls">
+                            <button class="btn btn-control" id="play-pause-btn">Pause Stream</button>
+                            <span class="stream-stat" id="stream-viewers-count">👁️ 84,392 Watching</span>
+                            <span class="stream-stat" id="watch-broadcast-info" title="TV/stream broadcast">📺 —</span>
+                            <span class="stream-stat">🔊 HD Stereo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="share.js" defer></script>
     <script src="match.js" defer></script>
     <script src="i18n.js" defer></script>
