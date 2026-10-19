@@ -1,17 +1,7 @@
 {
- "at": "2026-10-12T13:23:41.721Z",
+ "at": "2026-10-19T11:03:51.814Z",
  "directory": {
   "rugby": [
-   {
-    "id": "20113",
-    "slug": "289279",
-    "abbreviation": "URBA Top 14",
-    "name": "URBA Top 14",
-    "isTournament": false,
-    "scoreboardOk": true,
-    "events": 14,
-    "espnName": "URBA Top 14"
-   },
    {
     "id": "8329",
     "slug": "271937",
@@ -53,14 +43,14 @@
     "espnName": "French Top 14"
    },
    {
-    "id": "8004",
-    "slug": "270563",
-    "abbreviation": "National Provence Championship",
-    "name": "Mitre 10 Cup",
-    "isTournament": true,
+    "id": "20113",
+    "slug": "289279",
+    "abbreviation": "URBA Top 14",
+    "name": "URBA Top 14",
+    "isTournament": false,
     "scoreboardOk": true,
-    "events": 6,
-    "espnName": "Mitre 10 Cup"
+    "events": 7,
+    "espnName": "URBA Top 14"
    },
    {
     "id": "8007",
@@ -71,6 +61,16 @@
     "scoreboardOk": true,
     "events": 5,
     "espnName": "Gallagher Prem"
+   },
+   {
+    "id": "8004",
+    "slug": "270563",
+    "abbreviation": "National Provence Championship",
+    "name": "Mitre 10 Cup",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 3,
+    "espnName": "Mitre 10 Cup"
    },
    {
     "id": "10659",
