@@ -9,6 +9,9 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ScoreHub">
     <meta name="description" content="Formula 1 race calendar, latest race results and the current drivers’ championship standings, updated from the Jolpica F1 API on ScoreHub.">
     <meta name="keywords" content="Formula 1, F1 results, F1 standings, F1 schedule, drivers championship, F1 race calendar, Grand Prix">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -18,14 +21,14 @@
     <meta property="og:title" content="Formula 1 — Race Schedule, Results &amp; Driver Standings | ScoreHub">
     <meta property="og:description" content="Formula 1 race calendar, latest race results and the current drivers’ championship standings, updated from the Jolpica F1 API on ScoreHub.">
     <meta property="og:url" content="https://livematches.hyper.co.ke/formula-1.html">
-    <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
+    <meta property="og:image" content="https://livematches.hyper.co.ke/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@ScoreHub">
     <meta name="twitter:title" content="Formula 1 — Race Schedule, Results &amp; Driver Standings | ScoreHub">
     <meta name="twitter:description" content="Formula 1 race calendar, latest race results and the current drivers’ championship standings, updated from the Jolpica F1 API on ScoreHub.">
-    <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
+    <meta name="twitter:image" content="https://livematches.hyper.co.ke/og-image.png">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="author" content="ScoreHub">
     <title>Formula 1 — Race Schedule, Results &amp; Driver Standings | ScoreHub</title>
@@ -257,6 +260,17 @@
                     <span class="sport-icon">🏎️</span>
                     <span class="sport-name">Formula 1</span>
                 </a>
+            </div>
+        </section>
+
+        <!-- SPORT HERO (per-sport hero image + headline; hidden on the home page, shown on sport pages by sport-pages.js) -->
+        <section class="sport-hero" id="sport-hero" aria-labelledby="sport-hero-title">
+            <div class="sport-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1610905376670-5e7e0e8a3cfb?w=1600&amp;q=80&amp;auto=format&amp;fit=crop')"></div>
+            <div class="sport-hero-scrim"></div>
+            <div class="sport-hero-content">
+                <span class="sport-hero-icon" aria-hidden="true">🏎️</span>
+                <h2 class="sport-hero-title" id="sport-hero-title">Formula 1</h2>
+                <p class="sport-hero-sub">Formula 1 schedule, results and standings</p>
             </div>
         </section>
 

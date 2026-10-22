@@ -9,6 +9,9 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ScoreHub">
     <meta name="description" content="Live NFL scores, this week’s schedule and recent results: every game, final score and upcoming kickoff, plus the latest NFL news on ScoreHub.">
     <meta name="keywords" content="live NFL scores, NFL schedule, NFL results, NFL games today, American football scores, NFL news">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -18,14 +21,14 @@
     <meta property="og:title" content="Live NFL Scores, Schedule &amp; Results | ScoreHub">
     <meta property="og:description" content="Live NFL scores, this week’s schedule and recent results: every game, final score and upcoming kickoff, plus the latest NFL news on ScoreHub.">
     <meta property="og:url" content="https://livematches.hyper.co.ke/nfl.html">
-    <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
+    <meta property="og:image" content="https://livematches.hyper.co.ke/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@ScoreHub">
     <meta name="twitter:title" content="Live NFL Scores, Schedule &amp; Results | ScoreHub">
     <meta name="twitter:description" content="Live NFL scores, this week’s schedule and recent results: every game, final score and upcoming kickoff, plus the latest NFL news on ScoreHub.">
-    <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
+    <meta name="twitter:image" content="https://livematches.hyper.co.ke/og-image.png">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="author" content="ScoreHub">
     <title>Live NFL Scores, Schedule &amp; Results | ScoreHub</title>
@@ -257,6 +260,17 @@
                     <span class="sport-icon">🏎️</span>
                     <span class="sport-name">Formula 1</span>
                 </a>
+            </div>
+        </section>
+
+        <!-- SPORT HERO (per-sport hero image + headline; hidden on the home page, shown on sport pages by sport-pages.js) -->
+        <section class="sport-hero" id="sport-hero" aria-labelledby="sport-hero-title">
+            <div class="sport-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1529478562208-d4c746edcb79?w=1600&amp;q=80&amp;auto=format&amp;fit=crop')"></div>
+            <div class="sport-hero-scrim"></div>
+            <div class="sport-hero-content">
+                <span class="sport-hero-icon" aria-hidden="true">🏈</span>
+                <h2 class="sport-hero-title" id="sport-hero-title">NFL</h2>
+                <p class="sport-hero-sub">Live NFL scores, schedule and results</p>
             </div>
         </section>
 

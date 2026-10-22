@@ -154,6 +154,26 @@
     var bySlug = {};
     PAGES.forEach(function (p) { bySport[p.sport] = p; bySlug[p.slug] = p; });
 
+    // Per-sport hero background images (Unsplash, free licence). The home page
+    // ('all') has no hero — its key is absent so applyHero hides the section.
+    var HERO_IMAGES = {
+        worldwide:  'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1600&q=80&auto=format&fit=crop',
+        football:   'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1600&q=80&auto=format&fit=crop',
+        nfl:        'https://images.unsplash.com/photo-1529478562208-d4c746edcb79?w=1600&q=80&auto=format&fit=crop',
+        basketball: 'https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=1600&q=80&auto=format&fit=crop',
+        tennis:     'https://images.unsplash.com/photo-1614743758466-e569f4791116?w=1600&q=80&auto=format&fit=crop',
+        baseball:   'https://images.unsplash.com/photo-1624375664562-fff61869fe8f?w=1600&q=80&auto=format&fit=crop',
+        icehockey:  'https://images.unsplash.com/photo-1545471977-94cac22e71ed?w=1600&q=80&auto=format&fit=crop',
+        rugby:      'https://images.unsplash.com/photo-1480099225005-2513c8947aec?w=1600&q=80&auto=format&fit=crop',
+        cricket:    'https://images.unsplash.com/photo-1512719994953-eabf50895df7?w=1600&q=80&auto=format&fit=crop',
+        f1:         'https://images.unsplash.com/photo-1610905376670-5e7e0e8a3cfb?w=1600&q=80&auto=format&fit=crop',
+        // Uncovered sports reuse the stadium image as a generic fallback
+        esports:    'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1600&q=80&auto=format&fit=crop',
+        volleyball: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1600&q=80&auto=format&fit=crop',
+        handball:   'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1600&q=80&auto=format&fit=crop',
+        mma:        'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1600&q=80&auto=format&fit=crop'
+    };
+
     // Every sport is a flat page in the site root, like news.html and highlights.html:
     // /tennis.html, /nfl.html, /formula-1.html … (the home page stays '/').
     function pathFor(sport) {
@@ -221,6 +241,27 @@
         if (h) h.textContent = p.heading;
         var b = doc.getElementById('sport-page-blurb');
         if (b) b.textContent = p.blurb;
+        applyHero(sport);
+    }
+
+    // Update the sport hero section (image + headline) and show/hide it.
+    // The home page ('all') has no hero; every sport page shows its own.
+    function applyHero(sport) {
+        if (!doc) return;
+        var hero = doc.getElementById('sport-hero');
+        if (!hero) return;
+        var img = HERO_IMAGES[sport];
+        if (!img) { hero.hidden = true; return; }
+        hero.hidden = false;
+        var bg = hero.querySelector('.sport-hero-bg');
+        if (bg) bg.style.backgroundImage = "url('" + img + "')";
+        var p = bySport[sport];
+        var titleEl = hero.querySelector('.sport-hero-title');
+        if (titleEl && p) titleEl.textContent = p.name;
+        var subEl = hero.querySelector('.sport-hero-sub');
+        if (subEl && p) subEl.textContent = p.heading;
+        var iconEl = hero.querySelector('.sport-hero-icon');
+        if (iconEl && p) iconEl.textContent = p.icon;
     }
 
     // Move the address bar to the sport's own URL without reloading. The target is
@@ -250,6 +291,8 @@
         urlFor: urlFor,
         sportForPath: sportForPath,
         applyHead: applyHead,
+        applyHero: applyHero,
+        heroImageFor: function (sport) { return HERO_IMAGES[sport] || ''; },
         navigate: navigate
     };
 });

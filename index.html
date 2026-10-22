@@ -8,6 +8,9 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ScoreHub">
     <meta name="description" content="ScoreHub - Live football scores worldwide: Premier League, LaLiga, Serie A, Bundesliga, Champions League, 120+ leagues, fixtures, standings, highlights & news.">
     <meta name="keywords" content="live scores, football, soccer, Premier League, LaLiga, Serie A, Bundesliga, Champions League, live football, fixtures, standings, highlights, soccer news">
     <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -17,14 +20,14 @@
     <meta property="og:title" content="ScoreHub - Every Score. Every Moment. Live Football Worldwide">
     <meta property="og:description" content="Live football scores worldwide: 120+ leagues including EPL, LaLiga, UCL, Serie A. Real-time fixtures, standings, highlights, previews & news.">
     <meta property="og:url" content="https://livematches.hyper.co.ke/">
-    <meta property="og:image" content="https://livematches.hyper.co.ke/icon-512.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
+    <meta property="og:image" content="https://livematches.hyper.co.ke/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@ScoreHub">
     <meta name="twitter:title" content="ScoreHub - Every Score. Every Moment. Live Football Worldwide">
     <meta name="twitter:description" content="Live football scores worldwide: 120+ leagues, fixtures, standings, highlights & news. Every score, every moment.">
-    <meta name="twitter:image" content="https://livematches.hyper.co.ke/icon-512.png">
+    <meta name="twitter:image" content="https://livematches.hyper.co.ke/og-image.png">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="author" content="ScoreHub">
     <title>ScoreHub - Every Score. Every Moment. Live Football Worldwide</title>
@@ -255,6 +258,17 @@
                     <span class="sport-icon">🏎️</span>
                     <span class="sport-name">Formula 1</span>
                 </a>
+            </div>
+        </section>
+
+        <!-- SPORT HERO (per-sport hero image + headline; hidden on the home page, shown on sport pages by sport-pages.js) -->
+        <section class="sport-hero" id="sport-hero" hidden aria-labelledby="sport-hero-title">
+            <div class="sport-hero-bg"></div>
+            <div class="sport-hero-scrim"></div>
+            <div class="sport-hero-content">
+                <span class="sport-hero-icon" aria-hidden="true"></span>
+                <h2 class="sport-hero-title" id="sport-hero-title"></h2>
+                <p class="sport-hero-sub"></p>
             </div>
         </section>
 
