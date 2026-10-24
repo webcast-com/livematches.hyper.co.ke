@@ -1,12 +1,12 @@
 {
- "collectedAt": "2026-10-24T00:43:49.981Z",
+ "collectedAt": "2026-10-24T08:33:27.100Z",
  "leagues": [
   {
    "sport": "baseball",
    "league": "mlb",
    "standings": true,
    "scoreboards": 10,
-   "summaries": 3,
+   "summaries": 4,
    "tableRows": 30,
    "tableGroups": 2,
    "season": 2027
@@ -583,7 +583,7 @@
   }
  ],
  "totals": {
-  "bytes": 6532629,
-  "files": 170
+  "bytes": 6639750,
+  "files": 171
  }
 }
