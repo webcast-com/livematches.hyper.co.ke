@@ -976,6 +976,72 @@ function matchHighlightUrl(homeTeam, awayTeam, leagueName) {
     return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
 }
 
+// --- Watch Live broadcast modal (same simulated player as the sport pages) ---
+
+let watchPlayState = true;
+let watchPitchTimer = null;
+
+function runWatchPitchAnimation() {
+    if (!watchPlayState) return;
+    const ball = document.getElementById("pitch-ball");
+    if (!ball) return;
+    const ballX = Math.floor(Math.random() * 80) + 10;
+    const ballY = Math.floor(Math.random() * 80) + 10;
+    ball.style.left = `${ballX}%`;
+    ball.style.top = `${ballY}%`;
+    document.querySelectorAll("#live-pitch-animation .pitch-player").forEach((p) => {
+        const currentX = parseFloat(p.style.left);
+        const currentY = parseFloat(p.style.top);
+        const targetX = ballX + (Math.random() * 20 - 10);
+        const targetY = ballY + (Math.random() * 20 - 10);
+        const newX = currentX + (targetX - currentX) * 0.15;
+        const newY = currentY + (targetY - currentY) * 0.15;
+        p.style.left = `${Math.max(5, Math.min(95, newX))}%`;
+        p.style.top = `${Math.max(5, Math.min(95, newY))}%`;
+    });
+}
+
+function openWatchModal(title, broadcast) {
+    const modal = document.getElementById("watch-live-modal");
+    if (!modal) return;
+    const titleEl = document.getElementById("watch-modal-title");
+    if (titleEl) titleEl.textContent = title || "Live Match Broadcast";
+    const broadcastEl = document.getElementById("watch-broadcast-info");
+    if (broadcastEl) broadcastEl.textContent = broadcast ? `📺 ${broadcast}` : "📺 No broadcast info";
+    modal.classList.add("active");
+    document.body.classList.add("modal-open");
+    watchPlayState = true;
+    const ppBtn = document.getElementById("play-pause-btn");
+    if (ppBtn) ppBtn.innerText = "Pause Stream";
+    clearInterval(watchPitchTimer);
+    watchPitchTimer = setInterval(runWatchPitchAnimation, 1200);
+}
+
+function closeWatchModal() {
+    const modal = document.getElementById("watch-live-modal");
+    if (!modal) return;
+    modal.classList.remove("active");
+    document.body.classList.remove("modal-open");
+    clearInterval(watchPitchTimer);
+    watchPitchTimer = null;
+}
+
+function initWatchLiveModal() {
+    const modal = document.getElementById("watch-live-modal");
+    if (!modal) return;
+    const closeBtn = document.getElementById("close-watch-modal");
+    if (closeBtn) closeBtn.addEventListener("click", closeWatchModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeWatchModal(); });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("active")) closeWatchModal();
+    });
+    const ppBtn = document.getElementById("play-pause-btn");
+    if (ppBtn) ppBtn.addEventListener("click", () => {
+        watchPlayState = !watchPlayState;
+        ppBtn.innerText = watchPlayState ? "Pause Stream" : "Resume Stream";
+    });
+}
+
 function renderSimMatch(m) {
     const box = document.getElementById("match-body");
     const H = { name: m.homeTeam || "Home", code: m.homeCode || "HOM", logo: m.homeLogo || "" };
@@ -1012,6 +1078,7 @@ function renderSimMatch(m) {
         <h1 style="margin-top:10px;">${esc(H.name)} vs ${esc(A.name)}</h1>
         <div class="match-hero"><div class="match-hero-top">${logoImg(H.logo, "match-hero-logo")}<span class="match-hero-name">${esc(H.name)}</span><span class="match-hero-score">${esc(hs)} – ${esc(as)}</span><span class="match-hero-name">${esc(A.name)}</span>${logoImg(A.logo, "match-hero-logo")}</div><div class="match-hero-sub">${esc(m.league || "")} · ${esc(m.time || "")}</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+            <button class="btn btn-watch-live btn-sm" id="watch-live-btn">📺 Watch Live</button>
             <a class="btn btn-login btn-sm highlight-btn" href="${matchHighlightUrl(H.name, A.name, m.league)}" target="_blank" rel="noopener">🎥 Highlights</a>
             ${simPreviewBtn}
             ${simReportBtn}
@@ -1036,6 +1103,8 @@ function renderSimMatch(m) {
         ${typeof shareSectionHTML === "function" ? shareSectionHTML() : ""}`;
 
     wireTabs();
+    const watchBtn = document.getElementById("watch-live-btn");
+    if (watchBtn) watchBtn.addEventListener("click", () => openWatchModal(`Live Match Broadcast — ${H.name} vs ${A.name}`, ""));
     const shareBtn = document.getElementById("match-share-btn");
     if (shareBtn) shareBtn.addEventListener("click", async () => {
         const data = { title: `${H.name} vs ${A.name}`, text: `${H.name} vs ${A.name} — ${m.league}`, url: window.location.href };
@@ -1250,6 +1319,7 @@ async function bootMatch() {
         <div class="match-hero"><div class="match-hero-top">${logoImg(H.logo, "match-hero-logo")}<span class="match-hero-name">${esc(H.name)}</span><span class="match-hero-score">${isPre ? "vs" : `${hs != null ? hs : "–"} – ${as != null ? as : "–"}`}</span><span class="match-hero-name">${esc(A.name)}</span>${logoImg(A.logo, "match-hero-logo")}</div></div>
         <div class="form-cols"><div class="form-col"><h3>${logoImg(H.logo, "pred-logo")} ${esc(H.name)}</h3>${scorersH.length ? scorersH.map((g) => `<div class="form-game">⚽ ${esc(g.display)} ${esc(g.scorer)}${g.pen ? " (P)" : g.og ? " (OG)" : ""}</div>`).join("") : `<p class="loading-note" style="padding:4px 0;">No goals yet.</p>`}</div><div class="form-col"><h3>${logoImg(A.logo, "pred-logo")} ${esc(A.name)}</h3>${scorersA.length ? scorersA.map((g) => `<div class="form-game">⚽ ${esc(g.display)} ${esc(g.scorer)}${g.pen ? " (P)" : g.og ? " (OG)" : ""}</div>`).join("") : `<p class="loading-note" style="padding:4px 0;">No goals yet.</p>`}</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+            <button class="btn btn-watch-live btn-sm" id="watch-live-btn">📺 Watch Live</button>
             ${previewHref ? `<a class="btn btn-login btn-sm" href="${previewHref}">📰 Preview</a>` : ""}
             ${reportHref ? `<a class="btn btn-login btn-sm" href="${reportHref}">📝 Report</a>` : ""}
             ${(isPost || st.completed) ? `<a class="btn btn-login btn-sm highlight-btn" href="${matchHighlightUrl(H.name, A.name, leagueName)}" target="_blank" rel="noopener">🎥 Highlights</a>` : ""}
@@ -1275,6 +1345,8 @@ async function bootMatch() {
 
     // Wire tabs + actions
     wireTabs();
+    const watchBtn = document.getElementById("watch-live-btn");
+    if (watchBtn) watchBtn.addEventListener("click", () => openWatchModal(`Live Match Broadcast — ${H.name} vs ${A.name}`, broadcast));
     const shareBtn = document.getElementById("match-share-btn");
     if (shareBtn) shareBtn.addEventListener("click", async () => {
         const data = { title: `${H.name} vs ${A.name}`, text: `${H.name} vs ${A.name} — ${leagueName}`, url: window.location.href };
@@ -1323,6 +1395,9 @@ async function bootMatch() {
 }
 
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
-    document.addEventListener("DOMContentLoaded", bootMatch);
+    document.addEventListener("DOMContentLoaded", () => {
+        initWatchLiveModal();
+        bootMatch();
+    });
 }
 window.__rerenderLang = function () { try { bootMatch(); } catch (e) {} };
