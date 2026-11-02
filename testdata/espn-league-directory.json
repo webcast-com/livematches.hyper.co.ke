@@ -1,17 +1,7 @@
 {
- "at": "2026-10-26T11:22:30.482Z",
+ "at": "2026-11-02T13:44:16.795Z",
  "directory": {
   "rugby": [
-   {
-    "id": "8331",
-    "slug": "270557",
-    "abbreviation": "United Rugby Championship",
-    "name": "United Rugby Championship",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 10,
-    "espnName": "United Rugby Championship"
-   },
    {
     "id": "8005",
     "slug": "270559",
@@ -19,18 +9,38 @@
     "name": "French Top 14",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 8,
+    "events": 9,
     "espnName": "French Top 14"
    },
    {
-    "id": "8007",
-    "slug": "267979",
-    "abbreviation": "Prem Rugby",
-    "name": "Prem Rugby",
+    "id": "24400",
+    "slug": "17567",
+    "abbreviation": "Nations Championship",
+    "name": "Nations Championship",
     "isTournament": true,
     "scoreboardOk": true,
     "events": 6,
-    "espnName": "Gallagher Prem"
+    "espnName": "Nations Championship"
+   },
+   {
+    "id": "8331",
+    "slug": "270557",
+    "abbreviation": "United Rugby Championship",
+    "name": "United Rugby Championship",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 2,
+    "espnName": "United Rugby Championship"
+   },
+   {
+    "id": "20113",
+    "slug": "289279",
+    "abbreviation": "URBA Top 14",
+    "name": "URBA Top 14",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 2,
+    "espnName": "URBA Top 14"
    },
    {
     "id": "10659",
@@ -43,24 +53,14 @@
     "espnName": "International Test Match"
    },
    {
-    "id": "8004",
-    "slug": "270563",
-    "abbreviation": "National Provence Championship",
-    "name": "Mitre 10 Cup",
+    "id": "8007",
+    "slug": "267979",
+    "abbreviation": "Prem Rugby",
+    "name": "Prem Rugby",
     "isTournament": true,
     "scoreboardOk": true,
     "events": 1,
-    "espnName": "Mitre 10 Cup"
-   },
-   {
-    "id": "20113",
-    "slug": "289279",
-    "abbreviation": "URBA Top 14",
-    "name": "URBA Top 14",
-    "isTournament": false,
-    "scoreboardOk": true,
-    "events": 1,
-    "espnName": "URBA Top 14"
+    "espnName": "Gallagher Prem"
    },
    {
     "id": "19940",
@@ -133,14 +133,14 @@
     "espnName": "Major League Rugby"
    },
    {
-    "id": "24400",
-    "slug": "17567",
-    "abbreviation": "Nations Championship",
-    "name": "Nations Championship",
+    "id": "8004",
+    "slug": "270563",
+    "abbreviation": "National Provence Championship",
+    "name": "Mitre 10 Cup",
     "isTournament": true,
     "scoreboardOk": true,
     "events": 0,
-    "espnName": "Nations Championship"
+    "espnName": "Mitre 10 Cup"
    },
    {
     "id": "10743",
