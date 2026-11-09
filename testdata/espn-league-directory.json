@@ -1,17 +1,7 @@
 {
- "at": "2026-11-02T13:44:16.795Z",
+ "at": "2026-11-09T14:10:52.752Z",
  "directory": {
   "rugby": [
-   {
-    "id": "8005",
-    "slug": "270559",
-    "abbreviation": "TOP14",
-    "name": "French Top 14",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 9,
-    "espnName": "French Top 14"
-   },
    {
     "id": "24400",
     "slug": "17567",
@@ -19,28 +9,18 @@
     "name": "Nations Championship",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 6,
+    "events": 12,
     "espnName": "Nations Championship"
    },
    {
-    "id": "8331",
-    "slug": "270557",
-    "abbreviation": "United Rugby Championship",
-    "name": "United Rugby Championship",
+    "id": "8005",
+    "slug": "270559",
+    "abbreviation": "TOP14",
+    "name": "French Top 14",
     "isTournament": true,
     "scoreboardOk": true,
-    "events": 2,
-    "espnName": "United Rugby Championship"
-   },
-   {
-    "id": "20113",
-    "slug": "289279",
-    "abbreviation": "URBA Top 14",
-    "name": "URBA Top 14",
-    "isTournament": false,
-    "scoreboardOk": true,
-    "events": 2,
-    "espnName": "URBA Top 14"
+    "events": 8,
+    "espnName": "French Top 14"
    },
    {
     "id": "10659",
@@ -49,18 +29,18 @@
     "name": "International Test Match",
     "isTournament": false,
     "scoreboardOk": true,
-    "events": 1,
+    "events": 3,
     "espnName": "International Test Match"
    },
    {
-    "id": "8007",
-    "slug": "267979",
-    "abbreviation": "Prem Rugby",
-    "name": "Prem Rugby",
-    "isTournament": true,
+    "id": "20113",
+    "slug": "289279",
+    "abbreviation": "URBA Top 14",
+    "name": "URBA Top 14",
+    "isTournament": false,
     "scoreboardOk": true,
     "events": 1,
-    "espnName": "Gallagher Prem"
+    "espnName": "URBA Top 14"
    },
    {
     "id": "19940",
@@ -163,6 +143,16 @@
     "espnName": "Olympic Women's Rugby Sevens"
    },
    {
+    "id": "8007",
+    "slug": "267979",
+    "abbreviation": "Prem Rugby",
+    "name": "Prem Rugby",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "Gallagher Prem"
+   },
+   {
     "id": "8337",
     "slug": "164205",
     "abbreviation": "Rugby World Cup",
@@ -231,6 +221,16 @@
     "scoreboardOk": true,
     "events": 0,
     "espnName": "The Rugby Championship"
+   },
+   {
+    "id": "8331",
+    "slug": "270557",
+    "abbreviation": "United Rugby Championship",
+    "name": "United Rugby Championship",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "United Rugby Championship"
    },
    {
     "id": "4001",
