@@ -1,5 +1,5 @@
 {
- "at": "2026-11-09T14:10:52.752Z",
+ "at": "2026-11-16T13:53:56.492Z",
  "directory": {
   "rugby": [
    {
@@ -13,16 +13,6 @@
     "espnName": "Nations Championship"
    },
    {
-    "id": "8005",
-    "slug": "270559",
-    "abbreviation": "TOP14",
-    "name": "French Top 14",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 8,
-    "espnName": "French Top 14"
-   },
-   {
     "id": "10659",
     "slug": "289234",
     "abbreviation": "International Test Match",
@@ -31,16 +21,6 @@
     "scoreboardOk": true,
     "events": 3,
     "espnName": "International Test Match"
-   },
-   {
-    "id": "20113",
-    "slug": "289279",
-    "abbreviation": "URBA Top 14",
-    "name": "URBA Top 14",
-    "isTournament": false,
-    "scoreboardOk": true,
-    "events": 1,
-    "espnName": "URBA Top 14"
    },
    {
     "id": "19940",
@@ -101,6 +81,16 @@
     "scoreboardOk": true,
     "events": 0,
     "espnName": "European Rugby Champions Cup"
+   },
+   {
+    "id": "8005",
+    "slug": "270559",
+    "abbreviation": "TOP14",
+    "name": "French Top 14",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "French Top 14"
    },
    {
     "id": "19114",
@@ -241,6 +231,16 @@
     "scoreboardOk": true,
     "events": 0,
     "espnName": "URBA Primera A"
+   },
+   {
+    "id": "20113",
+    "slug": "289279",
+    "abbreviation": "URBA Top 14",
+    "name": "URBA Top 14",
+    "isTournament": false,
+    "scoreboardOk": true,
+    "events": 0,
+    "espnName": "URBA Top 14"
    },
    {
     "id": "17953",
