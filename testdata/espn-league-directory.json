@@ -1,5 +1,5 @@
 {
- "at": "2026-11-16T13:53:56.492Z",
+ "at": "2026-11-23T16:19:41.399Z",
  "directory": {
   "rugby": [
    {
@@ -13,13 +13,23 @@
     "espnName": "Nations Championship"
    },
    {
+    "id": "8005",
+    "slug": "270559",
+    "abbreviation": "TOP14",
+    "name": "French Top 14",
+    "isTournament": true,
+    "scoreboardOk": true,
+    "events": 7,
+    "espnName": "French Top 14"
+   },
+   {
     "id": "10659",
     "slug": "289234",
     "abbreviation": "International Test Match",
     "name": "International Test Match",
     "isTournament": false,
     "scoreboardOk": true,
-    "events": 3,
+    "events": 2,
     "espnName": "International Test Match"
    },
    {
@@ -81,16 +91,6 @@
     "scoreboardOk": true,
     "events": 0,
     "espnName": "European Rugby Champions Cup"
-   },
-   {
-    "id": "8005",
-    "slug": "270559",
-    "abbreviation": "TOP14",
-    "name": "French Top 14",
-    "isTournament": true,
-    "scoreboardOk": true,
-    "events": 0,
-    "espnName": "French Top 14"
    },
    {
     "id": "19114",
